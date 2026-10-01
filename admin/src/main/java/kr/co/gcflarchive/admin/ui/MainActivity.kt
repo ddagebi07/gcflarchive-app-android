@@ -27,10 +27,8 @@ class MainActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        setSupportActionBar(binding.toolbar)
+        setScreen(binding.root, binding.toolbar, getString(R.string.app_name), up = false, bottomBar = binding.bottomNav)
         val session = AdminSession.get(this)
-        supportActionBar?.title = getString(R.string.app_name)
         supportActionBar?.subtitle = session.displayName
 
         applyTabVisibility()

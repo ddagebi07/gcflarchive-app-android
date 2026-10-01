@@ -1,7 +1,6 @@
 package kr.co.gcflarchive.admin.ui.search
 
 import android.os.Bundle
-import android.view.MenuItem
 import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.lifecycleScope
@@ -34,10 +33,7 @@ class SearchActivity : BaseActivity(), RowAdapter.Listener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySearchBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        setSupportActionBar(binding.toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.title = ""
+        setScreen(binding.root, binding.toolbar, title = "")
         binding.list.layoutManager = LinearLayoutManager(this)
         binding.list.adapter = adapter
         binding.query.doAfterTextChanged { render() }
@@ -110,11 +106,4 @@ class SearchActivity : BaseActivity(), RowAdapter.Listener {
         }
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == android.R.id.home) {
-            finish()
-            return true
-        }
-        return super.onOptionsItemSelected(item)
-    }
 }

@@ -14,8 +14,8 @@
         <item name="colorOutline">@color/krds_input_border</item>
         <item name="colorOutlineVariant">@color/krds_border</item>
         <item name="colorError">@color/krds_danger</item>
-        <item name="android:statusBarColor">@color/krds_surface</item>
-        <item name="android:windowLightStatusBar">@bool/admin_light_bars</item>
+        <!-- System bars are drawn by enableEdgeToEdge(); ui/kit/Insets pads the content. -->
+        <item name="windowActionModeOverlay">true</item>
         <item name="android:fontFamily">@font/pretendard_gov</item>
         <item name="fontFamily">@font/pretendard_gov</item>
         <item name="textAppearanceDisplayLarge">@style/TextAppearance.Gcfl.DisplayLarge</item>

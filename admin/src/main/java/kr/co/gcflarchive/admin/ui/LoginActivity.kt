@@ -14,6 +14,7 @@ import kr.co.gcflarchive.admin.core.AdminSession
 import kr.co.gcflarchive.admin.core.Auth
 import kr.co.gcflarchive.admin.databinding.ActivityLoginBinding
 import kr.co.gcflarchive.admin.ui.kit.Dialogs
+import kr.co.gcflarchive.admin.ui.kit.Insets
 
 /** 관리자 인증: 마스터 키 또는 관리자 학번(학번 + 비밀번호). */
 class LoginActivity : AppCompatActivity() {
@@ -28,6 +29,7 @@ class LoginActivity : AppCompatActivity() {
         }
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        Insets.apply(this, binding.root)
         val prefs = AdminPrefs(this)
         binding.server.setText(prefs.serverUrl)
 

@@ -3,7 +3,6 @@ package kr.co.gcflarchive.admin.ui
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.view.MenuItem
 import androidx.fragment.app.commit
 import kr.co.gcflarchive.admin.core.AdminSession
 import kr.co.gcflarchive.admin.databinding.ActivitySectionBinding
@@ -15,9 +14,7 @@ class SectionActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySectionBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        setSupportActionBar(binding.toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        setScreen(binding.root, binding.toolbar)
         val route = Route.of(intent.getStringExtra(EXTRA_ROUTE))
         val factory = route?.create
         // Never open a screen the operator has no permission for (e.g. stale deep link).
@@ -33,14 +30,6 @@ class SectionActivity : BaseActivity() {
                 })
             }
         }
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == android.R.id.home) {
-            finish()
-            return true
-        }
-        return super.onOptionsItemSelected(item)
     }
 
     companion object {

@@ -1,6 +1,5 @@
 package kr.co.gcflarchive.admin.features.dashboard
 
-import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kr.co.gcflarchive.admin.R
@@ -127,6 +126,6 @@ class DashboardFragment : ListFragment() {
     }
 
     private fun undo(message: String, revert: () -> Unit) {
-        view?.let { Snackbar.make(it, message, Snackbar.LENGTH_LONG).setAction(R.string.undo) { revert() }.show() }
+        snackbar(message, getString(R.string.undo), revert)
     }
 }

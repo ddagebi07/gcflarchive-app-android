@@ -3,11 +3,15 @@ package kr.co.gcflarchive.admin.ui
 import android.content.Intent
 import android.os.Handler
 import android.os.Looper
+import android.view.MenuItem
+import android.view.View
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.appbar.MaterialToolbar
 import kr.co.gcflarchive.admin.AdminApp
 import kr.co.gcflarchive.admin.core.AdminPrefs
 import kr.co.gcflarchive.admin.core.AdminSession
+import kr.co.gcflarchive.admin.ui.kit.Insets
 
 /**
  * Every signed-in screen: blocks screenshots/recents previews (FLAG_SECURE, on by
@@ -23,6 +27,28 @@ abstract class BaseActivity : AppCompatActivity() {
     }
 
     protected val app: AdminApp get() = application as AdminApp
+
+    /**
+     * Common screen setup: content view, toolbar (with ← when [up]) and system-bar /
+     * keyboard insets so nothing ends up under the status bar, gesture bar or keyboard.
+     */
+    protected fun setScreen(root: View, toolbar: MaterialToolbar? = null, title: CharSequence? = null, up: Boolean = true, bottomBar: View? = null) {
+        setContentView(root)
+        toolbar?.let {
+            setSupportActionBar(it)
+            supportActionBar?.setDisplayHomeAsUpEnabled(up)
+            title?.let { t -> supportActionBar?.title = t }
+        }
+        Insets.apply(this, root, bottomBar)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == android.R.id.home) {
+            onBackPressedDispatcher.onBackPressed()
+            return true
+        }
+        return super.onOptionsItemSelected(item)
+    }
 
     override fun onResume() {
         super.onResume()

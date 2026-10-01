@@ -1,9 +1,12 @@
 package kr.co.gcflarchive.admin.ui.kit
 
+import android.graphics.Rect
 import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
+import android.view.WindowManager
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.LinearLayout
@@ -47,19 +50,42 @@ class FormValues internal constructor(private val map: Map<String, Any?>) {
 /**
  * Bottom-sheet form builder used by every create/edit screen. [onSubmit] runs in a
  * coroutine; returning normally closes the sheet, throwing shows the error inline.
+ *
+ * The fields scroll in a height-capped area above a pinned 취소/저장 bar, and the cap
+ * follows the keyboard, so the buttons can never be pushed off screen or covered.
  */
 class FormSheet(private val activity: FragmentActivity, title: String, description: String? = null) {
     private val dialog = BottomSheetDialog(activity)
     private val b = SheetFormBinding.inflate(LayoutInflater.from(activity))
     private val readers = mutableMapOf<String, () -> Any?>()
-    private val validators = mutableListOf<() -> String?>()
+    /** Field view + check; the view is scrolled to when its check fails. */
+    private val validators = mutableListOf<Pair<View, () -> String?>>()
+    private var onClose: (() -> Unit)? = null
+    private val frame = Rect()
+    private val capper = ViewTreeObserver.OnGlobalLayoutListener { capScroll() }
 
     init {
         b.formTitle.text = title
         b.formDesc.isVisible = description != null
         b.formDesc.text = description
         dialog.setContentView(b.root)
+        dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
         b.formCancel.setOnClickListener { dialog.dismiss() }
+        dialog.setOnDismissListener {
+            b.root.viewTreeObserver.takeIf { it.isAlive }?.removeOnGlobalLayoutListener(capper)
+            onClose?.invoke()
+        }
+    }
+
+    /**
+     * Limits the field area to what is left of the visible window (minus the keyboard,
+     * title and button bar), keeping a strip of the page visible above the sheet.
+     */
+    private fun capScroll() {
+        if (!b.root.isAttachedToWindow) return
+        b.root.getWindowVisibleDisplayFrame(frame)
+        val chrome = b.root.height - b.formScroll.height
+        b.formScroll.maxScrollHeight = (frame.height() - chrome - dp(40)).coerceAtLeast(dp(96))
     }
 
     private fun label(text: String) {
@@ -100,7 +126,7 @@ class FormSheet(private val activity: FragmentActivity, title: String, descripti
         layout.addView(edit)
         b.formFields.addView(layout, lp(top = 12))
         readers[key] = { edit.text?.toString().orEmpty() }
-        validators += {
+        validators += layout to {
             val v = edit.text?.toString().orEmpty().trim()
             val err = when {
                 required && v.isEmpty() -> activity.getString(R.string.form_required, label)
@@ -256,7 +282,7 @@ class FormSheet(private val activity: FragmentActivity, title: String, descripti
     }
 
     fun onDismiss(block: () -> Unit): FormSheet {
-        dialog.setOnDismissListener { block() }
+        onClose = block
         return this
     }
 
@@ -268,7 +294,12 @@ class FormSheet(private val activity: FragmentActivity, title: String, descripti
 
     fun show(onSubmit: suspend (FormValues) -> Unit): FormSheet {
         b.formSubmit.setOnClickListener {
-            if (validators.map { it() }.any { it != null }) return@setOnClickListener
+            val failed = validators.map { (view, check) -> view to check() }.filter { it.second != null }
+            if (failed.isNotEmpty()) {
+                // Bring the first problem into view instead of failing silently off screen.
+                b.formScroll.smoothScrollTo(0, (failed.first().first.top - dp(12)).coerceAtLeast(0))
+                return@setOnClickListener
+            }
             val values = FormValues(readers.mapValues { it.value() })
             b.formSubmit.isEnabled = false
             b.formError.isVisible = false
@@ -284,6 +315,7 @@ class FormSheet(private val activity: FragmentActivity, title: String, descripti
         }
         dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
         dialog.behavior.skipCollapsed = true
+        b.root.viewTreeObserver.addOnGlobalLayoutListener(capper)
         dialog.show()
         return this
     }

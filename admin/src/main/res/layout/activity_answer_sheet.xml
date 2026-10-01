@@ -3,8 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/krds_bg"
-    android:fitsSystemWindows="true"
+    android:background="@color/krds_surface"
     android:orientation="vertical">
 
     <com.google.android.material.appbar.MaterialToolbar
@@ -21,6 +20,7 @@
         android:visibility="gone" />
 
     <androidx.core.widget.NestedScrollView
+        android:background="@color/krds_bg"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1">
@@ -165,6 +165,12 @@
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
+
+    <!-- Save bar: outside the scroll area so it is always reachable (also above the keyboard). -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/krds_border" />
 
     <LinearLayout
         android:layout_width="match_parent"

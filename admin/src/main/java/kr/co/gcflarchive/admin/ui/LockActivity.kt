@@ -20,6 +20,7 @@ import kr.co.gcflarchive.admin.R
 import kr.co.gcflarchive.admin.core.AdminSession
 import kr.co.gcflarchive.admin.core.Auth
 import kr.co.gcflarchive.admin.databinding.ActivityLockBinding
+import kr.co.gcflarchive.admin.ui.kit.Insets
 
 /** 생체 인증(지문·얼굴) 또는 기기 잠금으로 재잠금 해제. */
 class LockActivity : AppCompatActivity() {
@@ -34,6 +35,7 @@ class LockActivity : AppCompatActivity() {
         window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
         binding = ActivityLockBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        Insets.apply(this, binding.root)
         binding.who.text = AdminSession.get(this).displayName
         binding.btnUnlock.setOnClickListener { prompt() }
         binding.btnSignOut.setOnClickListener {

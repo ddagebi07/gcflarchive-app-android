@@ -5,5 +5,4 @@
     <color name="admin_warning">#B45309</color>
     <color name="admin_warning_bg">#FEF3C7</color>
     <color name="admin_success">#166534</color>
-    <bool name="admin_light_bars">true</bool>
 </resources>

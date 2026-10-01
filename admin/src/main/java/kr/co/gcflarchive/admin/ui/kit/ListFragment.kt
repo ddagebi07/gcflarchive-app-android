@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import androidx.appcompat.view.ActionMode
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -15,6 +16,7 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.Chip
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -83,7 +85,16 @@ abstract class ListFragment : Fragment(), RowAdapter.Listener {
             binding.fab.text = label
             binding.fab.setIconResource(icon)
             binding.fab.setOnClickListener { if (guardWrite()) onFab() }
+            // Collapse to an icon while scrolling down so it covers less of the rows.
+            binding.list.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+                override fun onScrolled(rv: RecyclerView, dx: Int, dy: Int) {
+                    if (dy > 8 && binding.fab.isExtended) binding.fab.shrink()
+                    else if (dy < -8 && !binding.fab.isExtended) binding.fab.extend()
+                }
+            })
         }
+        // Room below the last row: clears the FAB when there is one, a small margin otherwise.
+        binding.list.updatePadding(bottom = view.dp(if (fab != null) 104 else 24))
         if (swipeLabel != null) attachSwipe()
         reload()
     }
@@ -103,6 +114,15 @@ abstract class ListFragment : Fragment(), RowAdapter.Listener {
             }
             binding.chips.addView(chip)
         }
+    }
+
+    /** Snackbar that sits above the FAB instead of under it. */
+    protected fun snackbar(message: String, action: String? = null, onAction: (() -> Unit)? = null) {
+        val b = _binding ?: return
+        val bar = Snackbar.make(b.root, message, Snackbar.LENGTH_LONG)
+        if (b.fab.isVisible) bar.anchorView = b.fab
+        if (action != null && onAction != null) bar.setAction(action) { onAction() }
+        bar.show()
     }
 
     protected fun setSummary(text: String?) {
