@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">GCFL 아카이브</string>
+    <string name="share_target_label">극플드라이브에 올리기</string>
+
+    <!-- Tabs -->
+    <string name="tab_home">홈</string>
+    <string name="tab_meal">급식</string>
+    <string name="tab_drive">극플드라이브</string>
+    <string name="tab_settings">설정</string>
+
+    <!-- Home -->
+    <string name="home_tagline">기록의 가치, 가치의 기록.</string>
+    <string name="home_today_meal">오늘의 급식</string>
+    <string name="home_archive">아카이브</string>
+    <string name="home_upload_title">극플드라이브에 파일 올리기</string>
+    <string name="home_upload_desc">PDF·한글·오피스 문서를 올리고 학교에서 바로 인쇄하세요.\n다른 앱의 \'공유\' 버튼으로도 올릴 수 있어요.</string>
+    <string name="home_open_drive">내 드라이브</string>
+    <string name="home_open_site">웹사이트 전체 보기</string>
+
+    <string name="link_past_exams">기출</string>
+    <string name="link_documents">PDF</string>
+    <string name="link_photos">사진</string>
+    <string name="link_videos">영상</string>
+    <string name="link_search">통합 검색</string>
+    <string name="link_grades">등급컷</string>
+    <string name="link_map">맛집 지도</string>
+    <string name="link_notice">공지</string>
+
+    <!-- Meal -->
+    <string name="meal_loading">급식 정보를 불러오는 중입니다…</string>
+    <string name="meal_none">해당 날짜의 급식 정보가 없습니다.</string>
+    <string name="meal_none_desc">주말 또는 공휴일, 방학 기간에는 급식이 제공되지 않습니다.</string>
+    <string name="meal_none_today">오늘은 급식이 없습니다.</string>
+    <string name="meal_load_failed">급식 정보를 불러오지 못했습니다.</string>
+    <string name="meal_load_failed_desc">네트워크 상태를 확인하거나 아래로 당겨 다시 시도해 주세요.</string>
+    <string name="meal_today">오늘</string>
+    <string name="meal_go_today">오늘로</string>
+    <string name="meal_prev">이전 날</string>
+    <string name="meal_next">다음 날</string>
+    <string name="allergy_guide">알레르기 유발 정보: ①난류 ②우유 ③메밀 ④땅콩 ⑤대두 ⑥밀 ⑦고등어 ⑧게 ⑨새우 ⑩돼지고기 ⑪복숭아 ⑫토마토 ⑬아황산류 ⑭호두 ⑮닭고기 ⑯쇠고기 ⑰오징어 ⑱조개류 ⑲잣</string>
+    <string name="meal_channel_name">급식 알림</string>
+    <string name="meal_channel_desc">매일 정해진 시간에 오늘의 급식 메뉴를 알려 드립니다.</string>
+    <string name="meal_notify_title_one">오늘의 %1$s</string>
+    <string name="meal_notify_title_all">오늘의 급식</string>
+
+    <!-- Settings -->
+    <string name="settings_meal_section">급식 알림</string>
+    <string name="settings_account_section">계정</string>
+    <string name="settings_etc_section">기타</string>
+    <string name="notify_enable">매일 급식 메뉴 알림 받기</string>
+    <string name="notify_time">알림 시간</string>
+    <string name="notify_kind">알림 받을 급식</string>
+    <string name="notify_test">지금 알림 보내 보기</string>
+    <string name="notify_system">시스템 알림 설정</string>
+    <string name="notify_permission_denied">알림 권한이 꺼져 있습니다. 시스템 알림 설정에서 허용해 주세요.</string>
+    <string-array name="meal_kinds">
+        <item>전체 (조식·중식·석식)</item>
+        <item>조식</item>
+        <item>중식</item>
+        <item>석식</item>
+    </string-array>
+    <string name="login">로그인 (학번 인증)</string>
+    <string name="login_title">로그인</string>
+    <string name="logout">로그아웃</string>
+    <string name="logged_out">로그아웃되었습니다.</string>
+    <string name="open_website">웹사이트 열기</string>
+    <string name="version_label">버전 %1$s</string>
+
+    <!-- Share / upload -->
+    <string name="share_title">극플드라이브에 올리기</string>
+    <string name="share_hint">7일 동안 보관되며, 학교 PC에서 학번과 PIN으로 바로 열 수 있어요. (최대 10MB, 5개 초과 시 ZIP으로 묶임)</string>
+    <string name="share_upload">올리기</string>
+    <string name="share_cancel">취소</string>
+    <string name="share_done_button">닫기</string>
+    <string name="share_open_drive">드라이브 열기</string>
+    <string name="share_ready">파일 %1$d개를 올릴 준비가 되었습니다.</string>
+    <string name="share_skipping_unsupported">지원하지 않는 형식은 제외됩니다.</string>
+    <string name="share_unsupported_type">지원하지 않는 형식 (.%1$s)</string>
+    <string name="share_no_files">공유된 파일이 없습니다. 파일을 공유해 주세요.</string>
+    <string name="share_none_allowed">문서 파일만 올릴 수 있습니다. (PDF, HWP/HWPX, DOC/DOCX, PPT/PPTX, XLS/XLSX, TXT, ZIP)</string>
+    <string name="share_too_large">전체 크기는 최대 10MB까지 가능합니다. (선택: %1$s)</string>
+    <string name="share_uploading">올리는 중…</string>
+    <string name="share_need_login">극플드라이브를 쓰려면 로그인이 필요합니다.</string>
+    <string name="share_done">%1$d개 파일을 극플드라이브에 담았습니다.</string>
+    <string name="share_done_zipped">파일이 5개를 넘어 기존 파일과 함께 ZIP으로 묶어 담았습니다.</string>
+    <string name="share_wait">업로드가 끝날 때까지 기다려 주세요.</string>
+    <string name="link_copied">링크를 복사했습니다.</string>
+    <string name="copy_link">링크 복사</string>
+
+    <!-- Web -->
+    <string name="refresh">새로고침</string>
+    <string name="open_in_browser">브라우저로 열기</string>
+    <string name="download_started">다운로드 시작: %1$s</string>
+    <string name="no_app_for_link">이 링크를 열 수 있는 앱이 없습니다.</string>
+
+    <!-- Launcher shortcuts -->
+    <string name="shortcut_meal">오늘 급식</string>
+    <string name="shortcut_drive">극플드라이브</string>
+    <string name="shortcut_exams">기출 아카이브</string>
+</resources>

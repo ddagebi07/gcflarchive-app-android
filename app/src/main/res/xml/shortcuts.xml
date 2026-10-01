@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Long-press the launcher icon for these. -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:icon="@drawable/ic_meal"
+        android:shortcutId="meal"
+        android:shortcutShortLabel="@string/shortcut_meal">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetClass="kr.co.gcflarchive.app.MainActivity"
+            android:targetPackage="kr.co.gcflarchive.app">
+            <extra android:name="tab" android:value="meal" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:icon="@drawable/ic_drive"
+        android:shortcutId="drive"
+        android:shortcutShortLabel="@string/shortcut_drive">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetClass="kr.co.gcflarchive.app.MainActivity"
+            android:targetPackage="kr.co.gcflarchive.app">
+            <extra android:name="tab" android:value="drive" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:icon="@drawable/ic_exam"
+        android:shortcutId="past_exams"
+        android:shortcutShortLabel="@string/shortcut_exams">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetClass="kr.co.gcflarchive.app.MainActivity"
+            android:targetPackage="kr.co.gcflarchive.app">
+            <extra android:name="path" android:value="/past-exams" />
+        </intent>
+    </shortcut>
+</shortcuts>

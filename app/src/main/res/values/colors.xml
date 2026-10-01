@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brand colors from theme-tokens.css (krds-primary). -->
+    <color name="brand_primary">#0B3492</color>
+    <color name="brand_primary_container">#DCE4F9</color>
+    <color name="on_brand_primary_container">#061D54</color>
+    <color name="text_secondary">#5A6170</color>
+    <color name="error">#C62828</color>
+    <color name="success">#2E7D32</color>
+    <color name="tile_background">#F1F4FA</color>
+</resources>
