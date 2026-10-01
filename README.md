@@ -26,9 +26,9 @@ WebView 요청의 User-Agent 끝에는 `GCFLArchiveApp/<버전>`이 붙습니다
 
 ## 빌드
 
-- Android Studio에서 `apps/android` 폴더를 열고 실행하거나,
-- 터미널에서 `cd apps/android && ./gradlew assembleDebug` → `app/build/outputs/apk/debug/app-debug.apk`
-- GitHub Actions(`.github/workflows/android.yml`)가 `apps/android/**` 변경 시 테스트·빌드·lint를 돌리고 디버그 APK를 아티팩트로 올립니다.
+- Android Studio에서 이 저장소 폴더를 열고 실행하거나,
+- 터미널에서 `./gradlew assembleDebug` → `app/build/outputs/apk/debug/app-debug.apk`
+- GitHub Actions(`.github/workflows/android.yml`)가 푸시마다 테스트·빌드·lint를 돌리고 디버그 APK를 아티팩트로 올립니다.
 
 요구 사항: JDK 17+, Android SDK 35. minSdk 26 (Android 8.0).
 
