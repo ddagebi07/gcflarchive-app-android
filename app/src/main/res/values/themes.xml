@@ -111,4 +111,34 @@
         <item name="android:textColor">@color/krds_text_primary</item>
     </style>
 
+    <!-- Bordered content card (.board-card-item) used by the native site pages -->
+    <style name="Widget.Gcfl.Card" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:background">@drawable/bg_krds_card</item>
+        <item name="android:padding">16dp</item>
+    </style>
+
+    <!-- Section heading inside a page (.section-title) -->
+    <style name="TextAppearance.Gcfl.SectionTitle" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:textColor">@color/krds_text_strong</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">@font/pretendard_gov</item>
+        <item name="fontFamily">@font/pretendard_gov</item>
+    </style>
+
+    <style name="Widget.Gcfl.Button.Danger" parent="Widget.Krds.Button.Tertiary">
+        <item name="strokeColor">@color/krds_danger</item>
+        <item name="android:textColor">@color/krds_danger</item>
+        <item name="iconTint">@color/krds_danger</item>
+    </style>
+
+    <!-- Numbered card heading of the grade calculator (.step-no) -->
+    <style name="Widget.Gcfl.StepTitle" parent="">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textAppearance">@style/TextAppearance.Gcfl.SectionTitle</item>
+    </style>
+
 </resources>

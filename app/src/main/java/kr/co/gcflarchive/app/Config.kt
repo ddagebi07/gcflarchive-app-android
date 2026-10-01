@@ -6,7 +6,7 @@ object Config {
     const val BASE_URL = "https://gcflarchive.co.kr"
     const val HOST = "gcflarchive.co.kr"
 
-    /** Appended to the WebView user agent so the server can tell app traffic apart. */
+    /** Appended to the user agent of downloads/uploads so the server can tell app traffic apart. */
     val USER_AGENT_SUFFIX = "GCFLArchiveApp/${BuildConfig.VERSION_NAME}"
 
     // Same values meal.html uses for the NEIS open API.
@@ -43,12 +43,29 @@ enum class ArchiveLink(val path: String, val titleRes: Int, val iconRes: Int) {
 }
 
 /**
- * Site pages that have a native screen; everything else opens in the in-app WebView.
- * Used by the home tiles and by deep links / launcher shortcuts.
+ * Every site page the app shows has a native screen; this maps a site path (with
+ * query) to it. Used by the home tiles, launcher shortcuts / deep links and links
+ * inside post bodies. Paths without a native screen return null (→ browser).
  */
 object NativePages {
-    fun intentFor(context: android.content.Context, path: String): android.content.Intent? {
-        val cls = when (path.substringBefore('?').trimEnd('/')) {
+    fun intentFor(context: android.content.Context, pathWithQuery: String): android.content.Intent? {
+        val uri = Uri.parse(BASE_URL + pathWithQuery)
+        val path = (uri.path ?: "/").removeSuffix(".html").trimEnd('/').ifEmpty { "/" }
+        fun tab(name: String) = kr.co.gcflarchive.app.MainActivity.intent(context, name)
+        val cls = when (path) {
+            "/" -> return tab(kr.co.gcflarchive.app.MainActivity.TAB_HOME)
+            "/search", "/archive" -> return tab(kr.co.gcflarchive.app.MainActivity.TAB_SEARCH)
+            "/meal" -> return tab(kr.co.gcflarchive.app.MainActivity.TAB_MEAL)
+            "/share" -> return tab(kr.co.gcflarchive.app.MainActivity.TAB_DRIVE)
+            "/verify" -> return kr.co.gcflarchive.app.auth.LoginActivity.intent(context)
+            "/map" -> return kr.co.gcflarchive.app.map.MapActivity.intent(
+                context, uri.getQueryParameter("placeId"), uri.getQueryParameter("placeName"),
+            )
+            "/notice-view" -> return uri.getQueryParameter("id")?.toIntOrNull()?.let {
+                kr.co.gcflarchive.app.notice.NoticeDetailActivity.intent(context, it)
+            }
+            "/notice" -> kr.co.gcflarchive.app.notice.NoticeListActivity::class.java
+            "/grade-calculator", "/grade-consent" -> kr.co.gcflarchive.app.grade.GradeActivity::class.java
             "/past-exams" -> kr.co.gcflarchive.app.library.PastExamsActivity::class.java
             "/documents" -> kr.co.gcflarchive.app.library.DocumentsActivity::class.java
             "/photo" -> kr.co.gcflarchive.app.library.PhotosActivity::class.java

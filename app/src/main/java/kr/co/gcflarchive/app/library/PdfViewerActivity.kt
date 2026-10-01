@@ -24,7 +24,7 @@ import kr.co.gcflarchive.app.data.LoginRequiredException
 import kr.co.gcflarchive.app.data.SiteApi
 import kr.co.gcflarchive.app.databinding.ActivityPdfViewerBinding
 import kr.co.gcflarchive.app.databinding.ItemPdfPageBinding
-import kr.co.gcflarchive.app.web.GcflWebView
+import kr.co.gcflarchive.app.util.Links
 import org.json.JSONObject
 
 /**
@@ -145,7 +145,7 @@ class PdfViewerActivity : AppCompatActivity() {
         android.R.id.home -> { finish(); true }
         R.id.action_zoom_reset -> { binding.zoom.reset(); true }
         R.id.action_download -> {
-            GcflWebView.download(
+            Links.download(
                 this,
                 LibraryRepository.downloadUrl(filename, includeAnswers),
                 fileName = supportActionBar?.title?.toString()?.let { "$it.pdf" } ?: filename,

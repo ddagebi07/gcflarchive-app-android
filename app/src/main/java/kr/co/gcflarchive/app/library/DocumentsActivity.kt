@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.Chip
 import kr.co.gcflarchive.app.R
 import kr.co.gcflarchive.app.databinding.ItemDocumentBinding
-import kr.co.gcflarchive.app.web.GcflWebView
+import kr.co.gcflarchive.app.util.Links
 
 /** 문서 자료실 (PDF 아카이브) — native version of documents.html. */
 class DocumentsActivity : LibraryListActivity() {
@@ -93,7 +93,7 @@ class DocumentsActivity : LibraryListActivity() {
             .row(getString(R.string.docs_detail_stats), getString(R.string.docs_stats, doc.viewCount, doc.downloadCount))
             .infoBox(getString(R.string.exam_detail_desc), listOf(doc.notes, doc.tags.joinToString(", ") { "#$it" }).filter { it.isNotBlank() }.joinToString("\n"))
         val download = DetailSheet.Action(getString(R.string.library_download), DetailSheet.Style.PRIMARY, R.drawable.ic_download) {
-            GcflWebView.download(this, LibraryRepository.downloadUrl(doc.filename), fileName = doc.displayName.ifBlank { doc.filename })
+            Links.download(this, LibraryRepository.downloadUrl(doc.filename), fileName = doc.displayName.ifBlank { doc.filename })
         }
         if (doc.isPdf) {
             sheet.actions(

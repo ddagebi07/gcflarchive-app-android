@@ -26,7 +26,7 @@ import kr.co.gcflarchive.app.databinding.ActivityLoginBinding
 /**
  * Native login screen (replaces the /verify WebView). Talks to the same JSON APIs as
  * verify.html, including the first-login 개인정보 동의 step. Finishes with RESULT_OK once
- * the session is fully usable; the cookie is shared with every WebView in the app.
+ * the session is fully usable; the cookie lives in the app's shared cookie store.
  */
 class LoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding

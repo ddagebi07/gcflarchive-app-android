@@ -13,7 +13,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import kr.co.gcflarchive.app.ArchiveLink
-import kr.co.gcflarchive.app.NativePages
+import kr.co.gcflarchive.app.Config
 import kr.co.gcflarchive.app.MainActivity
 import kr.co.gcflarchive.app.R
 import kr.co.gcflarchive.app.auth.LoginActivity
@@ -23,7 +23,7 @@ import kr.co.gcflarchive.app.databinding.FragmentHomeBinding
 import kr.co.gcflarchive.app.databinding.ItemArchiveTileBinding
 import kr.co.gcflarchive.app.meal.MealRepository
 import kr.co.gcflarchive.app.share.ShareReceiverActivity
-import kr.co.gcflarchive.app.web.WebViewActivity
+import kr.co.gcflarchive.app.util.Links
 
 class HomeFragment : Fragment() {
     private var _binding: FragmentHomeBinding? = null
@@ -51,10 +51,7 @@ class HomeFragment : Fragment() {
                 if (link == ArchiveLink.SEARCH) {
                     (activity as? MainActivity)?.selectTab(MainActivity.TAB_SEARCH)
                 } else {
-                    startActivity(
-                        NativePages.intentFor(requireContext(), link.path)
-                            ?: WebViewActivity.intent(requireContext(), link.path, getString(link.titleRes)),
-                    )
+                    Links.open(requireContext(), android.net.Uri.parse(Config.url(link.path)))
                 }
             }
             tile.root.layoutParams = GridLayout.LayoutParams(
@@ -69,14 +66,14 @@ class HomeFragment : Fragment() {
         binding.mealCard.setOnClickListener { (activity as? MainActivity)?.selectTab(MainActivity.TAB_MEAL) }
         binding.loginBanner.setOnClickListener { login.launch(LoginActivity.intent(requireContext())) }
         binding.btnBannerLogin.setOnClickListener { login.launch(LoginActivity.intent(requireContext())) }
-        binding.openSite.setOnClickListener { startActivity(WebViewActivity.intent(requireContext(), "/")) }
+        binding.openSite.setOnClickListener { Links.openExternal(requireContext(), android.net.Uri.parse(Config.BASE_URL)) }
 
         loadTodayMeal()
     }
 
     override fun onResume() {
         super.onResume()
-        // Re-check on every return: the user may have just logged in or out in a web screen.
+        // Re-check on every return: the user may have just logged in or out elsewhere.
         loadWelcome()
     }
 

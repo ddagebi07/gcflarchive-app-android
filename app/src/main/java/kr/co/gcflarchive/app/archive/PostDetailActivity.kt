@@ -9,9 +9,6 @@ import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.webkit.WebResourceRequest
-import android.webkit.WebView
-import android.webkit.WebViewClient
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
@@ -20,7 +17,8 @@ import kotlinx.coroutines.launch
 import kr.co.gcflarchive.app.R
 import kr.co.gcflarchive.app.databinding.ActivityPostDetailBinding
 import kr.co.gcflarchive.app.databinding.ItemAttachmentBinding
-import kr.co.gcflarchive.app.web.GcflWebView
+import kr.co.gcflarchive.app.html.HtmlRenderer
+import kr.co.gcflarchive.app.util.Links
 
 /** One school-homepage post from the archive, with its attachments and prev/next navigation. */
 class PostDetailActivity : AppCompatActivity() {
@@ -40,15 +38,6 @@ class PostDetailActivity : AppCompatActivity() {
         boardCode = intent.getStringExtra(EXTRA_BOARD).orEmpty()
         idx = savedInstanceState?.getString(EXTRA_IDX) ?: intent.getStringExtra(EXTRA_IDX).orEmpty()
 
-        // School posts are static HTML: no JavaScript, and links leave the app.
-        binding.content.settings.javaScriptEnabled = false
-        binding.content.setBackgroundColor(0)
-        binding.content.webViewClient = object : WebViewClient() {
-            override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
-                GcflWebView.openExternal(this@PostDetailActivity, request.url)
-                return true
-            }
-        }
         binding.btnRetry.setOnClickListener { load() }
         load()
     }
@@ -80,7 +69,7 @@ class PostDetailActivity : AppCompatActivity() {
         binding.meta.text = getString(R.string.post_meta, p.author, ArchiveRepository.displayDate(p.postedAt))
 
         val baseUrl = p.originalUrl ?: "https://www.gcfl.or.kr/"
-        binding.content.loadDataWithBaseURL(baseUrl, wrapHtml(p.contentHtml), "text/html", "utf-8", null)
+        HtmlRenderer.render(binding.content, p.contentHtml, baseUrl, lifecycleScope)
 
         binding.attachmentsBox.isVisible = p.attachments.isNotEmpty()
         binding.attachmentsHeader.text = getString(R.string.post_attachments_count, p.attachments.size)
@@ -92,7 +81,7 @@ class PostDetailActivity : AppCompatActivity() {
             row.size.isVisible = a.fileSize > 0
             row.size.text = Formatter.formatShortFileSize(this, a.fileSize)
             row.root.setOnClickListener {
-                GcflWebView.download(this, a.downloadUrl, fileName = a.filename)
+                Links.download(this, a.downloadUrl, fileName = a.filename)
             }
             binding.attachments.addView(row.root)
         }
@@ -102,7 +91,7 @@ class PostDetailActivity : AppCompatActivity() {
         binding.navGroup.isVisible = p.prev != null || p.next != null
 
         binding.btnOriginal.isVisible = p.originalUrl != null
-        binding.btnOriginal.setOnClickListener { p.originalUrl?.let { GcflWebView.openExternal(this, Uri.parse(it)) } }
+        binding.btnOriginal.setOnClickListener { p.originalUrl?.let { Links.openExternal(this, Uri.parse(it)) } }
     }
 
     private fun bindNav(row: View, title: TextView, ref: PostRef?, emptyRes: Int) {
@@ -114,28 +103,6 @@ class PostDetailActivity : AppCompatActivity() {
             idx = ref.idx
             load()
         }
-    }
-
-    /** Wraps the crawled fragment so it fits the phone width and follows the app's light/dark theme. */
-    private fun wrapHtml(fragment: String): String {
-        val night = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
-            android.content.res.Configuration.UI_MODE_NIGHT_YES
-        val fg = if (night) "#E6E8EE" else "#1F2123"
-        val link = if (night) "#8AB8FF" else "#0B3492"
-        return """
-            <!doctype html><html><head>
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <style>
-              body{margin:0;color:$fg;font-size:16px;line-height:1.7;word-break:keep-all;overflow-wrap:anywhere}
-              *{max-width:100%!important;box-sizing:border-box}
-              img,video,iframe{height:auto!important}
-              table{border-collapse:collapse;display:block;overflow-x:auto}
-              td,th{border:1px solid #8884;padding:4px}
-              a{color:$link}
-              p{margin:0 0 .6em}
-              ${if (night) "*{background-color:transparent!important;color:$fg!important}" else ""}
-            </style></head><body>$fragment</body></html>
-        """.trimIndent()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -151,7 +118,7 @@ class PostDetailActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
         android.R.id.home -> { finish(); true }
         R.id.action_original -> {
-            post?.originalUrl?.let { GcflWebView.openExternal(this, Uri.parse(it)) }
+            post?.originalUrl?.let { Links.openExternal(this, Uri.parse(it)) }
             true
         }
         R.id.action_share -> {
@@ -162,11 +129,6 @@ class PostDetailActivity : AppCompatActivity() {
             true
         }
         else -> super.onOptionsItemSelected(item)
-    }
-
-    override fun onDestroy() {
-        binding.content.destroy()
-        super.onDestroy()
     }
 
     companion object {

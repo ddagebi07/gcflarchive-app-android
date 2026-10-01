@@ -31,9 +31,20 @@
                 android:resource="@xml/shortcuts" />
         </activity>
 
+        <!-- Former WebView pages, now native -->
         <activity
-            android:name=".web.WebViewActivity"
-            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+            android:name=".grade.GradeActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".map.MapActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".notice.NoticeListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".notice.NoticeDetailActivity"
             android:exported="false" />
 
         <!-- Native login + 개인정보 동의 (replaces the /verify web page) -->

@@ -2,7 +2,7 @@ package kr.co.gcflarchive.app.data
 
 import org.json.JSONObject
 
-/** Website login state, read with the shared (WebView) session cookie. */
+/** Website login state, read with the shared session cookie. */
 sealed interface LoginState {
     data class LoggedIn(val userId: String, val userType: String) : LoginState
     data object LoggedOut : LoginState

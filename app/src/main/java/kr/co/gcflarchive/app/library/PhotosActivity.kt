@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kr.co.gcflarchive.app.R
 import kr.co.gcflarchive.app.databinding.ItemPhotoAlbumBinding
-import kr.co.gcflarchive.app.web.GcflWebView
+import kr.co.gcflarchive.app.util.Links
 
 /** 사진 아카이브 — native version of photo.html (albums open in Google Photos etc.). */
 class PhotosActivity : LibraryListActivity() {
@@ -42,7 +42,7 @@ class PhotosActivity : LibraryListActivity() {
     }
 
     private fun openAlbum(album: PhotoAlbum) {
-        if (album.albumUrl.isNotBlank()) GcflWebView.openExternal(this, Uri.parse(album.albumUrl))
+        if (album.albumUrl.isNotBlank()) Links.openExternal(this, Uri.parse(album.albumUrl))
     }
 
     private fun openDetail(album: PhotoAlbum) {

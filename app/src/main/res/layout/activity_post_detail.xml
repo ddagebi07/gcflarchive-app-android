@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/krds_bg"
@@ -121,12 +120,12 @@
             </LinearLayout>
 
             <!-- ── 본문 ── -->
-            <WebView
+            <LinearLayout
                 android:id="@+id/content"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                tools:ignore="WebViewLayout" />
+                android:orientation="vertical" />
 
             <!-- ── 이전 글 / 다음 글: board-style rows ── -->
             <LinearLayout

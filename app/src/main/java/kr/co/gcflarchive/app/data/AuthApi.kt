@@ -8,8 +8,8 @@ import org.json.JSONObject
  *  - 학생 → /api/verify-login, 특수 계정(60000~99999) → /api/login-custom-account,
  *    교사 → /api/teacher-login
  *  - first login needs 개인정보 동의 → /api/consent
- * The Flask session cookie lands in the WebView CookieManager via [SiteApi], so the
- * web screens and native features share one login.
+ * The Flask session cookie lands in the shared CookieManager store via [SiteApi], so the
+ * whole app shares one login.
  */
 object AuthApi {
     enum class Mode { STUDENT, TEACHER }

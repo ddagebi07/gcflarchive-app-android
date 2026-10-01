@@ -31,7 +31,7 @@ import kr.co.gcflarchive.app.data.SiteSession
 import kr.co.gcflarchive.app.databinding.FragmentSettingsBinding
 import kr.co.gcflarchive.app.meal.MealNotifier
 import kr.co.gcflarchive.app.meal.MealRepository
-import kr.co.gcflarchive.app.web.WebViewActivity
+import kr.co.gcflarchive.app.util.Links
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.Locale
@@ -74,7 +74,7 @@ class SettingsFragment : Fragment() {
         }
         binding.rowLogin.setOnClickListener { startActivity(LoginActivity.intent(requireContext())) }
         binding.rowLogout.setOnClickListener { logout() }
-        binding.rowWebsite.setOnClickListener { startActivity(WebViewActivity.intent(requireContext(), "/")) }
+        binding.rowWebsite.setOnClickListener { Links.openExternal(requireContext(), android.net.Uri.parse(Config.BASE_URL)) }
         binding.version.text = getString(R.string.version_label, BuildConfig.VERSION_NAME)
         render()
     }

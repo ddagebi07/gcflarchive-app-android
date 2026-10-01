@@ -17,8 +17,9 @@ class LoginRequiredException(message: String = "로그인이 필요합니다.") 
 class ApiException(val code: Int, message: String) : IOException(message)
 
 /**
- * Calls the website's JSON APIs with the WebView's session cookie, so a login in any
- * web screen also authenticates these requests (and refreshed cookies flow back).
+ * Calls the website's JSON APIs with the shared session cookie (android.webkit.CookieManager
+ * is used purely as the app's persistent cookie store), so one native login
+ * authenticates every request (and refreshed cookies flow back).
  */
 object SiteApi {
     private val JSON = "application/json; charset=utf-8".toMediaType()
@@ -37,6 +38,25 @@ object SiteApi {
 
     suspend fun postJson(path: String, body: JSONObject): String =
         execute(request(path).post(body.toString().toRequestBody(JSON)).build())
+
+    /** Status + body without throwing on HTTP errors (for APIs whose error bodies carry flags). */
+    data class Response(val code: Int, val body: String) {
+        val isSuccessful: Boolean get() = code in 200..299
+        val json: JSONObject get() = runCatching { JSONObject(body) }.getOrDefault(JSONObject())
+        val error: String? get() = json.optString("error").ifBlank { null }
+    }
+
+    suspend fun exchange(path: String, method: String = "GET", body: JSONObject? = null): Response = withContext(Dispatchers.IO) {
+        val builder = request(path)
+        when {
+            body != null -> builder.method(method, body.toString().toRequestBody(JSON))
+            method != "GET" -> builder.method(method, "{}".toRequestBody(JSON))
+        }
+        Http.client.newCall(builder.build()).execute().use { res ->
+            syncCookies(res)
+            Response(res.code, res.body?.string().orEmpty())
+        }
+    }
 
     /** Raw bytes (e.g. viewer page images); 401 maps to [LoginRequiredException]. */
     suspend fun bytes(path: String): ByteArray = withContext(Dispatchers.IO) {

@@ -16,7 +16,7 @@ import kr.co.gcflarchive.app.ui.HomeFragment
 import kr.co.gcflarchive.app.ui.MealFragment
 import kr.co.gcflarchive.app.ui.SearchFragment
 import kr.co.gcflarchive.app.ui.SettingsFragment
-import kr.co.gcflarchive.app.web.WebViewActivity
+import kr.co.gcflarchive.app.util.Links
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -60,14 +60,20 @@ class MainActivity : AppCompatActivity() {
     private fun openPathFromIntent(intent: Intent?) {
         val path = intent?.getStringExtra(EXTRA_PATH)?.takeIf { it.startsWith("/") } ?: return
         intent.removeExtra(EXTRA_PATH)
-        startActivity(NativePages.intentFor(this, path) ?: WebViewActivity.intent(this, path))
+        val target = NativePages.intentFor(this, path)
+        when {
+            target == null -> Links.openExternal(this, android.net.Uri.parse(Config.url(path)))
+            // Tabs of this activity: switch instead of stacking a second copy.
+            target.component?.className == MainActivity::class.java.name -> target.getStringExtra(EXTRA_TAB)?.let(::selectTab)
+            else -> startActivity(target)
+        }
     }
 
     fun selectTab(tab: String) {
         idForTab(tab)?.let { binding.bottomNav.selectedItemId = it }
     }
 
-    /** Fragments are shown/hidden rather than replaced so the drive WebView keeps its page. */
+    /** Fragments are shown/hidden rather than replaced so each tab keeps its state. */
     private fun showTab(itemId: Int) {
         val fm = supportFragmentManager
         val tag = tagFor(itemId)

@@ -41,8 +41,8 @@ sealed interface UploadResult {
 
 /**
  * Native client for POST /api/share/upload (routes/temp_share.py). Authenticates with
- * the same Flask session cookie the in-app WebView holds, so logging in once on the
- * website is enough for share-sheet uploads.
+ * the same Flask session cookie as every other screen, so logging in once in the
+ * app is enough for share-sheet uploads.
  */
 class DriveUploader(private val resolver: ContentResolver) {
 
@@ -90,7 +90,7 @@ class DriveUploader(private val resolver: ContentResolver) {
 
         try {
             Http.client.newCall(request).execute().use { res ->
-                // Flask re-issues the session cookie; keep the WebView's copy in sync.
+                // Flask re-issues the session cookie; keep the shared cookie store in sync.
                 res.headers("Set-Cookie").forEach { CookieManager.getInstance().setCookie(Config.BASE_URL, it) }
                 CookieManager.getInstance().flush()
 

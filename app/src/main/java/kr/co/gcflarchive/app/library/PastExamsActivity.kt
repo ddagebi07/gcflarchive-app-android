@@ -18,6 +18,7 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import kotlinx.coroutines.launch
+import kr.co.gcflarchive.app.util.Links
 import kr.co.gcflarchive.app.R
 import kr.co.gcflarchive.app.data.LoginRequiredException
 import kr.co.gcflarchive.app.databinding.ItemExamBinding
@@ -254,7 +255,7 @@ class PastExamsActivity : LibraryListActivity() {
         )
         sheet.actions(
             DetailSheet.Action(getString(R.string.library_download), DetailSheet.Style.PRIMARY, R.drawable.ic_download) {
-                kr.co.gcflarchive.app.web.GcflWebView.download(
+                Links.download(
                     this, LibraryRepository.downloadUrl(doc.filename, withAnswers()),
                     fileName = doc.title + ".pdf", mimeType = "application/pdf",
                 )

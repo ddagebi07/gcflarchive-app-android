@@ -11,7 +11,6 @@
     <string name="tab_settings">설정</string>
 
     <!-- Home -->
-    <string name="home_tagline">기록의 가치, 가치의 기록.</string>
     <!-- %1$s = 학번. The "학번님" part is bolded in code. -->
     <string name="home_welcome_name">%1$s님</string>
     <string name="home_welcome_suffix">, 환영합니다!</string>
@@ -20,7 +19,7 @@
     <string name="home_upload_title">극플드라이브에 파일 올리기</string>
     <string name="home_upload_desc">PDF·한글·오피스 문서를 올리고 학교에서 바로 인쇄하세요.\n다른 앱의 \'공유\' 버튼으로도 올릴 수 있어요.</string>
     <string name="home_open_drive">내 드라이브</string>
-    <string name="home_open_site">웹사이트 전체 보기</string>
+    <string name="home_open_site">브라우저에서 웹사이트 열기</string>
 
     <string name="link_past_exams">기출</string>
     <string name="link_documents">PDF</string>
@@ -67,7 +66,7 @@
     <string name="login">로그인 (학번 인증)</string>
     <string name="logout">로그아웃</string>
     <string name="logged_out">로그아웃되었습니다.</string>
-    <string name="open_website">웹사이트 열기</string>
+    <string name="open_website">브라우저에서 웹사이트 열기</string>
     <string name="version_label">버전 %1$s</string>
 
     <!-- Share / upload -->

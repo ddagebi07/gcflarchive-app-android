@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kr.co.gcflarchive.app.R
 import kr.co.gcflarchive.app.databinding.ItemVideoBinding
-import kr.co.gcflarchive.app.web.GcflWebView
+import kr.co.gcflarchive.app.util.Links
 
 /** 영상 아카이브 — native version of video.html; videos play in the YouTube app. */
 class VideosActivity : LibraryListActivity() {
@@ -40,7 +40,7 @@ class VideosActivity : LibraryListActivity() {
         showEmptyIfNeeded(shown.isEmpty())
     }
 
-    private fun play(video: VideoEntry) = GcflWebView.openExternal(this, Uri.parse(video.youtubeUrl))
+    private fun play(video: VideoEntry) = Links.openExternal(this, Uri.parse(video.youtubeUrl))
 
     private fun openDetail(video: VideoEntry) {
         DetailSheet(this, getString(R.string.video_detail_heading), video.title)

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Table cell: surface fill inset by 1px so the table background shows as grid lines. -->
+<inset xmlns:android="http://schemas.android.com/apk/res/android" android:insetRight="1px" android:insetBottom="1px">
+    <shape android:shape="rectangle">
+        <solid android:color="@color/krds_surface" />
+    </shape>
+</inset>
