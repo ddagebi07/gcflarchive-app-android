@@ -55,6 +55,66 @@
             </LinearLayout>
         </LinearLayout>
 
+        <!-- Logged out: large call to log in (hidden once a session exists) -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/loginBanner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:visibility="gone"
+            app:cardBackgroundColor="@color/krds_primary"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <ImageView
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_lock"
+                    app:tint="@color/krds_on_primary" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="@string/home_login_banner_title"
+                    android:textAppearance="?attr/textAppearanceTitleLarge"
+                    android:textColor="@color/krds_on_primary"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:alpha="0.85"
+                    android:lineSpacingMultiplier="1.3"
+                    android:text="@string/home_login_banner_desc"
+                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                    android:textColor="@color/krds_on_primary" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnBannerLogin"
+                    style="@style/Widget.Material3.Button"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:layout_marginTop="16dp"
+                    android:backgroundTint="@color/krds_surface"
+                    android:text="@string/home_login_banner_button"
+                    android:textColor="@color/krds_primary_text"
+                    android:textStyle="bold"
+                    app:cornerRadius="10dp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- Today's meal -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/mealCard"

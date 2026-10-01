@@ -5,33 +5,46 @@
     android:layout_height="wrap_content"
     android:background="?attr/selectableItemBackground"
     android:gravity="center_vertical"
-    android:minHeight="48dp"
+    android:minHeight="52dp"
     android:orientation="horizontal"
-    android:paddingVertical="6dp">
+    android:paddingHorizontal="14dp"
+    android:paddingVertical="8dp">
 
     <ImageView
-        android:layout_width="22dp"
-        android:layout_height="22dp"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
         android:importantForAccessibility="no"
         android:src="@drawable/ic_file"
-        app:tint="@color/brand_primary" />
+        app:tint="@color/krds_text_secondary" />
 
-    <TextView
-        android:id="@+id/name"
+    <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
         android:layout_weight="1"
-        android:ellipsize="middle"
-        android:singleLine="true"
-        android:textAppearance="?attr/textAppearanceBodyMedium"
-        android:textColor="@color/brand_primary" />
+        android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/size"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        <TextView
+            android:id="@+id/name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="middle"
+            android:singleLine="true"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="@color/krds_text_primary" />
+
+        <TextView
+            android:id="@+id/size"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/TextAppearance.Krds.Meta" />
+    </LinearLayout>
+
+    <ImageView
+        android:layout_width="20dp"
+        android:layout_height="20dp"
         android:layout_marginStart="8dp"
-        android:textAppearance="?attr/textAppearanceLabelSmall"
-        android:textColor="@color/text_secondary" />
+        android:importantForAccessibility="no"
+        android:src="@drawable/ic_download"
+        app:tint="@color/krds_primary_text" />
 </LinearLayout>

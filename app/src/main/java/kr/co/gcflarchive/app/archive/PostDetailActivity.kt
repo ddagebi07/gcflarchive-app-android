@@ -8,9 +8,11 @@ import android.text.format.Formatter
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
@@ -80,27 +82,34 @@ class PostDetailActivity : AppCompatActivity() {
         val baseUrl = p.originalUrl ?: "https://www.gcfl.or.kr/"
         binding.content.loadDataWithBaseURL(baseUrl, wrapHtml(p.contentHtml), "text/html", "utf-8", null)
 
-        binding.attachmentsHeader.isVisible = p.attachments.isNotEmpty()
+        binding.attachmentsBox.isVisible = p.attachments.isNotEmpty()
+        binding.attachmentsHeader.text = getString(R.string.post_attachments_count, p.attachments.size)
         binding.attachments.removeAllViews()
         val inflater = LayoutInflater.from(this)
         for (a in p.attachments) {
             val row = ItemAttachmentBinding.inflate(inflater, binding.attachments, false)
             row.name.text = a.filename
-            row.size.text = if (a.fileSize > 0) Formatter.formatShortFileSize(this, a.fileSize) else ""
+            row.size.isVisible = a.fileSize > 0
+            row.size.text = Formatter.formatShortFileSize(this, a.fileSize)
             row.root.setOnClickListener {
                 GcflWebView.download(this, a.downloadUrl, fileName = a.filename)
             }
             binding.attachments.addView(row.root)
         }
 
-        bindNav(binding.btnPrev, p.prev)
-        bindNav(binding.btnNext, p.next)
+        bindNav(binding.prevRow, binding.prevTitle, p.prev, R.string.post_prev_none)
+        bindNav(binding.nextRow, binding.nextTitle, p.next, R.string.post_next_none)
         binding.navGroup.isVisible = p.prev != null || p.next != null
+
+        binding.btnOriginal.isVisible = p.originalUrl != null
+        binding.btnOriginal.setOnClickListener { p.originalUrl?.let { GcflWebView.openExternal(this, Uri.parse(it)) } }
     }
 
-    private fun bindNav(button: com.google.android.material.button.MaterialButton, ref: PostRef?) {
-        button.isEnabled = ref != null
-        button.setOnClickListener {
+    private fun bindNav(row: View, title: TextView, ref: PostRef?, emptyRes: Int) {
+        row.isEnabled = ref != null
+        title.text = ref?.title ?: getString(emptyRes)
+        title.setTextColor(getColor(if (ref != null) R.color.krds_text_primary else R.color.krds_text_disabled))
+        row.setOnClickListener {
             ref ?: return@setOnClickListener
             idx = ref.idx
             load()
@@ -111,7 +120,7 @@ class PostDetailActivity : AppCompatActivity() {
     private fun wrapHtml(fragment: String): String {
         val night = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
             android.content.res.Configuration.UI_MODE_NIGHT_YES
-        val fg = if (night) "#E6E8EE" else "#1B1F27"
+        val fg = if (night) "#E6E8EE" else "#1F2123"
         val link = if (night) "#8AB8FF" else "#0B3492"
         return """
             <!doctype html><html><head>

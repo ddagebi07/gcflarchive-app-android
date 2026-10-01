@@ -12,6 +12,7 @@ import android.webkit.CookieManager
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.timepicker.MaterialTimePicker
@@ -22,8 +23,11 @@ import kotlinx.coroutines.withContext
 import kr.co.gcflarchive.app.BuildConfig
 import kr.co.gcflarchive.app.Config
 import kr.co.gcflarchive.app.R
+import kr.co.gcflarchive.app.auth.LoginActivity
 import kr.co.gcflarchive.app.data.AppPrefs
 import kr.co.gcflarchive.app.data.Http
+import kr.co.gcflarchive.app.data.LoginState
+import kr.co.gcflarchive.app.data.SiteSession
 import kr.co.gcflarchive.app.databinding.FragmentSettingsBinding
 import kr.co.gcflarchive.app.meal.MealNotifier
 import kr.co.gcflarchive.app.meal.MealRepository
@@ -68,7 +72,7 @@ class SettingsFragment : Fragment() {
                     .putExtra(Settings.EXTRA_APP_PACKAGE, requireContext().packageName),
             )
         }
-        binding.rowLogin.setOnClickListener { startActivity(WebViewActivity.loginIntent(requireContext(), "/")) }
+        binding.rowLogin.setOnClickListener { startActivity(LoginActivity.intent(requireContext())) }
         binding.rowLogout.setOnClickListener { logout() }
         binding.rowWebsite.setOnClickListener { startActivity(WebViewActivity.intent(requireContext(), "/")) }
         binding.version.text = getString(R.string.version_label, BuildConfig.VERSION_NAME)
@@ -78,6 +82,17 @@ class SettingsFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         render()
+        renderAccount()
+    }
+
+    /** Shows 로그인 or 로그아웃 depending on the site session (both while offline). */
+    private fun renderAccount() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val state = SiteSession.state()
+            val b = _binding ?: return@launch
+            b.rowLogin.isVisible = state !is LoginState.LoggedIn
+            b.rowLogout.isVisible = state != LoginState.LoggedOut
+        }
     }
 
     private fun render() {
@@ -161,6 +176,7 @@ class SettingsFragment : Fragment() {
             cookies.removeAllCookies(null)
             cookies.flush()
             context?.let { Toast.makeText(it, R.string.logged_out, Toast.LENGTH_SHORT).show() }
+            renderAccount()
         }
     }
 

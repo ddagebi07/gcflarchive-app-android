@@ -16,6 +16,8 @@ import kr.co.gcflarchive.app.ArchiveLink
 import kr.co.gcflarchive.app.NativePages
 import kr.co.gcflarchive.app.MainActivity
 import kr.co.gcflarchive.app.R
+import kr.co.gcflarchive.app.auth.LoginActivity
+import kr.co.gcflarchive.app.data.LoginState
 import kr.co.gcflarchive.app.data.SiteSession
 import kr.co.gcflarchive.app.databinding.FragmentHomeBinding
 import kr.co.gcflarchive.app.databinding.ItemArchiveTileBinding
@@ -29,6 +31,10 @@ class HomeFragment : Fragment() {
 
     private val pickFiles = registerForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
         if (uris.isNotEmpty()) startActivity(ShareReceiverActivity.intent(requireContext(), uris))
+    }
+
+    private val login = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        if (_binding != null) loadWelcome()
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -61,6 +67,8 @@ class HomeFragment : Fragment() {
         binding.uploadCard.setOnClickListener { pickFiles.launch(arrayOf("*/*")) }
         binding.driveOpen.setOnClickListener { (activity as? MainActivity)?.selectTab(MainActivity.TAB_DRIVE) }
         binding.mealCard.setOnClickListener { (activity as? MainActivity)?.selectTab(MainActivity.TAB_MEAL) }
+        binding.loginBanner.setOnClickListener { login.launch(LoginActivity.intent(requireContext())) }
+        binding.btnBannerLogin.setOnClickListener { login.launch(LoginActivity.intent(requireContext())) }
         binding.openSite.setOnClickListener { startActivity(WebViewActivity.intent(requireContext(), "/")) }
 
         loadTodayMeal()
@@ -82,9 +90,12 @@ class HomeFragment : Fragment() {
 
     private fun loadWelcome() {
         viewLifecycleOwner.lifecycleScope.launch {
-            val userId = SiteSession.currentUserId()
+            val state = SiteSession.state()
             val b = _binding ?: return@launch
+            val userId = (state as? LoginState.LoggedIn)?.userId
             b.welcome.isVisible = userId != null
+            // Only a definite "not logged in" shows the banner; offline (Unknown) keeps it hidden.
+            b.loginBanner.isVisible = state == LoginState.LoggedOut
             if (userId != null) {
                 b.welcome.text = buildSpannedString {
                     bold { append(getString(R.string.home_welcome_name, userId)) }

@@ -18,13 +18,13 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kr.co.gcflarchive.app.auth.LoginActivity
 import kr.co.gcflarchive.app.R
 import kr.co.gcflarchive.app.data.LoginRequiredException
 import kr.co.gcflarchive.app.data.SiteApi
 import kr.co.gcflarchive.app.databinding.ActivityPdfViewerBinding
 import kr.co.gcflarchive.app.databinding.ItemPdfPageBinding
 import kr.co.gcflarchive.app.web.GcflWebView
-import kr.co.gcflarchive.app.web.WebViewActivity
 import org.json.JSONObject
 
 /**
@@ -87,7 +87,7 @@ class PdfViewerActivity : AppCompatActivity() {
                 binding.errorText.text = getString(if (needLogin) R.string.library_login_desc else R.string.viewer_error)
                 binding.btnRetry.text = getString(if (needLogin) R.string.library_login_button else R.string.retry)
                 binding.btnRetry.setOnClickListener {
-                    if (needLogin) login.launch(WebViewActivity.loginIntent(this@PdfViewerActivity, "/past-exams")) else load()
+                    if (needLogin) login.launch(LoginActivity.intent(this@PdfViewerActivity)) else load()
                 }
             }
         }

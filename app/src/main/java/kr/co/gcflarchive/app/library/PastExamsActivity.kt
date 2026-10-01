@@ -25,7 +25,6 @@ import kr.co.gcflarchive.app.databinding.SheetExamFiltersBinding
 
 /** 기출문제 아카이브 — native version of past-exams.html. */
 class PastExamsActivity : LibraryListActivity() {
-    override val webPath = "/past-exams"
     override val pageTitleRes = R.string.exam_page_title
     override val pageDescRes = R.string.exam_page_desc
     override val searchHintRes = R.string.exam_search_hint

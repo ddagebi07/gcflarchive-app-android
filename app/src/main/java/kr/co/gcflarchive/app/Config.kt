@@ -23,7 +23,6 @@ object Config {
 
     fun url(path: String): String = BASE_URL + path
 
-    fun loginUrl(next: String): String = url("/verify?next=" + Uri.encode(next))
 
     fun isOwnHost(uri: Uri?): Boolean {
         val host = uri?.host ?: return false

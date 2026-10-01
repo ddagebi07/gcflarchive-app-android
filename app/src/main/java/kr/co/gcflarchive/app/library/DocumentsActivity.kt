@@ -13,7 +13,6 @@ import kr.co.gcflarchive.app.web.GcflWebView
 
 /** 문서 자료실 (PDF 아카이브) — native version of documents.html. */
 class DocumentsActivity : LibraryListActivity() {
-    override val webPath = "/documents"
     override val pageTitleRes = R.string.docs_page_title
     override val pageDescRes = R.string.docs_page_desc
     override val searchHintRes = R.string.docs_search_hint

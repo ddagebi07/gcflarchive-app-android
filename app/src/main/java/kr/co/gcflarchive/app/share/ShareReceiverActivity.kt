@@ -18,12 +18,12 @@ import androidx.core.content.IntentCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
+import kr.co.gcflarchive.app.auth.LoginActivity
 import kr.co.gcflarchive.app.Config
 import kr.co.gcflarchive.app.MainActivity
 import kr.co.gcflarchive.app.R
 import kr.co.gcflarchive.app.databinding.ActivityShareReceiverBinding
 import kr.co.gcflarchive.app.databinding.ItemShareFileBinding
-import kr.co.gcflarchive.app.web.WebViewActivity
 
 /**
  * Receives ACTION_SEND / ACTION_SEND_MULTIPLE from any app's share sheet (and the
@@ -133,7 +133,7 @@ class ShareReceiverActivity : AppCompatActivity() {
                     uploading = false
                     binding.status.text = getString(R.string.share_need_login)
                     Toast.makeText(this@ShareReceiverActivity, R.string.share_need_login, Toast.LENGTH_SHORT).show()
-                    login.launch(WebViewActivity.loginIntent(this@ShareReceiverActivity, "/share"))
+                    login.launch(LoginActivity.intent(this@ShareReceiverActivity))
                 }
                 is UploadResult.Failure -> {
                     showReady()

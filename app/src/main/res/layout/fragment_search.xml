@@ -61,12 +61,11 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textAppearance="?attr/textAppearanceLabelLarge"
-            android:textColor="@color/text_secondary" />
+            android:textAppearance="@style/TextAppearance.Krds.Total" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/chipAttachments"
-            style="@style/Widget.Material3.Chip.Filter"
+            style="@style/Widget.Krds.FilterChip"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="6dp"
@@ -82,19 +81,27 @@
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/sortRelevance"
-                style="@style/Widget.Material3.Chip.Filter"
+                style="@style/Widget.Krds.FilterChip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/search_sort_relevance" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/sortDate"
-                style="@style/Widget.Material3.Chip.Filter"
+                style="@style/Widget.Krds.FilterChip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/search_sort_date" />
         </com.google.android.material.chip.ChipGroup>
     </LinearLayout>
+
+    <!-- KRDS board list: strong rule on top of the result rows -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="8dp"
+        android:background="@color/krds_text_strong" />
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipe"

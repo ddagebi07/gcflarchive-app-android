@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Native login; wording follows verify.html. -->
+<resources>
+    <string name="auth_title">로그인</string>
+    <string name="auth_desc">STUCARE 로그인으로 재학생 인증 후 이용하실 수 있습니다. (ID·계정 공유 금지)</string>
+    <string name="auth_mode_student">학생 로그인</string>
+    <string name="auth_mode_teacher">교사 로그인</string>
+    <string name="auth_hakbun">학번 5자리</string>
+    <string name="auth_teacher_id">교사 ID</string>
+    <string name="auth_password">스투케어 비밀번호</string>
+    <string name="auth_remember">로그인 유지</string>
+    <string name="auth_submit">권한 인증</string>
+    <string name="auth_note">비밀번호는 학교 STUCARE 인증에만 사용되며 앱에 저장되지 않습니다.</string>
+    <string name="auth_invalid_hakbun">학번은 숫자 5자리여야 합니다.</string>
+    <string name="auth_invalid_teacher">교사 ID를 입력해 주세요.</string>
+    <string name="auth_password_required">비밀번호를 입력해 주세요.</string>
+    <string name="auth_working">인증 중입니다…</string>
+    <string name="auth_network">서비스에 연결할 수 없습니다. 네트워크를 확인해 주세요.</string>
+    <string name="auth_success">%1$s님, 환영합니다!</string>
+
+    <string name="auth_consent_title">개인정보 수집·이용 동의</string>
+    <string name="auth_consent_desc">개인정보 보호법 제15조에 따라 아래 내용에 동의하셔야 서비스를 계속 이용하실 수 있습니다.</string>
+    <string name="auth_consent_terms_student">1. 개인정보의 수집·이용 목적\n내신 시험의 예상 등급컷 산출 및 각종 자료 제공, 본인인증\n\n2. 수집하려는 개인정보의 항목\n· 사용자의 학번\n· 응시한 시험의 과목별 원점수(등급컷 서비스)\n\n3. 개인정보의 보유 및 이용 기간\n· 사용자의 학번: 당해 학년도 종료일까지\n· 시험 원점수: 당해 평가 종료일로부터 30일\n\n4. 동의를 거부할 권리 및 불이익\n동의를 거부하실 수 있으며, 학번 제공을 거부하실 경우 서비스를 이용할 수 없습니다. 수집한 원점수는 등급컷과 백분위 산출을 위한 자료로만 활용되며, 서버에 암호화되어 저장되므로 관리자는 개인의 학번과 점수 등을 열람할 수 없습니다. 제공을 거부하실 경우 등급컷 관련 서비스를 이용할 수 없습니다.</string>
+    <string name="auth_consent_terms_teacher">1. 개인정보의 수집·이용 목적\n교사 계정 식별, 서비스 이용 확인, 연관 업무 연락\n\n2. 수집하려는 개인정보의 항목\n· 성명\n· 이메일 주소\n· STUCARE 아이디\n\n3. 개인정보의 보유 및 이용 기간\n계정이 유지되는 동안\n\n4. 동의를 거부할 권리 및 불이익\n동의를 거부하실 수 있습니다. 거부하실 시 서비스 이용이 불가합니다.</string>
+    <string name="auth_consent_required">[필수] 학번 수집·이용에 동의합니다.</string>
+    <string name="auth_consent_required_teacher">[필수] 정보 수집·이용에 동의합니다.</string>
+    <string name="auth_consent_score">[선택] 원점수 수집·이용에 동의합니다. (거부 시 등급컷 관련 서비스 이용 불가)</string>
+    <string name="auth_teacher_name">이름</string>
+    <string name="auth_teacher_email">이메일 주소</string>
+    <string name="auth_teacher_fields">이름과 이메일을 모두 입력해 주세요.</string>
+    <string name="auth_back">돌아가기</string>
+    <string name="auth_consent_submit">동의 후 계속</string>
+    <string name="auth_consent_declined">동의하지 않으면 서비스를 이용할 수 없습니다.</string>
+
+    <!-- Home banner when logged out -->
+    <string name="home_login_banner_title">로그인하고 GCFL 아카이브를 모두 이용하세요</string>
+    <string name="home_login_banner_desc">기출 정답지·즐겨찾기, 사진 아카이브, 극플드라이브 업로드는 재학생 인증 후 이용할 수 있어요.</string>
+    <string name="home_login_banner_button">학번으로 로그인</string>
+</resources>

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Left/right inset of hairlines between list rows (matches row padding). -->
+    <dimen name="list_divider_inset">20dp</dimen>
+</resources>

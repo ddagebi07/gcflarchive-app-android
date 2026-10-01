@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Hairline between attachment rows, inset to the text column. -->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:insetLeft="14dp"
+    android:insetRight="14dp">
+    <shape android:shape="rectangle">
+        <solid android:color="@color/krds_border" />
+        <size android:height="1dp" />
+    </shape>
+</inset>

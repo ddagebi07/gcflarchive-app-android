@@ -20,6 +20,7 @@ import androidx.activity.result.ActivityResultCaller
 import androidx.activity.result.contract.ActivityResultContracts
 import kr.co.gcflarchive.app.Config
 import kr.co.gcflarchive.app.R
+import kr.co.gcflarchive.app.auth.LoginActivity
 
 /**
  * Shared WebView wiring for every screen that shows the website: keeps the Flask
@@ -37,9 +38,21 @@ class GcflWebView(
         fun onPageFinished(url: String) {}
         fun onProgress(progress: Int) {}
         fun onTitle(title: String) {}
+        /** The site asked for login and the user closed the native login screen. */
+        fun onLoginCancelled() {}
     }
 
     private var pendingFileCallback: ValueCallback<Array<Uri>>? = null
+    private var webView: WebView? = null
+    private var pendingNext: String? = null
+
+    // /verify (the web login page) is replaced by the native LoginActivity; afterwards
+    // the page the site wanted to show (?next=) is loaded with the fresh session.
+    private val login = caller.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val next = pendingNext ?: "/"
+        pendingNext = null
+        if (result.resultCode == android.app.Activity.RESULT_OK) webView?.loadUrl(Config.url(next)) else listener.onLoginCancelled()
+    }
 
     private val fileChooser = caller.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         pendingFileCallback?.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(result.resultCode, result.data))
@@ -48,6 +61,7 @@ class GcflWebView(
 
     @SuppressLint("SetJavaScriptEnabled")
     fun attach(webView: WebView) {
+        this.webView = webView
         val cookies = CookieManager.getInstance()
         cookies.setAcceptCookie(true)
         cookies.setAcceptThirdPartyCookies(webView, false)
@@ -66,7 +80,13 @@ class GcflWebView(
         webView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                 val uri = request.url
-                if (Config.isOwnHost(uri)) return false
+                if (Config.isOwnHost(uri)) {
+                    if (request.isForMainFrame && isLoginPage(uri)) {
+                        openLogin(view.context, uri)
+                        return true
+                    }
+                    return false
+                }
                 // Everything else (Google Drive, YouTube, tel:, mailto:, intent:) leaves the app.
                 openExternal(view.context, uri)
                 return true
@@ -78,14 +98,6 @@ class GcflWebView(
 
             override fun onPageFinished(view: WebView, url: String) {
                 cookies.flush()
-                if (Uri.parse(url).path?.trimEnd('/') == "/verify") {
-                    // The app is a personal device: default "로그인 유지" on so the
-                    // session cookie survives app restarts.
-                    view.evaluateJavascript(
-                        "(function(){var c=document.getElementById('rememberMe');if(c)c.checked=true;})()",
-                        null,
-                    )
-                }
                 listener.onPageFinished(url)
             }
         }
@@ -119,7 +131,25 @@ class GcflWebView(
         }
     }
 
+    /**
+     * Loads [url], but opens the native login instead when it is the web login page
+     * (loadUrl() does not pass through shouldOverrideUrlLoading).
+     */
+    fun load(url: String) {
+        val uri = Uri.parse(url)
+        val view = webView ?: return
+        if (Config.isOwnHost(uri) && isLoginPage(uri)) openLogin(view.context, uri) else view.loadUrl(url)
+    }
+
+    private fun openLogin(context: Context, uri: Uri) {
+        if (pendingNext != null) return
+        pendingNext = uri.getQueryParameter("next")?.takeIf { it.startsWith("/") && !it.startsWith("//") } ?: "/"
+        login.launch(LoginActivity.intent(context))
+    }
+
     companion object {
+        fun isLoginPage(uri: Uri): Boolean = uri.path?.trimEnd('/') == "/verify"
+
         /** Saves [url] to Downloads via DownloadManager, sending the site session cookie along. */
         fun download(
             context: Context,

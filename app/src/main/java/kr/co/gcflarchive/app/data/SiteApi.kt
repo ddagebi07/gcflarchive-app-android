@@ -12,7 +12,7 @@ import org.json.JSONObject
 import java.io.IOException
 
 /** The site answered 401: the user has to log in (on the website) first. */
-class LoginRequiredException : IOException("로그인이 필요합니다.")
+class LoginRequiredException(message: String = "로그인이 필요합니다.") : IOException(message)
 
 class ApiException(val code: Int, message: String) : IOException(message)
 
@@ -52,11 +52,10 @@ object SiteApi {
         Http.client.newCall(request).execute().use { res ->
             syncCookies(res)
             val text = res.body?.string().orEmpty()
-            if (res.code == 401) throw LoginRequiredException()
-            if (!res.isSuccessful) {
-                val msg = runCatching { JSONObject(text).optString("error") }.getOrNull()
-                throw ApiException(res.code, msg?.ifBlank { null } ?: "HTTP ${res.code}")
-            }
+            // Keep the server's wording (e.g. "학번 또는 비밀번호가 일치하지 않습니다.").
+            val msg = runCatching { JSONObject(text).optString("error") }.getOrNull()?.ifBlank { null }
+            if (res.code == 401) throw if (msg != null) LoginRequiredException(msg) else LoginRequiredException()
+            if (!res.isSuccessful) throw ApiException(res.code, msg ?: "HTTP ${res.code}")
             text
         }
     }

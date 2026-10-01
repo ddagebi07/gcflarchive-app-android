@@ -1,14 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/krds_bg"
     android:fitsSystemWindows="true"
     android:orientation="vertical">
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize" />
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/krds_bg" />
 
     <com.google.android.material.progressindicator.LinearProgressIndicator
         android:id="@+id/progress"
@@ -33,7 +37,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnRetry"
-            style="?attr/materialButtonOutlinedStyle"
+            style="@style/Widget.Krds.Button.Secondary"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
@@ -50,84 +54,143 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp"
+            android:paddingHorizontal="20dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="32dp"
             android:visibility="gone">
 
+            <!-- ── 제목 영역 ── -->
             <TextView
                 android:id="@+id/board"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_badge"
-                android:paddingHorizontal="10dp"
-                android:paddingVertical="2dp"
-                android:textAppearance="?attr/textAppearanceLabelMedium"
-                android:textColor="@color/on_brand_primary_container" />
+                style="@style/Widget.Krds.Badge"
+                android:background="@drawable/bg_krds_badge_info"
+                android:textColor="@color/krds_badge_info_fg" />
 
             <TextView
                 android:id="@+id/title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:textAppearance="?attr/textAppearanceTitleLarge"
-                android:textIsSelectable="true"
-                android:textStyle="bold" />
+                android:layout_marginTop="12dp"
+                android:lineSpacingMultiplier="1.2"
+                android:textAppearance="@style/TextAppearance.Krds.PageTitle"
+                android:textIsSelectable="true" />
 
             <TextView
                 android:id="@+id/meta"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:textAppearance="?attr/textAppearanceBodySmall"
-                android:textColor="@color/text_secondary" />
+                android:layout_marginTop="8dp"
+                android:textAppearance="@style/TextAppearance.Krds.Meta" />
 
-            <com.google.android.material.divider.MaterialDivider
+            <View
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginVertical="14dp" />
+                android:layout_height="2dp"
+                android:layout_marginTop="16dp"
+                android:background="@color/krds_text_strong" />
 
-            <TextView
-                android:id="@+id/attachmentsHeader"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/post_attachments"
-                android:textAppearance="@style/TextAppearance.Gcfl.Section" />
-
+            <!-- ── 첨부파일: bordered box, one row per file ── -->
             <LinearLayout
-                android:id="@+id/attachments"
+                android:id="@+id/attachmentsBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:orientation="vertical" />
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_krds_card"
+                android:orientation="vertical"
+                android:paddingVertical="4dp">
 
+                <TextView
+                    android:id="@+id/attachmentsHeader"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:drawablePadding="6dp"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="14dp"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="6dp"
+                    android:textAppearance="@style/TextAppearance.Krds.DetailLabel"
+                    app:drawableStartCompat="@drawable/ic_attach"
+                    app:drawableTint="@color/krds_text_secondary" />
+
+                <LinearLayout
+                    android:id="@+id/attachments"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:divider="@drawable/divider_inset"
+                    android:orientation="vertical"
+                    android:showDividers="middle" />
+            </LinearLayout>
+
+            <!-- ── 본문 ── -->
             <WebView
                 android:id="@+id/content"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                tools:ignore="WebViewLayout" />
 
+            <!-- ── 이전 글 / 다음 글: board-style rows ── -->
             <LinearLayout
                 android:id="@+id/navGroup"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:orientation="horizontal">
+                android:layout_marginTop="28dp"
+                android:orientation="vertical">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnPrev"
-                    style="?attr/materialButtonOutlinedStyle"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/post_prev" />
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/krds_border_strong" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnNext"
-                    style="?attr/materialButtonOutlinedStyle"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:layout_weight="1"
-                    android:text="@string/post_next" />
+                <LinearLayout
+                    android:id="@+id/prevRow"
+                    style="@style/Widget.Gcfl.PostNavRow">
+
+                    <TextView
+                        style="@style/Widget.Gcfl.PostNavLabel"
+                        android:drawablePadding="2dp"
+                        android:text="@string/post_prev"
+                        app:drawableStartCompat="@drawable/ic_chevron_up_small" />
+
+                    <TextView
+                        android:id="@+id/prevTitle"
+                        style="@style/Widget.Gcfl.PostNavTitle" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/krds_border" />
+
+                <LinearLayout
+                    android:id="@+id/nextRow"
+                    style="@style/Widget.Gcfl.PostNavRow">
+
+                    <TextView
+                        style="@style/Widget.Gcfl.PostNavLabel"
+                        android:drawablePadding="2dp"
+                        android:text="@string/post_next"
+                        app:drawableStartCompat="@drawable/ic_chevron_down_small" />
+
+                    <TextView
+                        android:id="@+id/nextTitle"
+                        style="@style/Widget.Gcfl.PostNavTitle" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/krds_border_strong" />
             </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnOriginal"
+                style="@style/Widget.Krds.Button.Secondary"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="20dp"
+                android:text="@string/post_original"
+                app:icon="@drawable/ic_open_in_browser"
+                app:iconGravity="textStart" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 </LinearLayout>

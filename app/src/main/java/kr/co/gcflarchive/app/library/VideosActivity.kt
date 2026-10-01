@@ -15,7 +15,6 @@ import kr.co.gcflarchive.app.web.GcflWebView
 
 /** 영상 아카이브 — native version of video.html; videos play in the YouTube app. */
 class VideosActivity : LibraryListActivity() {
-    override val webPath = "/video"
     override val pageTitleRes = R.string.video_page_title
     override val pageDescRes = R.string.video_page_desc
     override val searchHintRes = R.string.video_search_hint

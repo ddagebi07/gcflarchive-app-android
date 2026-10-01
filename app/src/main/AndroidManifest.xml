@@ -36,6 +36,12 @@
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
             android:exported="false" />
 
+        <!-- Native login + 개인정보 동의 (replaces the /verify web page) -->
+        <activity
+            android:name=".auth.LoginActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
         <activity
             android:name=".archive.PostDetailActivity"
             android:exported="false" />

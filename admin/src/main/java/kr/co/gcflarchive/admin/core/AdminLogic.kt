@@ -64,7 +64,7 @@ object Csv {
         val columns = LinkedHashSet<String>()
         preferred.forEach { col -> if (rows.any { it.containsKey(col) }) columns += col }
         rows.forEach { columns.addAll(it.keys) }
-        val sb = StringBuilder("﻿") // BOM so Excel opens Korean text correctly
+        val sb = StringBuilder("\uFEFF") // BOM so Excel opens Korean text correctly
         sb.append(columns.joinToString(",") { esc(it) }).append("\r\n")
         rows.forEach { row -> sb.append(columns.joinToString(",") { esc(row[it].orEmpty()) }).append("\r\n") }
         return sb.toString()

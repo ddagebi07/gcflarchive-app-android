@@ -1,6 +1,5 @@
 package kr.co.gcflarchive.app.web
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -14,23 +13,14 @@ import kr.co.gcflarchive.app.Config
 import kr.co.gcflarchive.app.R
 import kr.co.gcflarchive.app.databinding.ActivityWebviewBinding
 
-/**
- * Full-screen page of the website. With [EXTRA_FINISH_ON_PATH] set it doubles as a
- * login screen: once the site navigates to that path (i.e. login succeeded and the
- * verify page redirected to `next`), it finishes with RESULT_OK.
- */
+/** Full-screen page of the website (login pages are handled natively by [GcflWebView]). */
 class WebViewActivity : AppCompatActivity() {
     private lateinit var binding: ActivityWebviewBinding
-    private var finishOnPath: String? = null
 
     private val web = GcflWebView(this, object : GcflWebView.Listener {
-        override fun onPageStarted(url: String) {
-            val target = finishOnPath ?: return
-            val path = Uri.parse(url).path?.trimEnd('/')
-            if (Config.isOwnHost(Uri.parse(url)) && path == target.trimEnd('/')) {
-                setResult(Activity.RESULT_OK)
-                finish()
-            }
+        override fun onLoginCancelled() {
+            // Nothing on screen yet (the page itself was the login) → leave.
+            if (binding.webView.url == null) finish()
         }
 
         override fun onProgress(progress: Int) {
@@ -56,7 +46,6 @@ class WebViewActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = intent.getStringExtra(EXTRA_TITLE) ?: getString(R.string.app_name)
-        finishOnPath = intent.getStringExtra(EXTRA_FINISH_ON_PATH)
 
         web.attach(binding.webView)
         binding.swipe.setOnRefreshListener { binding.webView.reload() }
@@ -70,7 +59,7 @@ class WebViewActivity : AppCompatActivity() {
         })
 
         if (savedInstanceState == null || binding.webView.restoreState(savedInstanceState) == null) {
-            binding.webView.loadUrl(intent.getStringExtra(EXTRA_URL) ?: Config.BASE_URL)
+            web.load(intent.getStringExtra(EXTRA_URL) ?: Config.BASE_URL)
         }
     }
 
@@ -102,18 +91,11 @@ class WebViewActivity : AppCompatActivity() {
     companion object {
         private const val EXTRA_URL = "url"
         private const val EXTRA_TITLE = "title"
-        private const val EXTRA_FINISH_ON_PATH = "finish_on_path"
 
         fun intent(context: Context, path: String, title: String? = null): Intent =
             Intent(context, WebViewActivity::class.java)
                 .putExtra(EXTRA_URL, Config.url(path))
                 .putExtra(EXTRA_TITLE, title)
 
-        /** Opens the site's login page; the activity result is OK once login lands on [next]. */
-        fun loginIntent(context: Context, next: String): Intent =
-            Intent(context, WebViewActivity::class.java)
-                .putExtra(EXTRA_URL, Config.loginUrl(next))
-                .putExtra(EXTRA_TITLE, context.getString(R.string.login_title))
-                .putExtra(EXTRA_FINISH_ON_PATH, next)
     }
 }

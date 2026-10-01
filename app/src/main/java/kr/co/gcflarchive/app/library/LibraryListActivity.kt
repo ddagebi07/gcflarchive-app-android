@@ -12,10 +12,10 @@ import com.google.android.material.appbar.AppBarLayout
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kr.co.gcflarchive.app.auth.LoginActivity
 import kr.co.gcflarchive.app.R
 import kr.co.gcflarchive.app.data.LoginRequiredException
 import kr.co.gcflarchive.app.databinding.ActivityLibraryBinding
-import kr.co.gcflarchive.app.web.WebViewActivity
 
 /**
  * Shared frame for the native archive pages, laid out like the website's KRDS pages:
@@ -25,8 +25,6 @@ import kr.co.gcflarchive.app.web.WebViewActivity
 abstract class LibraryListActivity : AppCompatActivity() {
     protected lateinit var binding: ActivityLibraryBinding
 
-    /** Website path of the same page; also where login returns to. */
-    protected abstract val webPath: String
     protected abstract val pageTitleRes: Int
     protected abstract val pageDescRes: Int
     protected abstract val searchHintRes: Int
@@ -101,7 +99,7 @@ abstract class LibraryListActivity : AppCompatActivity() {
                         getString(R.string.library_login_title),
                         getString(R.string.library_login_desc),
                         getString(R.string.library_login_button),
-                    ) { login.launch(WebViewActivity.loginIntent(this@LibraryListActivity, webPath)) }
+                    ) { login.launch(LoginActivity.intent(this@LibraryListActivity)) }
                     else -> showState(
                         getString(R.string.library_error_title),
                         e.message ?: getString(R.string.library_error_desc),
@@ -115,7 +113,7 @@ abstract class LibraryListActivity : AppCompatActivity() {
 
     /** Asks for login (e.g. favorites, 극플드라이브) and reloads afterwards. */
     protected fun requestLogin() {
-        login.launch(WebViewActivity.loginIntent(this, webPath))
+        login.launch(LoginActivity.intent(this))
     }
 
     protected fun setTotal(count: Int?, unitRes: Int = R.string.library_total) {

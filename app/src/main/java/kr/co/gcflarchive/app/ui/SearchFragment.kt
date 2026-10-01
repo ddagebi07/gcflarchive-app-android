@@ -13,6 +13,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.Chip
+import com.google.android.material.divider.MaterialDividerItemDecoration
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kr.co.gcflarchive.app.MainActivity
@@ -49,6 +50,16 @@ class SearchFragment : Fragment(), MainActivity.Reselectable {
         val layout = LinearLayoutManager(requireContext())
         binding.results.layoutManager = layout
         binding.results.adapter = adapter
+        // Hairline between posts, inset to the text column (no card chrome: stays minimal).
+        binding.results.addItemDecoration(
+            MaterialDividerItemDecoration(requireContext(), MaterialDividerItemDecoration.VERTICAL).apply {
+                val inset = resources.getDimensionPixelSize(R.dimen.list_divider_inset)
+                dividerInsetStart = inset
+                dividerInsetEnd = inset
+                dividerColor = requireContext().getColor(R.color.krds_border)
+                isLastItemDecorated = false
+            },
+        )
         binding.results.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 // Infinite scroll: fetch the next page a few rows before the end.
@@ -123,7 +134,7 @@ class SearchFragment : Fragment(), MainActivity.Reselectable {
     }
 
     private fun boardChip(label: String, code: String?): Chip =
-        (layoutInflater.inflate(R.layout.item_filter_chip, binding.boardGroup, false) as Chip).apply {
+        (layoutInflater.inflate(R.layout.item_krds_filter_chip, binding.boardGroup, false) as Chip).apply {
             id = View.generateViewId()
             text = label
             setOnClickListener {

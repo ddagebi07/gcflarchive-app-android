@@ -15,7 +15,6 @@ import kr.co.gcflarchive.app.web.GcflWebView
 
 /** 사진 아카이브 — native version of photo.html (albums open in Google Photos etc.). */
 class PhotosActivity : LibraryListActivity() {
-    override val webPath = "/photo"
     override val pageTitleRes = R.string.photo_page_title
     override val pageDescRes = R.string.photo_page_desc
     override val searchHintRes = R.string.photo_search_hint
