@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- KRDS tokens mirrored from the website's theme-tokens.css (dark theme). -->
+<resources>
+    <color name="krds_primary">#0B3492</color>
+    <color name="krds_primary_text">#8AB8FF</color>
+    <color name="krds_primary_tint">#2E388BFD</color>
+    <color name="krds_on_primary">#FFFFFF</color>
+    <color name="krds_bg">#07090E</color>
+    <color name="krds_surface">#121621</color>
+    <color name="krds_surface_raised">#1A2035</color>
+    <color name="krds_border">#1AFFFFFF</color>
+    <color name="krds_border_strong">#2EFFFFFF</color>
+    <color name="krds_input_border">#526077</color>
+    <color name="krds_text_strong">#FFFFFF</color>
+    <color name="krds_text_primary">#F1F3F9</color>
+    <color name="krds_text_secondary">#9AA4B2</color>
+    <color name="krds_text_disabled">#526077</color>
+    <color name="krds_danger">#FF6B6B</color>
+    <color name="krds_danger_tint">#26D62828</color>
+    <color name="krds_star">#FFC940</color>
+
+    <color name="krds_badge_info_bg">#29388BFD</color>
+    <color name="krds_badge_info_fg">#8AB8FF</color>
+    <color name="krds_badge_info_border">#59388BFD</color>
+    <color name="krds_badge_success_bg">#292B9348</color>
+    <color name="krds_badge_success_fg">#6FD28C</color>
+    <color name="krds_badge_success_border">#592B9348</color>
+    <color name="krds_badge_purple_bg">#29A855F7</color>
+    <color name="krds_badge_purple_fg">#D3A6FB</color>
+    <color name="krds_badge_purple_border">#59A855F7</color>
+    <color name="krds_badge_neutral_bg">#0FFFFFFF</color>
+    <color name="krds_badge_neutral_fg">#9AA4B2</color>
+    <color name="krds_badge_neutral_border">#24FFFFFF</color>
+</resources>

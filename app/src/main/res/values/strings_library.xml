@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Native archive pages; wording follows the website's pages. -->
+<resources>
+    <string name="library_breadcrumb">홈 › 아카이브 › %1$s</string>
+    <string name="library_total">총 %1$d건</string>
+    <string name="library_view">바로보기</string>
+    <string name="library_download">다운로드</string>
+    <string name="library_detail">상세 정보</string>
+    <string name="library_empty_title">일치하는 자료가 없습니다.</string>
+    <string name="library_empty_desc">아직 등록된 자료가 없습니다.</string>
+    <string name="library_empty_search_desc">검색어나 필터 조건을 바꿔 보세요.</string>
+    <string name="library_error_title">자료를 불러오지 못했습니다.</string>
+    <string name="library_error_desc">네트워크 상태를 확인하고 다시 시도해 주세요.</string>
+    <string name="library_login_title">로그인이 필요합니다.</string>
+    <string name="library_login_desc">재학생 인증(학번 로그인) 후 이용할 수 있습니다.</string>
+    <string name="library_login_button">로그인</string>
+
+    <!-- 기출 -->
+    <string name="exam_page_title">기출문제 아카이브</string>
+    <string name="exam_page_title_short">기출문제</string>
+    <string name="exam_page_desc">과천외고 정기고사의 연도·학년·학과·시험 구분·과목별 기출문제 및 답지 모음입니다.</string>
+    <string name="exam_search_hint">기출명, 과목, 태그 검색</string>
+    <string name="exam_total">총 %1$d건의 기출문제</string>
+    <string name="exam_filter">상세 조건</string>
+    <string name="exam_filter_count">상세 조건 (%1$d)</string>
+    <string name="exam_filter_title">상세 조건 검색</string>
+    <string name="exam_filter_multi">(복수 선택 가능)</string>
+    <string name="exam_filter_reset">필터 초기화</string>
+    <string name="exam_filter_apply">%1$d건 보기</string>
+    <string name="exam_filter_year">시행 연도</string>
+    <string name="exam_filter_grade">학년</string>
+    <string name="exam_filter_department">응시 학과</string>
+    <string name="exam_filter_period">시험 구분</string>
+    <string name="exam_filter_subject">과목 선택</string>
+    <string name="exam_favorites_only">★ 즐겨찾기만 보기</string>
+    <string name="exam_favorite_add">즐겨찾기 추가</string>
+    <string name="exam_favorite_remove">즐겨찾기 해제</string>
+    <string name="exam_favorite_login">즐겨찾기는 로그인 후 사용할 수 있습니다.</string>
+    <string name="exam_badge_answer">답지</string>
+    <string name="exam_badge_cutoffs">등급컷</string>
+    <string name="exam_detail_heading">기출문제 상세 정보</string>
+    <string name="exam_detail_year_grade">연도/학년</string>
+    <string name="exam_detail_period">시험구분</string>
+    <string name="exam_detail_subject_dept">과목/학과</string>
+    <string name="exam_detail_size">파일 크기</string>
+    <string name="exam_detail_cutoffs">등급컷</string>
+    <string name="exam_detail_average">과목 평균</string>
+    <string name="exam_detail_desc">설명 / 태그</string>
+    <string name="exam_include_answers">정답지 포함 (바로보기·다운로드·극플드라이브)</string>
+    <string name="exam_add_drive">극플드라이브에 담기</string>
+    <string name="exam_drive_added">%1$s 극플드라이브에서 바로 인쇄할 수 있어요.</string>
+    <string name="exam_drive_failed">극플드라이브에 담지 못했습니다.</string>
+    <string name="exam_answer_sheet">정답지 확인</string>
+    <string name="exam_answer_heading">기출문제 정답지</string>
+    <string name="exam_answer_subject">과목</string>
+    <string name="exam_answer_year">연도</string>
+    <string name="exam_answer_term">학기/회차</string>
+    <string name="exam_answer_teachers">담당교사</string>
+    <string name="exam_answer_content">정답지 내용</string>
+    <string name="exam_answer_notes">추가 정보 및 해설</string>
+    <string name="exam_answer_empty">등록된 답안이 없습니다.</string>
+    <string name="exam_answer_failed">답안지를 불러오는 중 오류가 발생했습니다.</string>
+    <string name="exam_cutoff_table">등급컷 표 보기</string>
+    <string name="exam_cutoff_heading">등급컷 상세정보</string>
+    <string name="exam_cutoff_grade">등급</string>
+    <string name="exam_cutoff_score">원점수</string>
+    <string name="exam_cutoff_empty">등록된 등급컷 정보가 없습니다.</string>
+
+    <!-- PDF 자료실 -->
+    <string name="docs_page_title">문서 자료실</string>
+    <string name="docs_page_desc">과천외고 학교 생활규정, 학사일정, 수업 학습자료 및 행정 서식 모음입니다.</string>
+    <string name="docs_search_hint">제목, 분류, 설명, 태그 검색</string>
+    <string name="docs_total">총 %1$d건의 자료</string>
+    <string name="docs_category_count">%1$s (%2$d)</string>
+    <string name="docs_views">조회 %1$d</string>
+    <string name="docs_detail_heading">자료 상세 정보</string>
+    <string name="docs_detail_category">분류</string>
+    <string name="docs_detail_collection">컬렉션</string>
+    <string name="docs_detail_date">등록일</string>
+    <string name="docs_detail_stats">조회 / 다운로드</string>
+    <string name="docs_stats">조회 %1$d회 · 다운로드 %2$d회</string>
+
+    <!-- 사진 -->
+    <string name="photo_page_title">사진 아카이브</string>
+    <string name="photo_page_desc">과천외고의 교내 행사별, 시설별 고화질 사진 및 활동 기록 갤러리입니다.</string>
+    <string name="photo_search_hint">앨범 제목, 출연자, 설명 검색</string>
+    <string name="photo_total">총 %1$d개의 앨범</string>
+    <string name="photo_detail_heading">앨범 상세 정보</string>
+    <string name="photo_detail_date">촬영일</string>
+    <string name="photo_detail_copyright">저작권</string>
+    <string name="photo_detail_performers">출연 / 참여</string>
+    <string name="photo_open_album">앨범 열기</string>
+
+    <!-- 영상 -->
+    <string name="video_page_title">영상 아카이브</string>
+    <string name="video_page_desc">과천외고의 교내 축제, 방송제 및 학교 행사 영상 아카이브입니다.</string>
+    <string name="video_search_hint">영상 제목, 분류, 태그 검색</string>
+    <string name="video_total">총 %1$d개의 영상</string>
+    <string name="video_detail_heading">영상 상세 정보</string>
+    <string name="video_detail_date">등록일</string>
+    <string name="video_detail_tags">태그</string>
+    <string name="video_no_notes">상세 설명이 없습니다.</string>
+    <string name="video_watch">유튜브에서 보기</string>
+
+    <!-- PDF viewer -->
+    <string name="viewer_page">%1$d / %2$d</string>
+    <string name="viewer_page_desc">PDF 페이지</string>
+    <string name="viewer_error">문서를 열 수 없습니다.</string>
+    <string name="viewer_zoom_reset">확대 초기화</string>
+</resources>

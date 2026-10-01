@@ -60,7 +60,7 @@ class MainActivity : AppCompatActivity() {
     private fun openPathFromIntent(intent: Intent?) {
         val path = intent?.getStringExtra(EXTRA_PATH)?.takeIf { it.startsWith("/") } ?: return
         intent.removeExtra(EXTRA_PATH)
-        startActivity(WebViewActivity.intent(this, path))
+        startActivity(NativePages.intentFor(this, path) ?: WebViewActivity.intent(this, path))
     }
 
     fun selectTab(tab: String) {

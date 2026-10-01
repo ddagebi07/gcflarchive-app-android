@@ -6,6 +6,14 @@
         <item name="colorOnPrimaryContainer">@color/on_brand_primary_container</item>
         <item name="colorSecondaryContainer">@color/brand_primary_container</item>
         <item name="colorOnSecondaryContainer">@color/on_brand_primary_container</item>
+        <!-- KRDS surfaces (theme-tokens.css) -->
+        <item name="android:colorBackground">@color/krds_bg</item>
+        <item name="colorSurface">@color/krds_surface</item>
+        <item name="colorOnSurface">@color/krds_text_primary</item>
+        <item name="colorOnSurfaceVariant">@color/krds_text_secondary</item>
+        <item name="colorOutline">@color/krds_input_border</item>
+        <item name="colorOutlineVariant">@color/krds_border</item>
+        <item name="colorError">@color/krds_danger</item>
     </style>
 
     <!-- Floating card for the share-sheet upload screen. -->
@@ -33,5 +41,119 @@
         <item name="android:background">?attr/selectableItemBackground</item>
         <item name="android:clickable">true</item>
         <item name="android:focusable">true</item>
+    </style>
+
+    <!-- ── KRDS components (mirroring theme-components.css / theme-board.css) ── -->
+
+    <!-- .tit-page -->
+    <style name="TextAppearance.Krds.PageTitle" parent="TextAppearance.Material3.HeadlineSmall">
+        <item name="android:textColor">@color/krds_text_strong</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">24sp</item>
+    </style>
+
+    <!-- .tit-page-desc -->
+    <style name="TextAppearance.Krds.PageDesc" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textColor">@color/krds_text_secondary</item>
+        <item name="android:lineSpacingMultiplier">1.35</item>
+    </style>
+
+    <!-- .breadcrumb -->
+    <style name="TextAppearance.Krds.Breadcrumb" parent="TextAppearance.Material3.LabelMedium">
+        <item name="android:textColor">@color/krds_text_secondary</item>
+    </style>
+
+    <!-- .board-total-txt -->
+    <style name="TextAppearance.Krds.Total" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textColor">@color/krds_text_secondary</item>
+    </style>
+
+    <!-- Card title (.board-card-title / .doc-tit-link) -->
+    <style name="TextAppearance.Krds.CardTitle" parent="TextAppearance.Material3.TitleSmall">
+        <item name="android:textColor">@color/krds_text_strong</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="TextAppearance.Krds.Meta" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:textColor">@color/krds_text_secondary</item>
+    </style>
+
+    <!-- .detail-label -->
+    <style name="TextAppearance.Krds.DetailLabel" parent="TextAppearance.Material3.LabelMedium">
+        <item name="android:textColor">@color/krds_text_secondary</item>
+    </style>
+
+    <style name="TextAppearance.Krds.DetailValue" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:textColor">@color/krds_text_primary</item>
+    </style>
+
+    <!-- .tag-badge -->
+    <style name="Widget.Krds.Badge" parent="">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:paddingStart">6dp</item>
+        <item name="android:paddingEnd">6dp</item>
+        <item name="android:paddingTop">1dp</item>
+        <item name="android:paddingBottom">1dp</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:maxLines">1</item>
+    </style>
+
+    <!-- .filter-opt: pill, raised surface + strong border, primary when active -->
+    <style name="Widget.Krds.FilterChip" parent="Widget.Material3.Chip.Filter">
+        <item name="chipBackgroundColor">@color/krds_filter_chip_bg</item>
+        <item name="chipStrokeColor">@color/krds_filter_chip_stroke</item>
+        <item name="chipStrokeWidth">1dp</item>
+        <item name="android:textColor">@color/krds_filter_chip_text</item>
+        <item name="checkedIconVisible">false</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.Material3.Corner.Full</item>
+        <item name="android:textAppearance">@style/TextAppearance.Material3.LabelLarge</item>
+        <item name="chipMinHeight">36dp</item>
+        <item name="ensureMinTouchTargetSize">false</item>
+    </style>
+
+    <!-- .krds-btn.primary / .secondary / .tertiary (8dp corners like KRDS) -->
+    <style name="Widget.Krds.Button.Primary" parent="Widget.Material3.Button">
+        <item name="backgroundTint">@color/krds_primary</item>
+        <item name="android:textColor">@color/krds_on_primary</item>
+        <item name="iconTint">@color/krds_on_primary</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.Material3.Corner.Small</item>
+    </style>
+
+    <style name="Widget.Krds.Button.Secondary" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="strokeColor">@color/krds_primary_text</item>
+        <item name="android:textColor">@color/krds_primary_text</item>
+        <item name="iconTint">@color/krds_primary_text</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.Material3.Corner.Small</item>
+    </style>
+
+    <style name="Widget.Krds.Button.Tertiary" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="strokeColor">@color/krds_border_strong</item>
+        <item name="android:textColor">@color/krds_text_primary</item>
+        <item name="iconTint">@color/krds_text_primary</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.Material3.Corner.Small</item>
+    </style>
+
+    <!-- .krds-input / search field -->
+    <style name="Widget.Krds.SearchField" parent="Widget.Material3.TextInputLayout.OutlinedBox.Dense">
+        <item name="boxStrokeColor">@color/krds_primary_text</item>
+        <item name="boxCornerRadiusTopStart">8dp</item>
+        <item name="boxCornerRadiusTopEnd">8dp</item>
+        <item name="boxCornerRadiusBottomStart">8dp</item>
+        <item name="boxCornerRadiusBottomEnd">8dp</item>
+        <item name="hintEnabled">false</item>
+        <item name="endIconMode">clear_text</item>
+        <item name="startIconDrawable">@drawable/ic_search</item>
+    </style>
+
+    <!-- Detail sheet (KRDS modal → bottom sheet on phones) -->
+    <style name="ThemeOverlay.Krds.BottomSheet" parent="ThemeOverlay.Material3.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/Widget.Krds.BottomSheet</item>
+    </style>
+
+    <style name="Widget.Krds.BottomSheet" parent="Widget.Material3.BottomSheet.Modal">
+        <item name="backgroundTint">@color/krds_surface</item>
     </style>
 </resources>

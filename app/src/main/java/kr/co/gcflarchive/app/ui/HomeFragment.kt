@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import kr.co.gcflarchive.app.ArchiveLink
+import kr.co.gcflarchive.app.NativePages
 import kr.co.gcflarchive.app.MainActivity
 import kr.co.gcflarchive.app.R
 import kr.co.gcflarchive.app.data.SiteSession
@@ -44,7 +45,10 @@ class HomeFragment : Fragment() {
                 if (link == ArchiveLink.SEARCH) {
                     (activity as? MainActivity)?.selectTab(MainActivity.TAB_SEARCH)
                 } else {
-                    startActivity(WebViewActivity.intent(requireContext(), link.path, getString(link.titleRes)))
+                    startActivity(
+                        NativePages.intentFor(requireContext(), link.path)
+                            ?: WebViewActivity.intent(requireContext(), link.path, getString(link.titleRes)),
+                    )
                 }
             }
             tile.root.layoutParams = GridLayout.LayoutParams(

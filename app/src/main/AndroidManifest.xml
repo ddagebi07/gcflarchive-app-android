@@ -40,6 +40,23 @@
             android:name=".archive.PostDetailActivity"
             android:exported="false" />
 
+        <!-- Native archive pages (기출 / PDF / 사진 / 영상) and the protected PDF viewer -->
+        <activity
+            android:name=".library.PastExamsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".library.DocumentsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".library.PhotosActivity"
+            android:exported="false" />
+        <activity
+            android:name=".library.VideosActivity"
+            android:exported="false" />
+        <activity
+            android:name=".library.PdfViewerActivity"
+            android:exported="false" />
+
         <!-- "공유" 시트에서 극플드라이브로 바로 올리기 -->
         <activity
             android:name=".share.ShareReceiverActivity"

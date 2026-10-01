@@ -31,7 +31,7 @@ object Config {
     }
 }
 
-/** Archive pages surfaced as native shortcuts on the home tab. */
+/** Archive pages surfaced as shortcuts on the home tab. */
 enum class ArchiveLink(val path: String, val titleRes: Int, val iconRes: Int) {
     PAST_EXAMS("/past-exams", R.string.link_past_exams, R.drawable.ic_exam),
     DOCUMENTS("/documents", R.string.link_documents, R.drawable.ic_pdf),
@@ -41,4 +41,21 @@ enum class ArchiveLink(val path: String, val titleRes: Int, val iconRes: Int) {
     GRADES("/grade-calculator", R.string.link_grades, R.drawable.ic_grade),
     MAP("/map", R.string.link_map, R.drawable.ic_map),
     NOTICE("/notice", R.string.link_notice, R.drawable.ic_notice),
+}
+
+/**
+ * Site pages that have a native screen; everything else opens in the in-app WebView.
+ * Used by the home tiles and by deep links / launcher shortcuts.
+ */
+object NativePages {
+    fun intentFor(context: android.content.Context, path: String): android.content.Intent? {
+        val cls = when (path.substringBefore('?').trimEnd('/')) {
+            "/past-exams" -> kr.co.gcflarchive.app.library.PastExamsActivity::class.java
+            "/documents" -> kr.co.gcflarchive.app.library.DocumentsActivity::class.java
+            "/photo" -> kr.co.gcflarchive.app.library.PhotosActivity::class.java
+            "/video" -> kr.co.gcflarchive.app.library.VideosActivity::class.java
+            else -> return null
+        }
+        return android.content.Intent(context, cls)
+    }
 }
