@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Long-press the launcher icon. Both open through login + biometric unlock. -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:icon="@drawable/ic_construction"
+        android:shortcutId="maintenance"
+        android:shortcutShortLabel="@string/shortcut_maintenance">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="gcfladmin://maintenance"
+            android:targetClass="kr.co.gcflarchive.admin.ui.LoginActivity"
+            android:targetPackage="kr.co.gcflarchive.admin" />
+    </shortcut>
+    <shortcut
+        android:icon="@drawable/ic_block"
+        android:shortcutId="ip_blocks"
+        android:shortcutShortLabel="@string/shortcut_blocks">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="gcfladmin://ip_blocks"
+            android:targetClass="kr.co.gcflarchive.admin.ui.LoginActivity"
+            android:targetPackage="kr.co.gcflarchive.admin" />
+    </shortcut>
+</shortcuts>

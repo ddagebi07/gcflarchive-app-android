@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/tab_home" android:icon="@drawable/ic_home" android:title="@string/tab_home" />
+    <item android:id="@+id/tab_security" android:icon="@drawable/ic_shield" android:title="@string/tab_security" />
+    <item android:id="@+id/tab_content" android:icon="@drawable/ic_content" android:title="@string/tab_content" />
+    <item android:id="@+id/tab_logs" android:icon="@drawable/ic_history" android:title="@string/tab_logs" />
+    <item android:id="@+id/tab_more" android:icon="@drawable/ic_more" android:title="@string/tab_more" />
+</menu>

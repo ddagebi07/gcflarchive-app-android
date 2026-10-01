@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="admin_primary_container">#1B2D57</color>
+    <color name="admin_on_primary_container">#DCE4F9</color>
+    <color name="admin_warning">#F5B45C</color>
+    <color name="admin_warning_bg">#29D97706</color>
+    <color name="admin_success">#6FD28C</color>
+    <bool name="admin_light_bars">false</bool>
+</resources>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.GcflAdmin" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/krds_primary</item>
+        <item name="colorOnPrimary">@color/krds_on_primary</item>
+        <item name="colorPrimaryContainer">@color/admin_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/admin_on_primary_container</item>
+        <item name="colorSecondaryContainer">@color/admin_primary_container</item>
+        <item name="colorOnSecondaryContainer">@color/admin_on_primary_container</item>
+        <item name="android:colorBackground">@color/krds_bg</item>
+        <item name="colorSurface">@color/krds_surface</item>
+        <item name="colorOnSurface">@color/krds_text_primary</item>
+        <item name="colorOnSurfaceVariant">@color/krds_text_secondary</item>
+        <item name="colorOutline">@color/krds_input_border</item>
+        <item name="colorOutlineVariant">@color/krds_border</item>
+        <item name="colorError">@color/krds_danger</item>
+        <item name="android:statusBarColor">@color/krds_surface</item>
+        <item name="android:windowLightStatusBar">@bool/admin_light_bars</item>
+        <item name="android:fontFamily">@font/pretendard_gov</item>
+        <item name="fontFamily">@font/pretendard_gov</item>
+        <item name="textAppearanceDisplayLarge">@style/TextAppearance.Gcfl.DisplayLarge</item>
+        <item name="textAppearanceDisplayMedium">@style/TextAppearance.Gcfl.DisplayMedium</item>
+        <item name="textAppearanceDisplaySmall">@style/TextAppearance.Gcfl.DisplaySmall</item>
+        <item name="textAppearanceHeadlineLarge">@style/TextAppearance.Gcfl.HeadlineLarge</item>
+        <item name="textAppearanceHeadlineMedium">@style/TextAppearance.Gcfl.HeadlineMedium</item>
+        <item name="textAppearanceHeadlineSmall">@style/TextAppearance.Gcfl.HeadlineSmall</item>
+        <item name="textAppearanceTitleLarge">@style/TextAppearance.Gcfl.TitleLarge</item>
+        <item name="textAppearanceTitleMedium">@style/TextAppearance.Gcfl.TitleMedium</item>
+        <item name="textAppearanceTitleSmall">@style/TextAppearance.Gcfl.TitleSmall</item>
+        <item name="textAppearanceBodyLarge">@style/TextAppearance.Gcfl.BodyLarge</item>
+        <item name="textAppearanceBodyMedium">@style/TextAppearance.Gcfl.BodyMedium</item>
+        <item name="textAppearanceBodySmall">@style/TextAppearance.Gcfl.BodySmall</item>
+        <item name="textAppearanceLabelLarge">@style/TextAppearance.Gcfl.LabelLarge</item>
+        <item name="textAppearanceLabelMedium">@style/TextAppearance.Gcfl.LabelMedium</item>
+        <item name="textAppearanceLabelSmall">@style/TextAppearance.Gcfl.LabelSmall</item>
+    </style>
+
+    <!-- Lock screen: no content behind it is ever visible. -->
+    <style name="Theme.GcflAdmin.Lock" parent="Theme.GcflAdmin">
+        <item name="android:windowBackground">@color/krds_bg</item>
+    </style>
+
+    <style name="TextAppearance.Admin.Section" parent="TextAppearance.Gcfl.LabelLarge">
+        <item name="android:textColor">@color/krds_primary_text</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="TextAppearance.Admin.StatValue" parent="TextAppearance.Gcfl.HeadlineSmall">
+        <item name="android:textColor">@color/krds_text_strong</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+</resources>

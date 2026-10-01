@@ -15,3 +15,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "GCFLArchive"
 include(":app")
+include(":admin")
