@@ -5,6 +5,7 @@
 
     <!-- Tabs -->
     <string name="tab_home">홈</string>
+    <string name="tab_search">통합검색</string>
     <string name="tab_meal">급식</string>
     <string name="tab_drive">극플드라이브</string>
     <string name="tab_settings">설정</string>
@@ -96,6 +97,27 @@
     <string name="open_in_browser">브라우저로 열기</string>
     <string name="download_started">다운로드 시작: %1$s</string>
     <string name="no_app_for_link">이 링크를 열 수 있는 앱이 없습니다.</string>
+
+    <!-- Search (school homepage archive) -->
+    <string name="search_hint">학교 홈페이지 공지·자료 검색</string>
+    <string name="search_board_all">전체</string>
+    <string name="search_sort_relevance">관련도순</string>
+    <string name="search_sort_date">최신순</string>
+    <string name="search_attachments_only">첨부파일 있음</string>
+    <string name="search_count">검색 결과 %1$s건</string>
+    <string name="search_count_recent">최근 게시물 %1$s건</string>
+    <string name="search_empty">\'%1$s\'에 대한 검색 결과가 없습니다.\n다른 검색어나 필터를 사용해 보세요.</string>
+    <string name="search_empty_filtered">조건에 맞는 게시물이 없습니다.</string>
+    <string name="search_error">검색 중 오류가 발생했습니다.\n네트워크 상태를 확인해 주세요.</string>
+    <string name="retry">다시 시도</string>
+    <string name="search_attachment_count">첨부 %1$d</string>
+    <string name="post_meta">%1$s · %2$s</string>
+    <string name="post_attachments">첨부파일</string>
+    <string name="post_prev">이전 글</string>
+    <string name="post_next">다음 글</string>
+    <string name="post_error">게시물을 불러오지 못했습니다.</string>
+    <string name="post_original">학교 홈페이지 원문 보기</string>
+    <string name="share">공유</string>
 
     <!-- Launcher shortcuts -->
     <string name="shortcut_meal">오늘 급식</string>

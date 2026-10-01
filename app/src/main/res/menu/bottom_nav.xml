@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@+id/tab_home" android:icon="@drawable/ic_home" android:title="@string/tab_home" />
+    <item android:id="@+id/tab_search" android:icon="@drawable/ic_search" android:title="@string/tab_search" />
     <item android:id="@+id/tab_meal" android:icon="@drawable/ic_meal" android:title="@string/tab_meal" />
     <item android:id="@+id/tab_drive" android:icon="@drawable/ic_drive" android:title="@string/tab_drive" />
     <item android:id="@+id/tab_settings" android:icon="@drawable/ic_settings" android:title="@string/tab_settings" />

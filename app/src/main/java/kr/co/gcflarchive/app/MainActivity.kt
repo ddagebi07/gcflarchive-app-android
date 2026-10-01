@@ -14,6 +14,7 @@ import kr.co.gcflarchive.app.databinding.ActivityMainBinding
 import kr.co.gcflarchive.app.ui.DriveFragment
 import kr.co.gcflarchive.app.ui.HomeFragment
 import kr.co.gcflarchive.app.ui.MealFragment
+import kr.co.gcflarchive.app.ui.SearchFragment
 import kr.co.gcflarchive.app.ui.SettingsFragment
 import kr.co.gcflarchive.app.web.WebViewActivity
 
@@ -79,6 +80,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun newFragment(itemId: Int): Fragment = when (itemId) {
+        R.id.tab_search -> SearchFragment()
         R.id.tab_meal -> MealFragment()
         R.id.tab_drive -> DriveFragment()
         R.id.tab_settings -> SettingsFragment()
@@ -91,6 +93,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun idForTab(tab: String): Int? = when (tab) {
         TAB_HOME -> R.id.tab_home
+        TAB_SEARCH -> R.id.tab_search
         TAB_MEAL -> R.id.tab_meal
         TAB_DRIVE -> R.id.tab_drive
         TAB_SETTINGS -> R.id.tab_settings
@@ -106,6 +109,7 @@ class MainActivity : AppCompatActivity() {
         const val EXTRA_TAB = "tab"
         const val EXTRA_PATH = "path"
         const val TAB_HOME = "home"
+        const val TAB_SEARCH = "search"
         const val TAB_MEAL = "meal"
         const val TAB_DRIVE = "drive"
         const val TAB_SETTINGS = "settings"

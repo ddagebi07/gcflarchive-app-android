@@ -8,4 +8,5 @@
     <color name="error">#C62828</color>
     <color name="success">#2E7D32</color>
     <color name="tile_background">#F1F4FA</color>
+    <color name="search_highlight">#FFF1A8</color>
 </resources>

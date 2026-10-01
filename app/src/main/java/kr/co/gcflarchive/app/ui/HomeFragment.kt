@@ -41,7 +41,11 @@ class HomeFragment : Fragment() {
             tile.icon.setImageResource(link.iconRes)
             tile.label.setText(link.titleRes)
             tile.root.setOnClickListener {
-                startActivity(WebViewActivity.intent(requireContext(), link.path, getString(link.titleRes)))
+                if (link == ArchiveLink.SEARCH) {
+                    (activity as? MainActivity)?.selectTab(MainActivity.TAB_SEARCH)
+                } else {
+                    startActivity(WebViewActivity.intent(requireContext(), link.path, getString(link.titleRes)))
+                }
             }
             tile.root.layoutParams = GridLayout.LayoutParams(
                 GridLayout.spec(GridLayout.UNDEFINED, 1f),

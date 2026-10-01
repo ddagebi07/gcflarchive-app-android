@@ -115,24 +115,32 @@ class GcflWebView(
         }
 
         webView.setDownloadListener { url, userAgent, contentDisposition, mimeType, _ ->
-            enqueueDownload(webView.context, url, userAgent, contentDisposition, mimeType)
+            download(webView.context, url, userAgent, contentDisposition, mimeType)
         }
     }
 
-    private fun enqueueDownload(context: Context, url: String, userAgent: String, disposition: String?, mimeType: String?) {
-        val fileName = URLUtil.guessFileName(url, disposition, mimeType)
-        val request = DownloadManager.Request(Uri.parse(url))
-            .addRequestHeader("User-Agent", userAgent)
-            .setTitle(fileName)
-            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-            .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName)
-        mimeType?.let { request.setMimeType(it) }
-        CookieManager.getInstance().getCookie(url)?.let { request.addRequestHeader("Cookie", it) }
-        context.getSystemService(DownloadManager::class.java)?.enqueue(request) ?: return
-        Toast.makeText(context, context.getString(R.string.download_started, fileName), Toast.LENGTH_SHORT).show()
-    }
-
     companion object {
+        /** Saves [url] to Downloads via DownloadManager, sending the site session cookie along. */
+        fun download(
+            context: Context,
+            url: String,
+            userAgent: String? = null,
+            disposition: String? = null,
+            mimeType: String? = null,
+            fileName: String = URLUtil.guessFileName(url, disposition, mimeType),
+        ) {
+            val safeName = fileName.replace(Regex("""[\\/:*?"<>|]"""), "_")
+            val request = DownloadManager.Request(Uri.parse(url))
+                .addRequestHeader("User-Agent", userAgent ?: "${System.getProperty("http.agent").orEmpty()} ${Config.USER_AGENT_SUFFIX}".trim())
+                .setTitle(safeName)
+                .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, safeName)
+            mimeType?.let { request.setMimeType(it) }
+            CookieManager.getInstance().getCookie(url)?.let { request.addRequestHeader("Cookie", it) }
+            context.getSystemService(DownloadManager::class.java)?.enqueue(request) ?: return
+            Toast.makeText(context, context.getString(R.string.download_started, safeName), Toast.LENGTH_SHORT).show()
+        }
+
         fun openExternal(context: Context, uri: Uri) {
             val intent = (
                 if (uri.scheme == "intent") {

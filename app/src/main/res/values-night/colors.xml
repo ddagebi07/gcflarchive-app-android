@@ -7,4 +7,5 @@
     <color name="error">#FF8A80</color>
     <color name="success">#81C784</color>
     <color name="tile_background">#1E222B</color>
+    <color name="search_highlight">#5C4D00</color>
 </resources>

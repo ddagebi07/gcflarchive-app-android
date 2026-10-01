@@ -36,6 +36,10 @@
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
             android:exported="false" />
 
+        <activity
+            android:name=".archive.PostDetailActivity"
+            android:exported="false" />
+
         <!-- "공유" 시트에서 극플드라이브로 바로 올리기 -->
         <activity
             android:name=".share.ShareReceiverActivity"
