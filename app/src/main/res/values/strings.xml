@@ -11,6 +11,9 @@
 
     <!-- Home -->
     <string name="home_tagline">기록의 가치, 가치의 기록.</string>
+    <!-- %1$s = 학번. The "학번님" part is bolded in code. -->
+    <string name="home_welcome_name">%1$s님</string>
+    <string name="home_welcome_suffix">, 환영합니다!</string>
     <string name="home_today_meal">오늘의 급식</string>
     <string name="home_archive">아카이브</string>
     <string name="home_upload_title">극플드라이브에 파일 올리기</string>

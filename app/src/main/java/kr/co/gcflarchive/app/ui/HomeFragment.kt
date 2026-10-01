@@ -6,6 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.GridLayout
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.text.bold
+import androidx.core.text.buildSpannedString
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -13,6 +15,7 @@ import kotlinx.coroutines.launch
 import kr.co.gcflarchive.app.ArchiveLink
 import kr.co.gcflarchive.app.MainActivity
 import kr.co.gcflarchive.app.R
+import kr.co.gcflarchive.app.data.SiteSession
 import kr.co.gcflarchive.app.databinding.FragmentHomeBinding
 import kr.co.gcflarchive.app.databinding.ItemArchiveTileBinding
 import kr.co.gcflarchive.app.meal.MealRepository
@@ -55,9 +58,32 @@ class HomeFragment : Fragment() {
         loadTodayMeal()
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Re-check on every return: the user may have just logged in or out in a web screen.
+        loadWelcome()
+    }
+
     override fun onHiddenChanged(hidden: Boolean) {
         // The date may have rolled over while the app sat in the background.
-        if (!hidden && _binding != null) loadTodayMeal()
+        if (!hidden && _binding != null) {
+            loadTodayMeal()
+            loadWelcome()
+        }
+    }
+
+    private fun loadWelcome() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val userId = SiteSession.currentUserId()
+            val b = _binding ?: return@launch
+            b.welcome.isVisible = userId != null
+            if (userId != null) {
+                b.welcome.text = buildSpannedString {
+                    bold { append(getString(R.string.home_welcome_name, userId)) }
+                    append(getString(R.string.home_welcome_suffix))
+                }
+            }
+        }
     }
 
     private fun loadTodayMeal() {
