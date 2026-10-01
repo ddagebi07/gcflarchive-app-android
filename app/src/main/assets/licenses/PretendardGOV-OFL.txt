@@ -1,0 +1,5 @@
+Pretendard GOV
+Copyright (c) 2023 Kil Hyung-jin (길형진)
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+The license text and FAQ are available at: https://openfontlicense.org (http://scripts.sil.org/OFL)

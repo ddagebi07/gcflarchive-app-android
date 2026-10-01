@@ -62,4 +62,6 @@ app/src/main/java/kr/co/gcflarchive/app/
 (`res/values/krds_colors.xml`, `values-night/krds_colors.xml`, `themes.xml`의 `Krds` 스타일).
 웹과 같은 다크 모드 토큰도 들어 있습니다.
 
-KRDS 서체(Pretendard GOV)는 아직 연결 전입니다. `res/font/`에 TTF를 넣고 테마의 `fontFamily`를 지정하면 됩니다.
+서체는 KRDS 지정 서체인 **Pretendard GOV** 가변 폰트(`res/font/pretendard_gov_variable.ttf`, SIL OFL 1.1)를 앱 전체에 씁니다.
+`res/font/pretendard_gov.xml`이 400/600/700 굵기를 `wght` 축으로 정의하고, Material 3 글자 스타일 15종도 이 서체로 바꿔 둡니다.
+라이선스 고지는 `assets/licenses/PretendardGOV-OFL.txt`에 있습니다.

@@ -14,6 +14,24 @@
         <item name="colorOutline">@color/krds_input_border</item>
         <item name="colorOutlineVariant">@color/krds_border</item>
         <item name="colorError">@color/krds_danger</item>
+        <!-- KRDS typeface everywhere, including Material's type scale -->
+        <item name="android:fontFamily">@font/pretendard_gov</item>
+        <item name="fontFamily">@font/pretendard_gov</item>
+        <item name="textAppearanceDisplayLarge">@style/TextAppearance.Gcfl.DisplayLarge</item>
+        <item name="textAppearanceDisplayMedium">@style/TextAppearance.Gcfl.DisplayMedium</item>
+        <item name="textAppearanceDisplaySmall">@style/TextAppearance.Gcfl.DisplaySmall</item>
+        <item name="textAppearanceHeadlineLarge">@style/TextAppearance.Gcfl.HeadlineLarge</item>
+        <item name="textAppearanceHeadlineMedium">@style/TextAppearance.Gcfl.HeadlineMedium</item>
+        <item name="textAppearanceHeadlineSmall">@style/TextAppearance.Gcfl.HeadlineSmall</item>
+        <item name="textAppearanceTitleLarge">@style/TextAppearance.Gcfl.TitleLarge</item>
+        <item name="textAppearanceTitleMedium">@style/TextAppearance.Gcfl.TitleMedium</item>
+        <item name="textAppearanceTitleSmall">@style/TextAppearance.Gcfl.TitleSmall</item>
+        <item name="textAppearanceBodyLarge">@style/TextAppearance.Gcfl.BodyLarge</item>
+        <item name="textAppearanceBodyMedium">@style/TextAppearance.Gcfl.BodyMedium</item>
+        <item name="textAppearanceBodySmall">@style/TextAppearance.Gcfl.BodySmall</item>
+        <item name="textAppearanceLabelLarge">@style/TextAppearance.Gcfl.LabelLarge</item>
+        <item name="textAppearanceLabelMedium">@style/TextAppearance.Gcfl.LabelMedium</item>
+        <item name="textAppearanceLabelSmall">@style/TextAppearance.Gcfl.LabelSmall</item>
     </style>
 
     <!-- Floating card for the share-sheet upload screen. -->
@@ -24,10 +42,29 @@
         <item name="windowNoTitle">true</item>
         <item name="android:windowMinWidthMajor">90%</item>
         <item name="android:windowMinWidthMinor">90%</item>
+        <item name="android:fontFamily">@font/pretendard_gov</item>
+        <item name="fontFamily">@font/pretendard_gov</item>
+        <item name="textAppearanceDisplayLarge">@style/TextAppearance.Gcfl.DisplayLarge</item>
+        <item name="textAppearanceDisplayMedium">@style/TextAppearance.Gcfl.DisplayMedium</item>
+        <item name="textAppearanceDisplaySmall">@style/TextAppearance.Gcfl.DisplaySmall</item>
+        <item name="textAppearanceHeadlineLarge">@style/TextAppearance.Gcfl.HeadlineLarge</item>
+        <item name="textAppearanceHeadlineMedium">@style/TextAppearance.Gcfl.HeadlineMedium</item>
+        <item name="textAppearanceHeadlineSmall">@style/TextAppearance.Gcfl.HeadlineSmall</item>
+        <item name="textAppearanceTitleLarge">@style/TextAppearance.Gcfl.TitleLarge</item>
+        <item name="textAppearanceTitleMedium">@style/TextAppearance.Gcfl.TitleMedium</item>
+        <item name="textAppearanceTitleSmall">@style/TextAppearance.Gcfl.TitleSmall</item>
+        <item name="textAppearanceBodyLarge">@style/TextAppearance.Gcfl.BodyLarge</item>
+        <item name="textAppearanceBodyMedium">@style/TextAppearance.Gcfl.BodyMedium</item>
+        <item name="textAppearanceBodySmall">@style/TextAppearance.Gcfl.BodySmall</item>
+        <item name="textAppearanceLabelLarge">@style/TextAppearance.Gcfl.LabelLarge</item>
+        <item name="textAppearanceLabelMedium">@style/TextAppearance.Gcfl.LabelMedium</item>
+        <item name="textAppearanceLabelSmall">@style/TextAppearance.Gcfl.LabelSmall</item>
     </style>
 
     <style name="TextAppearance.Gcfl.Section" parent="TextAppearance.Material3.TitleSmall">
         <item name="android:textColor">@color/brand_primary</item>
+        <item name="android:fontFamily">@font/pretendard_gov</item>
+        <item name="fontFamily">@font/pretendard_gov</item>
     </style>
 
     <style name="Widget.Gcfl.SettingsRow" parent="">
@@ -43,6 +80,82 @@
         <item name="android:focusable">true</item>
     </style>
 
+    <!-- Material 3 type scale in Pretendard GOV -->
+    <style name="TextAppearance.Gcfl.DisplayLarge" parent="TextAppearance.Material3.DisplayLarge">
+        <item name="android:fontFamily">@font/pretendard_gov</item>
+        <item name="fontFamily">@font/pretendard_gov</item>
+    </style>
+
+    <style name="TextAppearance.Gcfl.DisplayMedium" parent="TextAppearance.Material3.DisplayMedium">
+        <item name="android:fontFamily">@font/pretendard_gov</item>
+        <item name="fontFamily">@font/pretendard_gov</item>
+    </style>
+
+    <style name="TextAppearance.Gcfl.DisplaySmall" parent="TextAppearance.Material3.DisplaySmall">
+        <item name="android:fontFamily">@font/pretendard_gov</item>
+        <item name="fontFamily">@font/pretendard_gov</item>
+    </style>
+
+    <style name="TextAppearance.Gcfl.HeadlineLarge" parent="TextAppearance.Material3.HeadlineLarge">
+        <item name="android:fontFamily">@font/pretendard_gov</item>
+        <item name="fontFamily">@font/pretendard_gov</item>
+    </style>
+
+    <style name="TextAppearance.Gcfl.HeadlineMedium" parent="TextAppearance.Material3.HeadlineMedium">
+        <item name="android:fontFamily">@font/pretendard_gov</item>
+        <item name="fontFamily">@font/pretendard_gov</item>
+    </style>
+
+    <style name="TextAppearance.Gcfl.HeadlineSmall" parent="TextAppearance.Material3.HeadlineSmall">
+        <item name="android:fontFamily">@font/pretendard_gov</item>
+        <item name="fontFamily">@font/pretendard_gov</item>
+    </style>
+
+    <style name="TextAppearance.Gcfl.TitleLarge" parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:fontFamily">@font/pretendard_gov</item>
+        <item name="fontFamily">@font/pretendard_gov</item>
+    </style>
+
+    <style name="TextAppearance.Gcfl.TitleMedium" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:fontFamily">@font/pretendard_gov</item>
+        <item name="fontFamily">@font/pretendard_gov</item>
+    </style>
+
+    <style name="TextAppearance.Gcfl.TitleSmall" parent="TextAppearance.Material3.TitleSmall">
+        <item name="android:fontFamily">@font/pretendard_gov</item>
+        <item name="fontFamily">@font/pretendard_gov</item>
+    </style>
+
+    <style name="TextAppearance.Gcfl.BodyLarge" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:fontFamily">@font/pretendard_gov</item>
+        <item name="fontFamily">@font/pretendard_gov</item>
+    </style>
+
+    <style name="TextAppearance.Gcfl.BodyMedium" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:fontFamily">@font/pretendard_gov</item>
+        <item name="fontFamily">@font/pretendard_gov</item>
+    </style>
+
+    <style name="TextAppearance.Gcfl.BodySmall" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:fontFamily">@font/pretendard_gov</item>
+        <item name="fontFamily">@font/pretendard_gov</item>
+    </style>
+
+    <style name="TextAppearance.Gcfl.LabelLarge" parent="TextAppearance.Material3.LabelLarge">
+        <item name="android:fontFamily">@font/pretendard_gov</item>
+        <item name="fontFamily">@font/pretendard_gov</item>
+    </style>
+
+    <style name="TextAppearance.Gcfl.LabelMedium" parent="TextAppearance.Material3.LabelMedium">
+        <item name="android:fontFamily">@font/pretendard_gov</item>
+        <item name="fontFamily">@font/pretendard_gov</item>
+    </style>
+
+    <style name="TextAppearance.Gcfl.LabelSmall" parent="TextAppearance.Material3.LabelSmall">
+        <item name="android:fontFamily">@font/pretendard_gov</item>
+        <item name="fontFamily">@font/pretendard_gov</item>
+    </style>
+
     <!-- ── KRDS components (mirroring theme-components.css / theme-board.css) ── -->
 
     <!-- .tit-page -->
@@ -50,22 +163,30 @@
         <item name="android:textColor">@color/krds_text_strong</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textSize">24sp</item>
+        <item name="android:fontFamily">@font/pretendard_gov</item>
+        <item name="fontFamily">@font/pretendard_gov</item>
     </style>
 
     <!-- .tit-page-desc -->
     <style name="TextAppearance.Krds.PageDesc" parent="TextAppearance.Material3.BodyMedium">
         <item name="android:textColor">@color/krds_text_secondary</item>
         <item name="android:lineSpacingMultiplier">1.35</item>
+        <item name="android:fontFamily">@font/pretendard_gov</item>
+        <item name="fontFamily">@font/pretendard_gov</item>
     </style>
 
     <!-- .breadcrumb -->
     <style name="TextAppearance.Krds.Breadcrumb" parent="TextAppearance.Material3.LabelMedium">
         <item name="android:textColor">@color/krds_text_secondary</item>
+        <item name="android:fontFamily">@font/pretendard_gov</item>
+        <item name="fontFamily">@font/pretendard_gov</item>
     </style>
 
     <!-- .board-total-txt -->
     <style name="TextAppearance.Krds.Total" parent="TextAppearance.Material3.BodyMedium">
         <item name="android:textColor">@color/krds_text_secondary</item>
+        <item name="android:fontFamily">@font/pretendard_gov</item>
+        <item name="fontFamily">@font/pretendard_gov</item>
     </style>
 
     <!-- Card title (.board-card-title / .doc-tit-link) -->
@@ -73,19 +194,27 @@
         <item name="android:textColor">@color/krds_text_strong</item>
         <item name="android:textSize">16sp</item>
         <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">@font/pretendard_gov</item>
+        <item name="fontFamily">@font/pretendard_gov</item>
     </style>
 
     <style name="TextAppearance.Krds.Meta" parent="TextAppearance.Material3.BodySmall">
         <item name="android:textColor">@color/krds_text_secondary</item>
+        <item name="android:fontFamily">@font/pretendard_gov</item>
+        <item name="fontFamily">@font/pretendard_gov</item>
     </style>
 
     <!-- .detail-label -->
     <style name="TextAppearance.Krds.DetailLabel" parent="TextAppearance.Material3.LabelMedium">
         <item name="android:textColor">@color/krds_text_secondary</item>
+        <item name="android:fontFamily">@font/pretendard_gov</item>
+        <item name="fontFamily">@font/pretendard_gov</item>
     </style>
 
     <style name="TextAppearance.Krds.DetailValue" parent="TextAppearance.Material3.BodyLarge">
         <item name="android:textColor">@color/krds_text_primary</item>
+        <item name="android:fontFamily">@font/pretendard_gov</item>
+        <item name="fontFamily">@font/pretendard_gov</item>
     </style>
 
     <!-- .tag-badge -->
@@ -109,7 +238,7 @@
         <item name="android:textColor">@color/krds_filter_chip_text</item>
         <item name="checkedIconVisible">false</item>
         <item name="shapeAppearance">@style/ShapeAppearance.Material3.Corner.Full</item>
-        <item name="android:textAppearance">@style/TextAppearance.Material3.LabelLarge</item>
+        <item name="android:textAppearance">@style/TextAppearance.Gcfl.LabelLarge</item>
         <item name="chipMinHeight">36dp</item>
         <item name="ensureMinTouchTargetSize">false</item>
     </style>
