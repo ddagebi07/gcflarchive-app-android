@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.GridLayout
+import android.widget.LinearLayout
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.text.bold
 import androidx.core.text.buildSpannedString
@@ -43,23 +43,7 @@ class HomeFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        for (link in ArchiveLink.entries) {
-            val tile = ItemArchiveTileBinding.inflate(layoutInflater, binding.archiveGrid, false)
-            tile.icon.setImageResource(link.iconRes)
-            tile.label.setText(link.titleRes)
-            tile.root.setOnClickListener {
-                if (link == ArchiveLink.SEARCH) {
-                    (activity as? MainActivity)?.selectTab(MainActivity.TAB_SEARCH)
-                } else {
-                    Links.open(requireContext(), android.net.Uri.parse(Config.url(link.path)))
-                }
-            }
-            tile.root.layoutParams = GridLayout.LayoutParams(
-                GridLayout.spec(GridLayout.UNDEFINED, 1f),
-                GridLayout.spec(GridLayout.UNDEFINED, 1f),
-            ).apply { width = 0 }
-            binding.archiveGrid.addView(tile.root)
-        }
+        buildArchiveGrid()
 
         binding.uploadCard.setOnClickListener { pickFiles.launch(arrayOf("*/*")) }
         binding.driveOpen.setOnClickListener { (activity as? MainActivity)?.selectTab(MainActivity.TAB_DRIVE) }
@@ -69,6 +53,41 @@ class HomeFragment : Fragment() {
         binding.openSite.setOnClickListener { Links.openExternal(requireContext(), android.net.Uri.parse(Config.BASE_URL)) }
 
         loadTodayMeal()
+    }
+
+    /** Rows of [TILES_PER_ROW] equal-width tiles with even gaps (no overlap, equal heights). */
+    private fun buildArchiveGrid() {
+        val gap = (8 * resources.displayMetrics.density).toInt()
+        binding.archiveGrid.removeAllViews()
+        ArchiveLink.entries.chunked(TILES_PER_ROW).forEachIndexed { r, links ->
+            val row = LinearLayout(requireContext()).apply {
+                orientation = LinearLayout.HORIZONTAL
+                isBaselineAligned = false
+            }
+            for (i in 0 until TILES_PER_ROW) {
+                val lp = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f).apply { if (i > 0) marginStart = gap }
+                val link = links.getOrNull(i)
+                if (link == null) {
+                    row.addView(View(requireContext()), lp) // keeps the last row's tiles the same width
+                    continue
+                }
+                val tile = ItemArchiveTileBinding.inflate(layoutInflater, row, false)
+                tile.icon.setImageResource(link.iconRes)
+                tile.label.setText(link.titleRes)
+                tile.root.contentDescription = getString(link.titleRes)
+                tile.root.setOnClickListener {
+                    if (link == ArchiveLink.SEARCH) {
+                        (activity as? MainActivity)?.selectTab(MainActivity.TAB_SEARCH)
+                    } else {
+                        Links.open(requireContext(), android.net.Uri.parse(Config.url(link.path)))
+                    }
+                }
+                row.addView(tile.root, lp)
+            }
+            binding.archiveGrid.addView(row, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                if (r > 0) topMargin = gap
+            })
+        }
     }
 
     override fun onResume() {
@@ -129,5 +148,9 @@ class HomeFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    private companion object {
+        const val TILES_PER_ROW = 4
     }
 }

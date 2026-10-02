@@ -67,7 +67,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:gravity="end"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:baselineAligned="false">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCancel"
@@ -89,7 +90,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:visibility="gone">
+            android:visibility="gone"
+        android:baselineAligned="false">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnOpenDrive"

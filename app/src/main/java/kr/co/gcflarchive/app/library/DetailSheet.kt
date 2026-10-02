@@ -73,22 +73,48 @@ class DetailSheet(private val context: Context, heading: String, title: String) 
         TERTIARY(R.layout.view_krds_button_tertiary),
     }
 
-    /** A row of equally wide buttons (.modal-btn). */
+    /**
+     * A row of equally wide buttons (.modal-btn). When a label wouldn't fit its share of
+     * the width (e.g. "극플드라이브에 담기" next to another button), the buttons are
+     * stacked full-width instead of truncating the text.
+     */
     fun actions(vararg actions: Action): DetailSheet {
-        val row = LinearLayout(context).apply { orientation = LinearLayout.HORIZONTAL }
-        actions.forEachIndexed { i, a ->
-            val btn = (LayoutInflater.from(context).inflate(a.style.layout, row, false) as MaterialButton).apply {
+        val buttons = actions.map { a ->
+            (LayoutInflater.from(context).inflate(a.style.layout, b.sheetActions, false) as MaterialButton).apply {
                 text = a.text
                 a.icon?.let { setIconResource(it) }
                 iconGravity = MaterialButton.ICON_GRAVITY_TEXT_START
                 setOnClickListener { a.onClick(this) }
             }
-            row.addView(btn, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
-                if (i > 0) marginStart = dp(8)
-            })
         }
-        b.sheetActions.addView(row, fullWidth(bottom = 4))
+        val gap = dp(8)
+        // Sheet content width: screen minus the 20dp side padding.
+        val available = context.resources.displayMetrics.widthPixels - dp(40)
+        val share = (available - gap * (buttons.size - 1)) / buttons.size.coerceAtLeast(1)
+        val fits = buttons.all { it.neededWidth() <= share }
+        if (fits) {
+            val row = LinearLayout(context).apply {
+                orientation = LinearLayout.HORIZONTAL
+                // Default baseline alignment shifts buttons whose icon/text differ.
+                isBaselineAligned = false
+            }
+            buttons.forEachIndexed { i, btn ->
+                row.addView(btn, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
+                    if (i > 0) marginStart = gap
+                })
+            }
+            b.sheetActions.addView(row, fullWidth(bottom = gap))
+        } else {
+            buttons.forEach { b.sheetActions.addView(it, fullWidth(bottom = gap)) }
+        }
         return this
+    }
+
+    /** Width the label + icon need on one line. */
+    private fun MaterialButton.neededWidth(): Int {
+        val textWidth = paint.measureText(text.toString())
+        val iconWidth = if (icon != null) iconSize.takeIf { it > 0 }?.plus(iconPadding) ?: (dp(18) + iconPadding) else 0
+        return (textWidth + iconWidth + paddingStart + paddingEnd).toInt() + dp(4)
     }
 
     fun show(): DetailSheet {

@@ -180,7 +180,8 @@
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
                     android:padding="12dp"
-                    android:visibility="gone">
+                    android:visibility="gone"
+                android:baselineAligned="false">
 
                     <TextView
                         android:layout_width="0dp"
@@ -244,7 +245,8 @@
                     <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal">
+                        android:orientation="horizontal"
+                android:baselineAligned="false">
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnDirections"

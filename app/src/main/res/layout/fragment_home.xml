@@ -206,11 +206,12 @@
             android:text="@string/home_archive"
             android:textAppearance="@style/TextAppearance.Gcfl.Section" />
 
-        <GridLayout
+        <!-- Filled in code: rows of 4 equal tiles with fixed gaps (HomeFragment). -->
+        <LinearLayout
             android:id="@+id/archiveGrid"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:columnCount="4" />
+            android:orientation="vertical" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/openSite"

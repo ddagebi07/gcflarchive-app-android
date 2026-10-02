@@ -105,7 +105,8 @@
                     android:minHeight="44dp"
                     android:orientation="horizontal"
                     android:paddingStart="20dp"
-                    android:paddingEnd="8dp">
+                    android:paddingEnd="8dp"
+                    android:baselineAligned="false">
 
                     <TextView
                         android:id="@+id/total"
