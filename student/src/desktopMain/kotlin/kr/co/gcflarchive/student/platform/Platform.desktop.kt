@@ -35,8 +35,8 @@ actual fun rememberFilePicker(onPicked: (List<UploadFile>) -> Unit): () -> Unit 
 actual fun PlatformBackHandler(enabled: Boolean, onBack: () -> Unit) = Unit
 
 @Composable
-actual fun PlaceMap(places: List<Place>, selected: Place?, onSelect: (Place) -> Unit, modifier: Modifier) {
-    Column(modifier) { Text("지도는 휴대폰 앱에서 표시됩니다. (${places.size}곳)") }
+actual fun PlaceMap(pins: List<MapPin>, selected: Place?, onSelect: (Place) -> Unit, modifier: Modifier) {
+    Column(modifier) { Text("지도는 휴대폰 앱에서 표시됩니다. (${pins.size}곳)") }
 }
 
 actual object Notifications {

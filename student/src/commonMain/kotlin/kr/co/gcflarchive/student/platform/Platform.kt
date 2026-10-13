@@ -28,9 +28,15 @@ expect fun rememberFilePicker(onPicked: (List<UploadFile>) -> Unit): () -> Unit
 @Composable
 expect fun PlatformBackHandler(enabled: Boolean, onBack: () -> Unit)
 
-/** Map with one marker per place: Apple 지도 on iOS, OpenStreetMap on Android. */
+/**
+ * One marker on [PlaceMap]: [colorArgb] (0xAARRGGBB) tints it, e.g. by 업종 for 추천 업소,
+ * and [label] is drawn inside (the 후기 count). Both null = the platform's default pin.
+ */
+data class MapPin(val place: Place, val colorArgb: Long? = null, val label: String? = null)
+
+/** Map with one marker per pin: Apple 지도 on iOS, OpenStreetMap on Android. */
 @Composable
-expect fun PlaceMap(places: List<Place>, selected: Place?, onSelect: (Place) -> Unit, modifier: Modifier)
+expect fun PlaceMap(pins: List<MapPin>, selected: Place?, onSelect: (Place) -> Unit, modifier: Modifier)
 
 /** A local notification to deliver at [at] (device time zone). */
 data class ScheduledNotice(val id: String, val at: LocalDateTime, val title: String, val body: String)

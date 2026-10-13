@@ -1,5 +1,21 @@
 package kr.co.gcflarchive.student.map
 
+import kr.co.gcflarchive.student.platform.MapPin
+import kr.co.gcflarchive.core.util.fixed
+import kr.co.gcflarchive.core.map.RecommendedIndex
+import kr.co.gcflarchive.core.map.BusinessTypes
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.border
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -104,8 +120,15 @@ fun MapScreen(placeId: String?, placeName: String?) {
     var askNickname by remember { mutableStateOf(false) }
     var registerDialog by remember { mutableStateOf(false) }
     var scheduleFor by remember { mutableStateOf<Place?>(null) }
+    // 추천 업소 (places with reviews): colored pins by 업종 + the list shown before any search.
+    var recommended by remember { mutableStateOf(RecommendedIndex.EMPTY) }
+    var hiddenTypes by remember { mutableStateOf<Set<String>>(emptySet()) }
+    var recommendedVersion by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(Unit) { stats = runCatching { app.services.map.stats() }.getOrDefault(emptyMap()) }
+    LaunchedEffect(recommendedVersion) {
+        recommended = runCatching { app.services.map.recommended() }.getOrDefault(recommended)
+    }
     LaunchedEffect(app.sessionVersion) {
         user = runCatching { app.services.map.user() }.getOrDefault(MapUser(false, ""))
         if (user.verified) {
@@ -156,7 +179,13 @@ fun MapScreen(placeId: String?, placeName: String?) {
 
     ScreenScaffold(
         title = "지도 아카이브",
-        onBack = { if (selected != null && results.size > 1) selected = null else app.pop() },
+        onBack = {
+            when {
+                selected != null && (results.size > 1 || resultsTitle == null) -> selected = null
+                resultsTitle != null -> { results = emptyList(); resultsTitle = null; selected = null } // back to 추천 업소
+                else -> app.pop()
+            }
+        },
     ) {
         val panel: @Composable ColumnScope.() -> Unit = {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -182,16 +211,22 @@ fun MapScreen(placeId: String?, placeName: String?) {
             if (sel != null) {
                 PlaceDetail(
                     app, sel, user, stats[sel.id], starred = sel.id in favoriteIds,
-                    onBackToList = if (results.size > 1) ({ selected = null }) else null,
+                    businessType = recommended.typeOf(sel.id),
+                    onBackToList = if (results.size > 1 || resultsTitle == null) ({ selected = null }) else null,
                     onFavorite = { starred -> favoriteIds = if (starred) favoriteIds + sel.id else favoriteIds - sel.id },
                     onNeedNickname = { askNickname = true },
                     onSuggestSchedule = { if (user.verified) scheduleFor = sel else app.loginNeeded("영업시간 제안") },
-                    onReviewPosted = { scope.launch { stats = runCatching { app.services.map.stats() }.getOrDefault(stats) } },
+                    onReviewPosted = {
+                        recommendedVersion++ // new 후기 → pin count / new pin
+                        scope.launch { stats = runCatching { app.services.map.stats() }.getOrDefault(stats) }
+                    },
                 )
             } else {
                 Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                     resultsTitle?.let { Text(it, style = KrdsText.label, modifier = Modifier.padding(vertical = 6.dp)) }
-                    if (resultsTitle == null) InfoBox("가게 이름이나 키워드로 학교 주변 장소를 찾아보세요. 후기와 영업시간도 함께 볼 수 있어요.")
+                    if (resultsTitle == null) {
+                        RecommendedList(recommended, hiddenTypes, onToggleType = { t -> hiddenTypes = if (t in hiddenTypes) hiddenTypes - t else hiddenTypes + t }) { selected = it }
+                    }
                     results.forEachIndexed { i, p ->
                         if (i > 0) Hairline()
                         val reviews = stats[p.id]?.reviewCount ?: 0
@@ -214,7 +249,12 @@ fun MapScreen(placeId: String?, placeName: String?) {
         }
 
         BoxWithConstraints(Modifier.fillMaxSize()) {
-            val shownPlaces = results.ifEmpty { listOfNotNull(selected) }
+            // Colored 추천 업소 pins always (unless filtered); search results / the selected place on top.
+            val recPins = recommended.places.filter { it.businessType !in hiddenTypes }
+                .map { MapPin(it.place, BusinessTypes.color(it.businessType), it.reviewCount.toString()) }
+            val recIds = recPins.map { it.place.id }.toSet()
+            val extra = results.ifEmpty { listOfNotNull(selected) }.filter { it.id !in recIds }.map { MapPin(it) }
+            val shownPlaces = recPins + extra
             if (maxWidth >= 700.dp) {
                 Row(Modifier.fillMaxSize()) {
                     Column(Modifier.width(380.dp).fillMaxHeight().verticalScroll(rememberScrollState()), content = panel)
@@ -234,6 +274,57 @@ fun MapScreen(placeId: String?, placeName: String?) {
     scheduleFor?.let { p -> ScheduleDialog(app, p, stats[p.id]?.schedule.orEmpty(), onDismiss = { scheduleFor = null }) }
 }
 
+/** 추천 업소: places with 후기, most reviewed first; 업종 chips show / hide their pins. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun RecommendedList(index: RecommendedIndex, hidden: Set<String>, onToggleType: (String) -> Unit, onSelect: (Place) -> Unit) {
+    if (index.places.isEmpty()) {
+        InfoBox("가게 이름이나 키워드로 학교 주변 장소를 찾아보세요. 후기가 달린 장소는 추천 업소로 지도에 표시됩니다.")
+        return
+    }
+    val visible = index.places.filter { it.businessType !in hidden }
+    Text("추천 업소 ${visible.size}곳", style = KrdsText.sectionTitle, modifier = Modifier.padding(vertical = 6.dp))
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        index.types.forEach { (type, count) ->
+            val on = type !in hidden
+            Row(
+                Modifier
+                    .clip(RoundedCornerShape(50))
+                    .border(1.dp, if (on) Color(BusinessTypes.color(type)) else Krds.colors.border, RoundedCornerShape(50))
+                    .background(if (on) Color(BusinessTypes.color(type)).copy(alpha = 0.12f) else Color.Transparent)
+                    .clickable { onToggleType(type) }
+                    .padding(horizontal = 10.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(Modifier.size(10.dp).clip(CircleShape).background(Color(BusinessTypes.color(type)).copy(alpha = if (on) 1f else 0.35f)))
+                Spacer(Modifier.width(6.dp))
+                Text("$type $count", style = KrdsText.label.copy(color = if (on) Krds.colors.textStrong else Krds.colors.textDisabled))
+            }
+        }
+    }
+    Spacer(Modifier.height(4.dp))
+    visible.forEachIndexed { i, rec ->
+        if (i > 0) Hairline()
+        Row(Modifier.fillMaxWidth().clickable { onSelect(rec.place) }.padding(vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.size(28.dp).clip(CircleShape).background(Color(BusinessTypes.color(rec.businessType))), contentAlignment = Alignment.Center) {
+                Text(rec.reviewCount.toString(), color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            }
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text(rec.place.name, style = KrdsText.cardTitle, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(
+                    buildString {
+                        append(rec.businessType).append(" · 후기 ").append(rec.reviewCount)
+                        rec.avgRating?.let { append(" · ★").append(it.fixed(1)) }
+                    },
+                    style = KrdsText.meta.copy(color = Color(BusinessTypes.color(rec.businessType))),
+                )
+                Text(rec.place.displayAddress, style = KrdsText.meta, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+        }
+    }
+}
+
 @Composable
 private fun PlaceDetail(
     app: AppState,
@@ -241,6 +332,7 @@ private fun PlaceDetail(
     user: MapUser,
     stats: PlaceStats?,
     starred: Boolean,
+    businessType: String?,
     onBackToList: (() -> Unit)?,
     onFavorite: (Boolean) -> Unit,
     onNeedNickname: () -> Unit,
@@ -266,7 +358,7 @@ private fun PlaceDetail(
 
     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         if (onBackToList != null) TextButton(onClick = onBackToList) { Text("← 검색 결과로", color = Krds.colors.primaryText) }
-        if (place.category.isNotBlank()) Text(place.category, style = KrdsText.meta)
+        if (place.category.isNotBlank()) Text((businessType?.let { "[$it] " } ?: "") + place.category, style = KrdsText.meta)
         Text(place.name, style = KrdsText.pageTitle)
         Text(place.displayAddress, style = KrdsText.body)
         views?.let { Text("조회수 $it", style = KrdsText.meta) }

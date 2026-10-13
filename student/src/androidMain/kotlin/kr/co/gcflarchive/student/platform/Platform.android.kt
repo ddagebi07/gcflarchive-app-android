@@ -78,7 +78,9 @@ actual fun rememberFilePicker(onPicked: (List<UploadFile>) -> Unit): () -> Unit 
 actual fun PlatformBackHandler(enabled: Boolean, onBack: () -> Unit) = BackHandler(enabled, onBack)
 
 @Composable
-actual fun PlaceMap(places: List<Place>, selected: Place?, onSelect: (Place) -> Unit, modifier: Modifier) {
+actual fun PlaceMap(pins: List<MapPin>, selected: Place?, onSelect: (Place) -> Unit, modifier: Modifier) {
+    // Not used by the Android app yet (it has its own colored pins in MapActivity): plain markers.
+    val places = pins.map { it.place }
     AndroidView(
         modifier = modifier,
         factory = { ctx ->

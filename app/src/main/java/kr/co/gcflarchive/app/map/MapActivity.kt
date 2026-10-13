@@ -1,6 +1,13 @@
 package kr.co.gcflarchive.app.map
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Typeface
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.GradientDrawable
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -18,6 +25,7 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.checkbox.MaterialCheckBox
+import com.google.android.material.chip.Chip
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
@@ -44,6 +52,7 @@ import org.osmdroid.views.overlay.CopyrightOverlay
 import org.osmdroid.views.overlay.Marker
 import java.io.File
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 /**
  * 지도 아카이브 (map.html), native: OpenStreetMap tiles (osmdroid), place search through
@@ -59,6 +68,12 @@ class MapActivity : AppCompatActivity() {
     private var shown: List<Place> = emptyList()
     private var selected: Place? = null
     private val markers = mutableListOf<Marker>()
+
+    /** 추천 업소 (places with reviews): colored pins by 업종, shown until a search replaces the list. */
+    private var recommended = RecommendedIndex.EMPTY
+    private val hiddenTypes = mutableSetOf<String>()
+    private val recMarkers = mutableListOf<Marker>()
+    private var showingRecommended = false
 
     private val login = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { loadUser() }
 
@@ -90,7 +105,10 @@ class MapActivity : AppCompatActivity() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 when {
+                    binding.detailGroup.isVisible && showingRecommended -> showRecommended()
                     binding.detailGroup.isVisible && shown.isNotEmpty() -> showResults(shown, binding.resultsTitle.text.toString())
+                    // From search results back to 추천 업소.
+                    binding.resultsGroup.isVisible && !showingRecommended && recommended.places.isNotEmpty() -> showRecommended()
                     sheet.state != BottomSheetBehavior.STATE_HIDDEN -> sheet.state = BottomSheetBehavior.STATE_HIDDEN
                     else -> finish()
                 }
@@ -99,7 +117,129 @@ class MapActivity : AppCompatActivity() {
 
         lifecycleScope.launch { stats = runCatching { MapRepository.stats() }.getOrDefault(emptyMap()) }
         loadUser()
+        loadRecommended()
         openSharedPlace(intent)
+    }
+
+    // ── 추천 업소 ──────────────────────────────────────────────────────────
+
+    private fun loadRecommended() {
+        lifecycleScope.launch {
+            recommended = runCatching { MapRepository.recommended() }.getOrDefault(recommended)
+            placeRecommendedMarkers()
+            when {
+                showingRecommended && !binding.detailGroup.isVisible -> renderRecommendedList()
+                // First open (no shared place being shown): list them in the collapsed sheet.
+                selected == null && sheet.state == BottomSheetBehavior.STATE_HIDDEN -> showRecommended(expand = false)
+            }
+        }
+    }
+
+    private fun visibleRecommended() = recommended.places.filter { it.businessType !in hiddenTypes }
+
+    private fun showRecommended(expand: Boolean = true) {
+        showingRecommended = true
+        shown = emptyList()
+        binding.map.overlays.removeAll(markers.toSet()) // search pins go; colored pins stay
+        markers.clear()
+        binding.map.invalidate()
+        binding.detailGroup.isVisible = false
+        binding.resultsGroup.isVisible = true
+        binding.registerGroup.isVisible = false
+        renderTypeChips()
+        renderRecommendedList()
+        binding.sheet.scrollTo(0, 0)
+        sheet.state = if (expand) BottomSheetBehavior.STATE_HALF_EXPANDED else BottomSheetBehavior.STATE_COLLAPSED
+    }
+
+    private fun renderRecommendedList() {
+        val visible = visibleRecommended()
+        binding.resultsTitle.text = if (recommended.places.isEmpty()) getString(R.string.map_recommended_empty)
+            else getString(R.string.map_recommended_title, visible.size)
+        binding.resultsList.removeAllViews()
+        for (rec in visible) {
+            val row = ItemPlaceBinding.inflate(layoutInflater, binding.resultsList, false)
+            row.name.text = rec.place.name
+            row.address.text = rec.place.displayAddress
+            row.badge.isVisible = true
+            row.badge.text = buildString {
+                append(rec.businessType).append(" · 후기 ").append(rec.reviewCount)
+                rec.avgRating?.let { append(" · ★").append(String.format(Locale.ROOT, "%.1f", it)) }
+            }
+            row.badge.setTextColor(BusinessTypes.color(rec.businessType))
+            row.root.setOnClickListener { select(rec.place, pan = true) }
+            binding.resultsList.addView(row.root)
+        }
+    }
+
+    /** One chip per 업종 (with its pin color and count); unchecking hides those pins. */
+    private fun renderTypeChips() {
+        val group = binding.typeChips
+        group.removeAllViews()
+        binding.typeScroll.isVisible = recommended.types.isNotEmpty()
+        val dot = (12 * resources.displayMetrics.density).toInt()
+        for ((type, count) in recommended.types) {
+            val chip = layoutInflater.inflate(R.layout.item_krds_filter_chip, group, false) as Chip
+            chip.id = View.generateViewId()
+            chip.text = "$type $count"
+            chip.isCheckable = true
+            chip.isChecked = type !in hiddenTypes
+            chip.chipIcon = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setColor(BusinessTypes.color(type))
+                setSize(dot, dot)
+            }
+            chip.isChipIconVisible = true
+            chip.setOnCheckedChangeListener { _, checked ->
+                if (checked) hiddenTypes -= type else hiddenTypes += type
+                placeRecommendedMarkers()
+                if (showingRecommended && binding.resultsGroup.isVisible) renderRecommendedList()
+            }
+            group.addView(chip)
+        }
+    }
+
+    private fun placeRecommendedMarkers() {
+        val map = binding.map
+        map.overlays.removeAll(recMarkers.toSet())
+        recMarkers.clear()
+        for (rec in visibleRecommended()) {
+            val m = Marker(map).apply {
+                position = GeoPoint(rec.place.y, rec.place.x)
+                title = rec.place.name
+                icon = countPin(BusinessTypes.color(rec.businessType), rec.reviewCount)
+                setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+                setOnMarkerClickListener { _, _ ->
+                    if (!binding.resultsGroup.isVisible && !binding.detailGroup.isVisible) showingRecommended = true
+                    select(rec.place, pan = false)
+                    true
+                }
+            }
+            recMarkers += m
+            // Below the search pins so a search result is never hidden.
+            map.overlays.add(1.coerceAtMost(map.overlays.size), m)
+        }
+        map.invalidate()
+    }
+
+    /** A round pin in the 업종 color with the 후기 count inside (like map.html). */
+    private fun countPin(color: Int, count: Int): BitmapDrawable {
+        val d = resources.displayMetrics.density
+        val size = (30 * d).toInt()
+        val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val c = Canvas(bmp)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+        val r = size / 2f
+        paint.color = Color.WHITE
+        c.drawCircle(r, r, r, paint)
+        paint.color = color
+        c.drawCircle(r, r, r - 2.5f * d, paint)
+        paint.color = Color.WHITE
+        paint.textAlign = Paint.Align.CENTER
+        paint.typeface = Typeface.DEFAULT_BOLD
+        paint.textSize = (if (count >= 100) 10 else 12) * d
+        c.drawText(if (count > 999) "999+" else count.toString(), r, r - (paint.descent() + paint.ascent()) / 2, paint)
+        return BitmapDrawable(resources, bmp)
     }
 
     private fun setUpMap() {
@@ -213,6 +353,8 @@ class MapActivity : AppCompatActivity() {
     }
 
     private fun showResults(places: List<Place>, title: String) {
+        showingRecommended = false
+        binding.typeScroll.isVisible = false
         shown = places
         binding.detailGroup.isVisible = false
         binding.resultsGroup.isVisible = true
@@ -309,7 +451,7 @@ class MapActivity : AppCompatActivity() {
     }
 
     private fun bindDetailHeader(place: Place) {
-        binding.placeCategory.text = place.category
+        binding.placeCategory.text = (recommended.typeOf(place.id)?.let { "[$it] " } ?: "") + place.category
         binding.placeTitle.text = place.name
         binding.placeAddress.text = place.displayAddress
         binding.btnFavorite.isVisible = user.verified
@@ -385,6 +527,7 @@ class MapActivity : AppCompatActivity() {
                 resetReviewForm()
                 stats = runCatching { MapRepository.stats() }.getOrDefault(stats)
                 loadReviews(place)
+                loadRecommended() // new 후기 → pin count / new pin
             }.onFailure { e -> if (e is CancellationException) throw e else snack(e.message ?: getString(R.string.map_reviews_failed)) }
         }
     }

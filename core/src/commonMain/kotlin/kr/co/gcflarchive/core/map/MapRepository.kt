@@ -16,6 +16,9 @@ class MapRepository(private val site: SiteClient) {
 
     suspend fun customPlaces(): List<Place> = parseArray(site.get("/api/map/custom-places")).objects().mapNotNull(MapLogic::parseCustomPlace)
 
+    /** 추천 업소: places with reviews, with 업종 / review count / ★ average. */
+    suspend fun recommended(): RecommendedIndex = RecommendedIndex.parse(site.getJson("/api/map/reviewed-places"))
+
     suspend fun stats(): Map<String, PlaceStats> = MapLogic.parseStats(site.getJson("/api/map/places-stats"))
 
     suspend fun user(): MapUser {

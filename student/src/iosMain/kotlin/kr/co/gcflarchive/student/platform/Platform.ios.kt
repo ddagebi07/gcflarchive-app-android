@@ -34,9 +34,11 @@ import platform.MapKit.MKAnnotationView
 import platform.MapKit.MKCoordinateRegionMakeWithDistance
 import platform.MapKit.MKMapView
 import platform.MapKit.MKMapViewDelegateProtocol
+import platform.MapKit.MKMarkerAnnotationView
 import platform.MapKit.MKPointAnnotation
 import platform.UIKit.UIActivityViewController
 import platform.UIKit.UIApplication
+import platform.UIKit.UIColor
 import platform.UIKit.UIDevice
 import platform.UIKit.UIDocumentPickerDelegateProtocol
 import platform.UIKit.UIDocumentPickerViewController
@@ -123,16 +125,38 @@ actual fun rememberFilePicker(onPicked: (List<UploadFile>) -> Unit): () -> Unit 
 @Composable
 actual fun PlatformBackHandler(enabled: Boolean, onBack: () -> Unit) = Unit
 
-private class MapDelegate(var places: Map<MKPointAnnotation, Place>, var onSelect: (Place) -> Unit) : NSObject(), MKMapViewDelegateProtocol {
+private const val PIN_ID = "pin"
+
+private class MapDelegate(var pins: Map<MKPointAnnotation, MapPin>, var onSelect: (Place) -> Unit) : NSObject(), MKMapViewDelegateProtocol {
     @ObjCSignatureOverride
     override fun mapView(mapView: MKMapView, didSelectAnnotationView: MKAnnotationView) {
         val annotation = didSelectAnnotationView.annotation as? MKPointAnnotation ?: return
-        places[annotation]?.let(onSelect)
+        pins[annotation]?.let { onSelect(it.place) }
+    }
+
+    /** Balloon markers tinted by 업종 with the 후기 count inside (추천 업소). */
+    @ObjCSignatureOverride
+    override fun mapView(mapView: MKMapView, viewForAnnotation: MKAnnotationProtocol): MKAnnotationView? {
+        val annotation = viewForAnnotation as? MKPointAnnotation ?: return null
+        val pin = pins[annotation] ?: return null
+        val view = mapView.dequeueReusableAnnotationViewWithIdentifier(PIN_ID) as? MKMarkerAnnotationView
+            ?: MKMarkerAnnotationView(annotation = annotation, reuseIdentifier = PIN_ID)
+        view.annotation = annotation
+        view.markerTintColor = pin.colorArgb?.let(::uiColor)
+        view.glyphText = pin.label
+        return view
     }
 }
 
+private fun uiColor(argb: Long): UIColor = UIColor.colorWithRed(
+    red = ((argb shr 16) and 0xFF) / 255.0,
+    green = ((argb shr 8) and 0xFF) / 255.0,
+    blue = (argb and 0xFF) / 255.0,
+    alpha = ((argb shr 24) and 0xFF) / 255.0,
+)
+
 @Composable
-actual fun PlaceMap(places: List<Place>, selected: Place?, onSelect: (Place) -> Unit, modifier: Modifier) {
+actual fun PlaceMap(pins: List<MapPin>, selected: Place?, onSelect: (Place) -> Unit, modifier: Modifier) {
     val delegate = remember { MapDelegate(emptyMap(), onSelect) }
     delegate.onSelect = onSelect
     UIKitView(
@@ -145,26 +169,26 @@ actual fun PlaceMap(places: List<Place>, selected: Place?, onSelect: (Place) -> 
         modifier = modifier,
         update = { map ->
             map.removeAnnotations(map.annotations)
-            val pins = places.associateBy { p ->
+            val byAnnotation = pins.associateBy { pin ->
                 MKPointAnnotation().apply {
-                    setCoordinate(CLLocationCoordinate2DMake(p.y, p.x))
-                    setTitle(p.name)
+                    setCoordinate(CLLocationCoordinate2DMake(pin.place.y, pin.place.x))
+                    setTitle(pin.place.name)
                 }
             }
-            delegate.places = pins
-            map.addAnnotations(pins.keys.toList())
-            val focus = selected?.let { s -> pins.entries.firstOrNull { it.value.id == s.id } }
+            delegate.pins = byAnnotation
+            map.addAnnotations(byAnnotation.keys.toList())
+            val focus = selected?.let { s -> byAnnotation.entries.firstOrNull { it.value.place.id == s.id } }
             when {
                 focus != null -> {
-                    val place = focus.value
+                    val place = focus.value.place
                     map.setRegion(MKCoordinateRegionMakeWithDistance(CLLocationCoordinate2DMake(place.y, place.x), 600.0, 600.0), animated = true)
                     map.selectAnnotation(focus.key as MKAnnotationProtocol, animated = true)
                 }
-                pins.isNotEmpty() -> map.showAnnotations(pins.keys.toList(), animated = true)
+                byAnnotation.isNotEmpty() -> map.showAnnotations(byAnnotation.keys.toList(), animated = true)
             }
         },
     )
-    DisposableEffect(Unit) { onDispose { delegate.places = emptyMap() } }
+    DisposableEffect(Unit) { onDispose { delegate.pins = emptyMap() } }
 }
 
 actual object Notifications {
