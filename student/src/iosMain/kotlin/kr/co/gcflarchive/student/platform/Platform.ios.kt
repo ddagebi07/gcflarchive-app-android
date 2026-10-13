@@ -39,6 +39,7 @@ import platform.UIKit.UIDevice
 import platform.UIKit.UIDocumentPickerDelegateProtocol
 import platform.UIKit.UIDocumentPickerViewController
 import platform.UIKit.UIViewController
+import platform.UIKit.popoverPresentationController
 import platform.UniformTypeIdentifiers.UTTypeItem
 import platform.UserNotifications.UNAuthorizationOptionAlert
 import platform.UserNotifications.UNAuthorizationOptionSound
@@ -145,7 +146,7 @@ actual fun PlaceMap(places: List<Place>, selected: Place?, onSelect: (Place) -> 
             val pins = places.associateBy { p ->
                 MKPointAnnotation().apply {
                     setCoordinate(CLLocationCoordinate2DMake(p.y, p.x))
-                    title = p.name
+                    setTitle(p.name)
                 }
             }
             delegate.places = pins
@@ -180,9 +181,9 @@ actual object Notifications {
             center.removePendingNotificationRequestsWithIdentifiers(old)
             items.forEach { n ->
                 val content = UNMutableNotificationContent().apply {
-                    title = n.title
-                    body = n.body
-                    sound = UNNotificationSound.defaultSound()
+                    setTitle(n.title)
+                    setBody(n.body)
+                    setSound(UNNotificationSound.defaultSound())
                 }
                 val when_ = NSDateComponents().apply {
                     year = n.at.year.toLong()
