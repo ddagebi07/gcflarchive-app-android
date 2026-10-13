@@ -120,7 +120,6 @@
     <string name="grade_pin_summary">PIN %1$d개 · 게스트 %2$d명</string>
     <string name="grade_pin_used">최근 사용 %1$s</string>
     <string name="grade_policy_edit_web">웹에서 편집</string>
-    <string name="grade_policy_readonly">정책·문항 수는 앱에서 읽기 전용입니다.</string>
     <string name="grade_release_at">공개 시각</string>
     <string name="grade_samples">표본 수</string>
     <string name="grade_samples_detail">인증 %1$d · 익명 %2$d</string>

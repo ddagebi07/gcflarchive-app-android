@@ -48,41 +48,78 @@ private val MODES = listOf(
 private suspend fun gradeSubjects(fetch: suspend (String) -> JSONObject): List<String> =
     fetch("$GRADES/grade-cutoff-settings").optJSONObject("settings")?.optJSONObject("subjects")?.keys()?.asSequence()?.toList()?.sorted().orEmpty()
 
-/** 공개 조건 (모드·최소 인원·연산자·공개 시각), 과목별. */
+/** 공개 조건 (모드·최소 인원·연산자·공개 시각), 과목별 또는 여러 과목 한꺼번에. */
 class GradeSettingsFragment : ListFragment() {
+    private var subjects: List<String> = emptyList()
+    override val fab get() = getString(R.string.gs_bulk) to R.drawable.ic_check_all
+
     override suspend fun load(): List<Row> {
-        val subjects = fetch("$GRADES/grade-cutoff-settings").json().optJSONObject("settings")?.optJSONObject("subjects") ?: JSONObject()
-        return subjects.keys().asSequence().sorted().map { name ->
-            val c = subjects.getJSONObject(name)
-            val mode = c.str("mode")
+        val all = fetch("$GRADES/grade-cutoff-settings").json().optJSONObject("settings")?.optJSONObject("subjects") ?: JSONObject()
+        subjects = all.keys().asSequence().sorted().toList()
+        setSummary(getString(R.string.gs_summary, subjects.size, subjects.count { all.getJSONObject(it).str("mode").let { m -> m.isNotBlank() && m != "closed" } }))
+        return subjects.map { name ->
+            val c = all.getJSONObject(name)
+            val mode = c.str("mode").ifBlank { "closed" }
             Row(
                 id = name,
                 title = name,
-                subtitle = joinMeta(
-                    MODES.firstOrNull { it.first == mode }?.second ?: mode,
-                    if ("sample_count" in mode) "최소 ${c.optInt("min_samples")}명" else null,
-                    if (mode == "sample_count_time") c.str("condition_operator").uppercase() else null,
-                    if ("time" in mode) shortTime(c.str("release_at")) else null,
-                ),
+                subtitle = describe(c),
                 badges = listOf((if (mode == "closed") "비공개" else "공개 조건") to (if (mode == "closed") Badge.NEUTRAL else Badge.SUCCESS)),
                 trailing = Trailing.Chevron, payload = c,
             )
-        }.toList()
+        }
+    }
+
+    private fun describe(c: JSONObject): String {
+        val mode = c.str("mode").ifBlank { "closed" }
+        val samples = getString(R.string.gs_desc_samples, c.optInt("min_samples"))
+        val time = getString(R.string.gs_desc_time, shortTime(c.str("release_at")).ifBlank { "-" })
+        return when (mode) {
+            "sample_count" -> samples
+            "time" -> time
+            "sample_count_time" -> "$samples ${if (c.str("condition_operator") == "and") "그리고" else "또는"} $time"
+            else -> getString(R.string.gs_desc_closed)
+        }
     }
 
     override fun onRowClick(row: Row) {
         if (!guardWrite()) return
-        val c = row.payload as JSONObject
-        FormSheet(requireActivity(), getString(R.string.grade_settings_edit, row.id))
-            .select("mode", getString(R.string.grade_mode), MODES, c.str("mode").ifBlank { "closed" })
-            .stepper("min_samples", getString(R.string.grade_min_samples), c.optInt("min_samples"), 0, 1000)
-            .select("condition_operator", getString(R.string.grade_operator), listOf("or" to "OR (하나만 충족)", "and" to "AND (모두 충족)"), c.str("condition_operator").ifBlank { "or" })
+        form(listOf(row.id), row.payload as JSONObject)
+    }
+
+    override fun onFab() {
+        if (subjects.isEmpty()) return Dialogs.toast(requireContext(), getString(R.string.list_empty))
+        form(null, JSONObject())
+    }
+
+    /** [targets] null = pick subjects in the form (일괄 설정). */
+    private fun form(targets: List<String>?, c: JSONObject) {
+        val sheet = FormSheet(
+            requireActivity(),
+            if (targets != null) getString(R.string.grade_settings_edit, targets.single()) else getString(R.string.gs_bulk),
+            getString(R.string.gs_form_desc),
+        )
+        if (targets == null) sheet.checklist("subjects", getString(R.string.gs_bulk_subjects), subjects.map { it to it }, emptySet())
+        sheet.select("mode", getString(R.string.grade_mode), MODES, c.str("mode").ifBlank { "closed" })
+            .stepper("min_samples", getString(R.string.grade_min_samples), c.optInt("min_samples"), 0, 1000, step = 1)
             .dateTime("release_at", getString(R.string.grade_release_at), c.str("release_at"))
+            .select("condition_operator", getString(R.string.grade_operator), listOf("or" to "또는 (하나만 충족)", "and" to "그리고 (모두 충족)"), c.str("condition_operator").ifBlank { "or" })
+            .note(getString(R.string.gs_modes_note))
             .show { v ->
+                val chosen = targets ?: v.list("subjects")
+                if (chosen.isEmpty()) throw IllegalArgumentException(getString(R.string.gs_bulk_none))
+                val mode = v.text("mode")
+                val usesSamples = "sample_count" in mode
+                val usesTime = "time" in mode
+                if (usesSamples && v.int("min_samples") <= 0) throw IllegalArgumentException(getString(R.string.gs_need_samples))
+                if (usesTime && v.instant("release_at").isBlank()) throw IllegalArgumentException(getString(R.string.gs_need_time))
                 api.postJson(
                     "$GRADES/grade-cutoff-settings",
-                    JSONObject().put("subject", row.id).put("mode", v.text("mode")).put("min_samples", v.int("min_samples"))
-                        .put("condition_operator", v.text("condition_operator")).put("release_at", v.instant("release_at")),
+                    JSONObject().put("subjects", JSONArray(chosen)).put("mode", mode)
+                        .put("min_samples", if (usesSamples) v.int("min_samples") else c.optInt("min_samples"))
+                        .put("condition_operator", v.text("condition_operator"))
+                        // A time is only kept when the mode uses it, so stale dates don't linger.
+                        .put("release_at", if (usesTime) v.instant("release_at") else ""),
                 )
                 reload()
             }
@@ -95,6 +132,54 @@ class GradeTableFragment : ListFragment() {
     private var subject: String? = null
     private var verifiedOnly = false
     private var lastTable: List<Pair<String, String>> = emptyList()
+    private var lastCutoffs: List<JSONObject> = emptyList()
+    private var manual = false
+
+    override fun onRowClick(row: Row) {
+        val s = subject ?: return
+        when (row.id) {
+            "manual" -> if (guardWrite()) pickLevel(s)
+            "manual_clear" -> if (guardWrite()) Dialogs.confirm(requireContext(), getString(R.string.gm_clear), getString(R.string.gm_clear_confirm, s), getString(R.string.gm_clear)) {
+                act(getString(R.string.gp_saved)) {
+                    api.postJson("$GRADES/manual-grade-cutoffs", JSONObject().put("subject", s).put("stats_mode", statsMode()).put("clear", true))
+                }
+            }
+        }
+    }
+
+    private fun statsMode() = if (verifiedOnly) "verified_only" else "all"
+
+    /** Step 1: which school year's grading (5 or 9 grades) the manual table is for. */
+    private fun pickLevel(subject: String) {
+        val current = ManualCutoffs.levelOf(lastCutoffs)
+        val labels = ManualCutoffs.LEVELS.map { it.second }.toTypedArray()
+        var chosen = ManualCutoffs.LEVELS.indexOfFirst { it.first == current }.coerceAtLeast(0)
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.gm_level_title)
+            .setSingleChoiceItems(labels, chosen) { _, which -> chosen = which }
+            .setNegativeButton(R.string.cancel, null)
+            .setPositiveButton(R.string.next) { _, _ -> manualForm(subject, ManualCutoffs.LEVELS[chosen].first) }
+            .show()
+    }
+
+    /** Step 2: one cutoff per grade, prefilled from the current (manual or computed) table. */
+    private fun manualForm(subject: String, level: String) {
+        val values = ManualCutoffs.prefill(lastCutoffs, level)
+        val sheet = FormSheet(requireActivity(), getString(R.string.gm_form_title, subject), getString(R.string.gm_form_desc, if (verifiedOnly) "인증 사용자만" else "전체"))
+        for (g in 1..ManualCutoffs.gradeCount(level)) {
+            sheet.text("g$g", getString(R.string.gm_grade_field, g), values.getOrNull(g - 1).orEmpty(), decimal = true)
+        }
+        sheet.text("sample_count", getString(R.string.gm_samples), "", hint = getString(R.string.gm_optional), number = true)
+            .text("average_score", getString(R.string.gm_average), "", hint = getString(R.string.gm_optional), decimal = true)
+            .show { v ->
+                val rows = ManualCutoffs.build(level, (1..ManualCutoffs.gradeCount(level)).map { v.text("g$it") }).getOrThrow()
+                val body = JSONObject().put("subject", subject).put("stats_mode", statsMode()).put("grade_cutoffs", rows)
+                v.text("sample_count").toIntOrNull()?.let { body.put("sample_count", it) }
+                v.text("average_score").toDoubleOrNull()?.let { body.put("average_score", it) }
+                api.postJson("$GRADES/manual-grade-cutoffs", body)
+                reload()
+            }
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -119,19 +204,25 @@ class GradeTableFragment : ListFragment() {
             setChips(subjects.map { it to it }, subject.orEmpty()) { subject = it; reload() }
         }
         val s = subject ?: return emptyList()
-        val mode = if (verifiedOnly) "verified_only" else "all"
+        val mode = statsMode()
         val enc = android.net.Uri.encode(s)
         val t = fetch("$GRADES/grade-cutoff-table?subject=$enc&stats_mode=$mode").json()
+        lastCutoffs = t.optJSONArray("grade_cutoffs").objects()
+        manual = t.optBoolean("manual")
         val rows = mutableListOf<Row>()
+        rows += Row("manual", getString(if (manual) R.string.gm_edit else R.string.gm_enter), getString(if (manual) R.string.gm_active_desc else R.string.gm_desc),
+            icon = R.drawable.ic_edit, trailing = Trailing.Chevron,
+            badges = if (manual) listOf(getString(R.string.gm_badge) to Badge.PURPLE) else emptyList())
+        if (manual) rows += Row("manual_clear", getString(R.string.gm_clear), getString(R.string.gm_clear_desc), icon = R.drawable.ic_delete, trailing = Trailing.Chevron)
         rows += Row.header(getString(R.string.grade_table_header, s) + if (t.optBoolean("manual")) " (수동 입력)" else "")
         rows += Row("samples", getString(R.string.grade_samples),
             getString(R.string.grade_samples_detail, t.optInt("verified_sample_count"), t.optInt("anonymous_sample_count")),
             trailing = Trailing.Text(t.optInt("sample_count").toString()))
         rows += Row("avg", getString(R.string.grade_average), trailing = Trailing.Text(String.format("%.1f", t.optDouble("average_score", 0.0))))
-        lastTable = t.optJSONArray("grade_cutoffs").objects().map { c ->
-            val f = c.flat()
-            val grade = f["grade"] ?: f["등급"] ?: ""
-            grade to f.filterKeys { it != "grade" && it != "등급" }.entries.joinToString("  ") { (k, v) -> "$k $v" }
+        lastTable = lastCutoffs.map { c ->
+            val score = if (c.isNull("cutoff_score")) "산출불가" else String.format("%.1f점", c.optDouble("cutoff_score"))
+            val level = c.str("grade_level").takeIf { it.isNotBlank() }?.let { " · ${it}학년" }.orEmpty()
+            c.str("grade") to score + level
         }
         rows += lastTable.mapIndexed { i, (g, rest) -> Row("cut$i", "${g}등급".replace("등급등급", "등급"), rest) }
 
@@ -293,31 +384,177 @@ class GradeEntriesFragment : ListFragment() {
     }
 }
 
-/** JSON 정책·문항 수 설정 — 읽기 전용 + "웹에서 편집". */
+/**
+ * 시험 정책 편집: 현재 시험명, 과목 배정 규칙, 선택과목 묶음, 과목별 문항 수·제출 시각.
+ * Every change is a small form; the whole policy is saved at once (POST exam-policy).
+ */
 class GradePolicyFragment : ListFragment() {
+    private var policy: ExamPolicy? = null
+    override val swipeLabel get() = getString(R.string.delete)
+
     override suspend fun load(): List<Row> {
-        val policy = fetch("$GRADES/exam-policy").json().optJSONObject("policy") ?: JSONObject()
-        val rows = mutableListOf(
-            Row("web", getString(R.string.grade_policy_edit_web), getString(R.string.grade_policy_readonly), icon = R.drawable.ic_open_in_browser, trailing = Trailing.Chevron),
+        val p = ExamPolicyCodec.parse(fetch("$GRADES/exam-policy").json().optJSONObject("policy"))
+        policy = p
+        val rows = mutableListOf<Row>()
+
+        rows += Row.header(getString(R.string.gp_exam_header))
+        rows += Row(
+            "exam", getString(R.string.gp_exam_name), p.examName.ifBlank { getString(R.string.gp_exam_unset) },
+            meta = getString(R.string.gp_exam_hint), icon = R.drawable.ic_edit, trailing = Trailing.Chevron,
+            badges = if (p.examName.isBlank()) listOf(getString(R.string.gp_unset) to Badge.DANGER) else emptyList(),
         )
-        policy.keys().forEach { k ->
-            val v = policy.opt(k)
-            rows += Row("p:$k", k, when (v) {
-                is JSONObject -> v.toString(2)
-                is JSONArray -> v.toString(2)
-                else -> v.toString()
-            }, trailing = Trailing.Chevron)
+
+        rows += Row.header(getString(R.string.gp_rules_header))
+        p.rules.forEachIndexed { i, r ->
+            rows += Row(
+                "rule:$i", ExamPolicyCodec.describeTarget(r), r.subjects.joinToString(" · "),
+                meta = getString(R.string.gp_rule_order, i + 1), badges = listOf(getString(R.string.gp_subject_count, r.subjects.size) to Badge.INFO),
+                trailing = Trailing.Chevron, swipeable = true, payload = i,
+            )
         }
+        rows += Row("rule:add", getString(R.string.gp_rule_add), getString(R.string.gp_rules_hint), icon = R.drawable.ic_add)
+
+        rows += Row.header(getString(R.string.gp_groups_header))
+        p.groups.forEachIndexed { i, g ->
+            rows += Row(
+                "group:$i", g.label.ifBlank { g.slot.ifBlank { getString(R.string.gp_group_unnamed) } }, g.subjects.joinToString(" / "),
+                meta = g.slot.takeIf { it.isNotBlank() }?.let { getString(R.string.gp_group_slot_meta, it) },
+                trailing = Trailing.Chevron, swipeable = true, payload = i,
+            )
+        }
+        rows += Row("group:add", getString(R.string.gp_group_add), getString(R.string.gp_groups_hint), icon = R.drawable.ic_add)
+
+        rows += Row.header(getString(R.string.gp_subjects_header))
+        val subjects = ExamPolicyCodec.subjects(p)
+        if (subjects.isEmpty()) rows += Row("subjects:none", getString(R.string.gp_subjects_none))
+        subjects.forEach { name ->
+            val q = p.questionCounts[name] ?: 0
+            val d = p.descriptiveCounts[name] ?: 0
+            rows += Row(
+                "subject:$name", name,
+                joinMeta(
+                    if (q > 0) getString(R.string.gp_questions, q) + if (d > 0) getString(R.string.gp_descriptive_suffix, d) else "" else getString(R.string.gp_questions_none),
+                    p.submitAfter[name]?.let { getString(R.string.gp_opens_at, shortTime(it)) } ?: getString(R.string.gp_opens_always),
+                ),
+                trailing = Trailing.Chevron, payload = name,
+            )
+        }
+
+        rows += Row.header(getString(R.string.gp_tools_header))
+        rows += Row("migrate", getString(R.string.gp_migrate), getString(R.string.gp_migrate_desc), icon = R.drawable.ic_build, trailing = Trailing.Chevron)
+        rows += Row("web", getString(R.string.grade_policy_edit_web), getString(R.string.gp_web_desc), icon = R.drawable.ic_open_in_browser, trailing = Trailing.Chevron)
         return rows
     }
 
+    private suspend fun save(p: ExamPolicy) {
+        api.postJson("$GRADES/exam-policy", ExamPolicyCodec.toPayload(p))
+        reload()
+    }
+
     override fun onRowClick(row: Row) {
-        if (row.id == "web") {
-            androidx.browser.customtabs.CustomTabsIntent.Builder().build()
+        val p = policy ?: return
+        when {
+            row.id == "web" -> androidx.browser.customtabs.CustomTabsIntent.Builder().build()
                 .launchUrl(requireContext(), android.net.Uri.parse(api.url("/admin/grades")))
-        } else {
-            com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
-                .setTitle(row.title).setMessage(row.subtitle).setPositiveButton(android.R.string.ok, null).show()
+            !guardWrite() -> Unit
+            row.id == "exam" -> editExamName(p)
+            row.id == "rule:add" -> editRule(p, null)
+            row.id.startsWith("rule:") -> editRule(p, row.payload as Int)
+            row.id == "group:add" -> editGroup(p, null)
+            row.id.startsWith("group:") -> editGroup(p, row.payload as Int)
+            row.id.startsWith("subject:") && row.payload is String -> editSubject(p, row.payload)
+            row.id == "migrate" -> Dialogs.confirm(requireContext(), getString(R.string.gp_migrate), getString(R.string.gp_migrate_confirm), getString(R.string.gp_migrate_run)) {
+                act(getString(R.string.gp_saved)) { api.postJson("$GRADES/exam-policy/migrate", JSONObject()) }
+            }
         }
+    }
+
+    override fun onSwipe(row: Row) {
+        val p = policy ?: return
+        val i = row.payload as? Int ?: return
+        if (row.id.startsWith("rule:")) {
+            // The server keeps the old rules when an empty list arrives, so the last one can't go.
+            if (p.rules.size <= 1) return Dialogs.toast(requireContext(), getString(R.string.gp_rule_last))
+            Dialogs.confirm(requireContext(), getString(R.string.gp_rule_delete), row.title.toString() + "\n" + row.subtitle, getString(R.string.delete)) {
+                act(getString(R.string.deleted)) { save(p.copy(rules = p.rules.filterIndexed { j, _ -> j != i })) }
+            }
+        } else if (row.id.startsWith("group:")) {
+            Dialogs.confirm(requireContext(), getString(R.string.gp_group_delete), row.title.toString(), getString(R.string.delete)) {
+                act(getString(R.string.deleted)) { save(p.copy(groups = p.groups.filterIndexed { j, _ -> j != i })) }
+            }
+        }
+    }
+
+    private fun editExamName(p: ExamPolicy) {
+        FormSheet(requireActivity(), getString(R.string.gp_exam_name), getString(R.string.gp_exam_desc))
+            .text("name", getString(R.string.gp_exam_name), p.examName, hint = getString(R.string.gp_exam_example), required = true)
+            .show { v -> save(p.copy(examName = v.text("name"))) }
+    }
+
+    private fun editRule(p: ExamPolicy, index: Int?) {
+        val r = index?.let { p.rules.getOrNull(it) } ?: SubjectRule("", "", "", emptyList())
+        val sheet = FormSheet(
+            requireActivity(),
+            getString(if (index == null) R.string.gp_rule_add else R.string.gp_rule_edit),
+            getString(R.string.gp_rule_desc),
+        )
+            .select("grade", getString(R.string.gp_rule_grade), ExamPolicyCodec.GRADE_OPTIONS, r.grade)
+            .text("class_start", getString(R.string.gp_rule_class_start), r.classStart, hint = getString(R.string.gp_rule_class_hint), number = true)
+            .text("class_end", getString(R.string.gp_rule_class_end), r.classEnd, number = true)
+            .chips("subjects", getString(R.string.gp_rule_subjects), r.subjects, getString(R.string.gp_subject_add_hint))
+        val count = p.rules.size + if (index == null) 1 else 0
+        if (count > 1) sheet.stepper("order", getString(R.string.gp_rule_order_label), (index ?: p.rules.size) + 1, 1, count)
+        sheet.show { v ->
+            val rule = SubjectRule(v.text("grade"), v.text("class_start"), v.text("class_end"), v.list("subjects"))
+            ExamPolicyCodec.validateRule(rule)?.let { throw IllegalArgumentException(it) }
+            val rules = if (index == null) p.rules + rule else p.rules.mapIndexed { j, old -> if (j == index) rule else old }
+            val from = index ?: rules.lastIndex
+            val to = if (count > 1) v.int("order") - 1 else from
+            save(p.copy(rules = ExamPolicyCodec.move(rules, from, to)))
+        }
+    }
+
+    private fun editGroup(p: ExamPolicy, index: Int?) {
+        val g = index?.let { p.groups.getOrNull(it) } ?: SelectionGroup("", "", emptyList())
+        // Offer every subject the policy knows; subjects already in another group stay listed
+        // so the validation message can explain the conflict.
+        val options = (ExamPolicyCodec.subjects(p) + g.subjects).distinct().map { it to it }
+        val sheet = FormSheet(
+            requireActivity(),
+            getString(if (index == null) R.string.gp_group_add else R.string.gp_group_edit),
+            getString(R.string.gp_group_desc),
+        )
+            .text("label", getString(R.string.gp_group_label), g.label, hint = getString(R.string.gp_group_label_hint))
+            .text("slot", getString(R.string.gp_group_slot), g.slot, hint = getString(R.string.gp_group_slot_hint))
+        if (options.isNotEmpty()) sheet.checklist("subjects", getString(R.string.gp_group_subjects), options, g.subjects.toSet())
+        sheet.chips("extra", getString(R.string.gp_group_extra), emptyList(), getString(R.string.gp_subject_add_hint))
+        sheet.show { v ->
+            val group = SelectionGroup(v.text("label"), v.text("slot"), (v.list("subjects") + v.list("extra")).distinct())
+            ExamPolicyCodec.validateGroup(p.groups, index, group)?.let { throw IllegalArgumentException(it) }
+            val groups = if (index == null) p.groups + group else p.groups.mapIndexed { j, old -> if (j == index) group else old }
+            save(p.copy(groups = groups))
+        }
+    }
+
+    private fun editSubject(p: ExamPolicy, name: String) {
+        val opens = p.submitAfter[name].orEmpty()
+        FormSheet(requireActivity(), getString(R.string.gp_subject_edit, name), getString(R.string.gp_subject_desc))
+            .stepper("questions", getString(R.string.gp_question_count), p.questionCounts[name] ?: 0, 0, 100)
+            .stepper("descriptive", getString(R.string.gp_descriptive_count), p.descriptiveCounts[name] ?: 0, 0, 30)
+            .switch("limit", getString(R.string.gp_limit_submit), opens.isNotBlank(), getString(R.string.gp_limit_submit_desc))
+            .dateTime("opens", getString(R.string.gp_opens_label), opens)
+            .show { v ->
+                val q = v.int("questions")
+                val d = v.int("descriptive")
+                ExamPolicyCodec.validateCounts(q, d)?.let { throw IllegalArgumentException(it) }
+                val at = if (v.bool("limit")) v.instant("opens").ifBlank { throw IllegalArgumentException(getString(R.string.gp_opens_required)) } else ""
+                save(
+                    p.copy(
+                        questionCounts = p.questionCounts + (name to q),
+                        descriptiveCounts = p.descriptiveCounts + (name to d),
+                        submitAfter = if (at.isBlank()) p.submitAfter - name else p.submitAfter + (name to at),
+                    ),
+                )
+            }
     }
 }

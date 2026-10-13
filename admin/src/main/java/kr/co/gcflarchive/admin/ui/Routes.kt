@@ -74,7 +74,7 @@ enum class Route(
     GRADE_TABLE("등급컷 표 / 오답률", "과목별 조회, 이미지 저장", R.drawable.ic_grade, Tab.MORE, "등급컷 서비스", { it.has(Permission.GRADE) }, { GradeTableFragment() }),
     GRADE_PINS("익명 PIN", "조회·삭제", R.drawable.ic_lock, Tab.MORE, "등급컷 서비스", { it.has(Permission.GRADE) }, { GradePinsFragment() }),
     GRADE_ENTRIES("성적 기록", "조회·삭제, 점수 수동 입력", R.drawable.ic_history, Tab.MORE, "등급컷 서비스", { it.has(Permission.GRADE) }, { GradeEntriesFragment() }),
-    GRADE_POLICY("시험 정책·문항 수", "읽기 전용 (편집은 웹)", R.drawable.ic_info, Tab.MORE, "등급컷 서비스", { it.has(Permission.GRADE) }, { GradePolicyFragment() }),
+    GRADE_POLICY("시험 정책", "시험명·과목 배정·선택과목·문항 수·제출 시각", R.drawable.ic_info, Tab.MORE, "등급컷 서비스", { it.has(Permission.GRADE) }, { GradePolicyFragment() }),
     TOOLS("미니서비스", "등록 목록 조회·삭제 (등록은 웹)", R.drawable.ic_build, Tab.MORE, "사이트", { it.has(Permission.CREDENTIALS) }, { ToolsFragment() }),
     EXAM_SETTINGS("기출 과목·학과·면책조항", "필터 과목 그룹, 학과, 면책조항 PDF", R.drawable.ic_settings, Tab.MORE, "사이트", { it.has(Permission.PDFS) }, { ExamSettingsFragment() }),
     WEB_CRAWLER("아카이브 수집 & DB 구축", "웹에서 열기", R.drawable.ic_open_in_browser, Tab.MORE, "웹 전용 도구", { it.isUltimate }, webPath = "/admin/crawl"),

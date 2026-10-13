@@ -102,6 +102,7 @@ class FormSheet(private val activity: FragmentActivity, title: String, descripti
         hint: String? = null,
         multiline: Boolean = false,
         number: Boolean = false,
+        decimal: Boolean = false,
         password: Boolean = false,
         required: Boolean = false,
         enabled: Boolean = true,
@@ -116,6 +117,7 @@ class FormSheet(private val activity: FragmentActivity, title: String, descripti
             setText(initial)
             isEnabled = enabled
             inputType = when {
+                decimal -> InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
                 number -> InputType.TYPE_CLASS_NUMBER
                 password -> InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
                 multiline -> InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 등급컷 서비스 설정 (exam policy, 공개 조건, 수동 등급컷) -->
+<resources>
+    <!-- 시험 정책 -->
+    <string name="gp_exam_header">현재 시험</string>
+    <string name="gp_exam_name">현재 시험명</string>
+    <string name="gp_exam_unset">설정되지 않음 — 학생이 점수를 제출할 수 없습니다</string>
+    <string name="gp_exam_hint">점수 제출·등급컷 집계는 이 시험명 기준입니다.</string>
+    <string name="gp_exam_desc">시험명을 바꾸면 새 시험으로 집계가 시작됩니다. 이전 시험 점수는 지워지지 않습니다.</string>
+    <string name="gp_exam_example">예: 2026학년도 2학기 중간고사</string>
+    <string name="gp_unset">미설정</string>
+
+    <string name="gp_rules_header">과목 배정 규칙</string>
+    <string name="gp_rules_hint">학년·반별로 제출할 수 있는 과목을 정합니다. 위에서부터 처음 맞는 규칙이 적용됩니다.</string>
+    <string name="gp_rule_order">%1$d번째 규칙 · 밀어서 삭제</string>
+    <string name="gp_subject_count">%1$d과목</string>
+    <string name="gp_rule_add">규칙 추가</string>
+    <string name="gp_rule_edit">규칙 수정</string>
+    <string name="gp_rule_desc">반을 비워 두면 해당 학년 전체 반에 적용됩니다.</string>
+    <string name="gp_rule_grade">대상 학년</string>
+    <string name="gp_rule_class_start">시작 반</string>
+    <string name="gp_rule_class_end">끝 반</string>
+    <string name="gp_rule_class_hint">예: 1 ~ 4 (영어과)</string>
+    <string name="gp_rule_subjects">제출 가능 과목</string>
+    <string name="gp_rule_order_label">적용 순서 (1이 가장 먼저)</string>
+    <string name="gp_rule_delete">규칙 삭제</string>
+    <string name="gp_rule_last">마지막 규칙은 삭제할 수 없습니다. 내용을 수정해 주세요.</string>
+    <string name="gp_subject_add_hint">과목명 입력 후 + (쉼표로 여러 개)</string>
+
+    <string name="gp_groups_header">선택과목 묶음</string>
+    <string name="gp_groups_hint">학생이 여러 과목 중 하나를 골라 제출하는 칸입니다 (예: 과학 선택 → 물리/화학).</string>
+    <string name="gp_group_unnamed">이름 없는 묶음</string>
+    <string name="gp_group_slot_meta">제출 시각 기준: %1$s</string>
+    <string name="gp_group_add">선택과목 묶음 추가</string>
+    <string name="gp_group_edit">선택과목 묶음 수정</string>
+    <string name="gp_group_desc">과목을 2개 이상 고르세요. 한 과목은 한 묶음에만 들어갈 수 있습니다.</string>
+    <string name="gp_group_label">묶음 이름</string>
+    <string name="gp_group_label_hint">학생 화면에 \"○○ 선택\"으로 보입니다</string>
+    <string name="gp_group_slot">대표 과목 (제출 시각 기준, 선택)</string>
+    <string name="gp_group_slot_hint">예: 과학 — 비우면 첫 과목의 제출 시각을 씁니다</string>
+    <string name="gp_group_subjects">묶음에 넣을 과목</string>
+    <string name="gp_group_extra">목록에 없는 과목 추가</string>
+    <string name="gp_group_delete">선택과목 묶음 삭제</string>
+
+    <string name="gp_subjects_header">과목별 문항 수·제출 시각</string>
+    <string name="gp_subjects_none">규칙에 과목을 먼저 추가해 주세요.</string>
+    <string name="gp_questions">%1$d문항</string>
+    <string name="gp_descriptive_suffix"> (서술형 %1$d)</string>
+    <string name="gp_questions_none">문항 수 미설정 (오답 선택 없음)</string>
+    <string name="gp_opens_at">%1$s부터 제출</string>
+    <string name="gp_opens_always">언제든 제출</string>
+    <string name="gp_subject_edit">%1$s 설정</string>
+    <string name="gp_subject_desc">문항 수를 정하면 학생이 틀린 문항을 고를 수 있고 오답률이 집계됩니다. 서술형은 마지막 문항부터 셉니다.</string>
+    <string name="gp_question_count">전체 문항 수</string>
+    <string name="gp_descriptive_count">그중 서술형 문항 수</string>
+    <string name="gp_limit_submit">제출 시작 시각 정하기</string>
+    <string name="gp_limit_submit_desc">시험이 끝난 뒤에만 점수를 받도록 할 때 켜세요.</string>
+    <string name="gp_opens_label">제출 시작 시각</string>
+    <string name="gp_opens_required">제출 시작 시각을 골라 주세요.</string>
+
+    <string name="gp_tools_header">도구</string>
+    <string name="gp_migrate">정책 파일 정리</string>
+    <string name="gp_migrate_desc">예전 형식의 항목(default_subjects 등)을 지우고 현재 형식으로 다시 저장합니다.</string>
+    <string name="gp_migrate_confirm">정책 파일을 현재 형식으로 다시 저장합니다. 설정 내용은 그대로 유지됩니다.</string>
+    <string name="gp_migrate_run">정리하기</string>
+    <string name="gp_web_desc">웹 관리자 화면을 엽니다.</string>
+    <string name="gp_saved">저장했습니다.</string>
+
+    <!-- 공개 조건 -->
+    <string name="gs_bulk">여러 과목 한꺼번에</string>
+    <string name="gs_bulk_subjects">적용할 과목</string>
+    <string name="gs_bulk_none">적용할 과목을 하나 이상 골라 주세요.</string>
+    <string name="gs_summary">과목 %1$d개 · 공개 조건 설정 %2$d개</string>
+    <string name="gs_desc_closed">비공개 — 학생에게 등급컷이 보이지 않습니다</string>
+    <string name="gs_desc_samples">%1$d명 이상 제출 시</string>
+    <string name="gs_desc_time">%1$s 이후</string>
+    <string name="gs_form_desc">학생 화면에 등급컷이 공개되는 조건입니다.</string>
+    <string name="gs_modes_note">• 최소 인원 충족 시: 최소 인원만 사용\n• 공개 시각 이후: 공개 시각만 사용\n• 인원 + 시각 조건: 둘 다 사용, 연산자로 \"또는/그리고\" 선택</string>
+    <string name="gs_need_samples">이 모드에서는 최소 인원을 1명 이상으로 정해 주세요.</string>
+    <string name="gs_need_time">이 모드에서는 공개 시각을 정해 주세요.</string>
+
+    <!-- 수동 등급컷 -->
+    <string name="gm_enter">등급컷 직접 입력</string>
+    <string name="gm_edit">직접 입력한 등급컷 수정</string>
+    <string name="gm_desc">자동 계산 대신 정한 컷 점수를 학생에게 보여 주고 등급을 매깁니다.</string>
+    <string name="gm_active_desc">지금 이 과목은 직접 입력한 등급컷을 사용 중입니다.</string>
+    <string name="gm_badge">직접 입력</string>
+    <string name="gm_clear">자동 계산으로 되돌리기</string>
+    <string name="gm_clear_desc">직접 입력한 등급컷을 지우고 제출 점수로 다시 계산합니다.</string>
+    <string name="gm_clear_confirm">%1$s 과목의 직접 입력 등급컷을 지웁니다.</string>
+    <string name="gm_level_title">어느 학년 기준인가요?</string>
+    <string name="gm_form_title">%1$s 등급컷 입력</string>
+    <string name="gm_form_desc">집계 기준: %1$s. 비워 둔 등급은 \"산출불가\"로 표시됩니다. 아래 등급일수록 컷이 같거나 낮아야 합니다.</string>
+    <string name="gm_grade_field">%1$d등급 컷 (점)</string>
+    <string name="gm_samples">표본 수</string>
+    <string name="gm_average">평균 점수</string>
+    <string name="gm_optional">선택 — 비우면 실제 값</string>
+</resources>
