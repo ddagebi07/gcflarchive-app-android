@@ -138,7 +138,7 @@ object GradeLogic {
         val submitted = json.optJSONArray("submitted_subjects")?.let(::strings)
             ?: scores.map { it.subject }.filter { it != "-" }.distinct()
         val all = (policy.allowedSubjects + policy.selectionGroups.flatMap { it.subjects } + scores.map { it.subject }.filter { it != "-" })
-            .toSortedSet(ko).toList()
+            .distinctBy { it.lowercase() }.sortedWith(ko)
         return GradeProfile(policy, current, submitted, scores, all)
     }
 
