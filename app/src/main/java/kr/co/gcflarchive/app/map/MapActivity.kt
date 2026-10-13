@@ -69,7 +69,7 @@ class MapActivity : AppCompatActivity() {
     private var selected: Place? = null
     private val markers = mutableListOf<Marker>()
 
-    /** 추천 업소 (places with reviews): colored pins by 업종, shown until a search replaces the list. */
+    /** 극플인이 추천한 곳 (places with reviews): colored pins by 업종, shown until a search replaces the list. */
     private var recommended = RecommendedIndex.EMPTY
     private val hiddenTypes = mutableSetOf<String>()
     private val recMarkers = mutableListOf<Marker>()
@@ -107,7 +107,7 @@ class MapActivity : AppCompatActivity() {
                 when {
                     binding.detailGroup.isVisible && showingRecommended -> showRecommended()
                     binding.detailGroup.isVisible && shown.isNotEmpty() -> showResults(shown, binding.resultsTitle.text.toString())
-                    // From search results back to 추천 업소.
+                    // From search results back to 극플인이 추천한 곳.
                     binding.resultsGroup.isVisible && !showingRecommended && recommended.places.isNotEmpty() -> showRecommended()
                     sheet.state != BottomSheetBehavior.STATE_HIDDEN -> sheet.state = BottomSheetBehavior.STATE_HIDDEN
                     else -> finish()
@@ -121,7 +121,7 @@ class MapActivity : AppCompatActivity() {
         openSharedPlace(intent)
     }
 
-    // ── 추천 업소 ──────────────────────────────────────────────────────────
+    // ── 극플인이 추천한 곳 ──────────────────────────────────────────────────────────
 
     private fun loadRecommended() {
         lifecycleScope.launch {

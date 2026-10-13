@@ -29,7 +29,7 @@ expect fun rememberFilePicker(onPicked: (List<UploadFile>) -> Unit): () -> Unit
 expect fun PlatformBackHandler(enabled: Boolean, onBack: () -> Unit)
 
 /**
- * One marker on [PlaceMap]: [colorArgb] (0xAARRGGBB) tints it, e.g. by 업종 for 추천 업소,
+ * One marker on [PlaceMap]: [colorArgb] (0xAARRGGBB) tints it, e.g. by 업종 for 극플인이 추천한 곳,
  * and [label] is drawn inside (the 후기 count). Both null = the platform's default pin.
  */
 data class MapPin(val place: Place, val colorArgb: Long? = null, val label: String? = null)

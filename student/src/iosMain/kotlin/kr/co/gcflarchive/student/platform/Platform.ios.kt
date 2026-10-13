@@ -134,7 +134,7 @@ private class MapDelegate(var pins: Map<MKPointAnnotation, MapPin>, var onSelect
         pins[annotation]?.let { onSelect(it.place) }
     }
 
-    /** Balloon markers tinted by 업종 with the 후기 count inside (추천 업소). */
+    /** Balloon markers tinted by 업종 with the 후기 count inside (극플인이 추천한 곳). */
     @ObjCSignatureOverride
     override fun mapView(mapView: MKMapView, viewForAnnotation: MKAnnotationProtocol): MKAnnotationView? {
         val annotation = viewForAnnotation as? MKPointAnnotation ?: return null

@@ -162,7 +162,7 @@
                     android:layout_height="wrap_content"
                     android:textAppearance="@style/TextAppearance.Gcfl.SectionTitle" />
 
-                <!-- 추천 업소: 업종 filter (tap to show / hide that color of pin). -->
+                <!-- 극플인이 추천한 곳: 업종 filter (tap to show / hide that color of pin). -->
                 <HorizontalScrollView
                     android:id="@+id/typeScroll"
                     android:layout_width="match_parent"

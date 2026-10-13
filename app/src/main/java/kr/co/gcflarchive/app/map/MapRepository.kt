@@ -16,7 +16,7 @@ object MapRepository {
         return (0 until arr.length()).mapNotNull { arr.optJSONObject(it)?.let(MapLogic::parseCustomPlace) }
     }
 
-    /** 추천 업소: places with reviews, with 업종 / review count / ★ average. */
+    /** 극플인이 추천한 곳: places with reviews, with 업종 / review count / ★ average. */
     suspend fun recommended(): RecommendedIndex = RecommendedIndex.parse(JSONObject(SiteApi.get("/api/map/reviewed-places")))
 
     suspend fun stats(): Map<String, PlaceStats> = MapLogic.parseStats(JSONObject(SiteApi.get("/api/map/places-stats")))
