@@ -26,6 +26,11 @@ class AppPrefs(private val settings: Settings = Settings()) {
         get() = settings.getStringOrNull(KEY_GUEST_CODE)?.takeIf { it.length == 4 }
         set(value) = if (value == null) settings.remove(KEY_GUEST_CODE) else settings.putString(KEY_GUEST_CODE, value)
 
+    /** Logged-in students in 등급컷: "verified" or "guest" (익명 chosen); null = ask. */
+    var gradeAccessMode: String?
+        get() = settings.getStringOrNull(KEY_GRADE_MODE)
+        set(value) = if (value == null) settings.remove(KEY_GRADE_MODE) else settings.putString(KEY_GRADE_MODE, value)
+
     val mealNotifyTimeLabel: String
         get() = "${(mealNotifyMinuteOfDay / 60).toString().padStart(2, '0')}:${(mealNotifyMinuteOfDay % 60).toString().padStart(2, '0')}"
 
@@ -35,5 +40,6 @@ class AppPrefs(private val settings: Settings = Settings()) {
         const val KEY_KIND = "meal_notify_kind" // legacy single choice
         const val KEY_KINDS = "meal_notify_kinds"
         const val KEY_GUEST_CODE = "grade_guest_code"
+        const val KEY_GRADE_MODE = "grade_access_mode"
     }
 }

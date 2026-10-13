@@ -42,6 +42,8 @@
 	<dict/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSFaceIDUsageDescription</key>
+	<string>등급컷 계산기의 익명 접근 코드를 확인할 때 본인 확인에 사용합니다.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>내려받은 사진을 사진 앱에 저장하려면 권한이 필요합니다.</string>
 	<key>UISupportedInterfaceOrientations</key>

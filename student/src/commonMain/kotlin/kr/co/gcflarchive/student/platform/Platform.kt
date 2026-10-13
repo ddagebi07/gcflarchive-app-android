@@ -46,3 +46,10 @@ expect object Notifications {
 
 /** "iOS 18.1" / "Android 15" — shown in 설정. */
 expect val platformName: String
+
+/**
+ * Asks the device owner to confirm with 지문 / Face ID (or the device passcode when
+ * no biometrics are enrolled). Returns whether it succeeded. Used before showing the
+ * saved 등급컷 익명 접근 코드.
+ */
+expect suspend fun authenticateUser(reason: String): Boolean

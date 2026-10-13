@@ -46,3 +46,6 @@ actual object Notifications {
 }
 
 actual val platformName: String get() = "Desktop ${System.getProperty("os.name")}"
+
+/** Desktop preview only. */
+actual suspend fun authenticateUser(reason: String): Boolean = true

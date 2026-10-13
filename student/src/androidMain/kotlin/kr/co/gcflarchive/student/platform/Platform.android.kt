@@ -122,3 +122,9 @@ actual object Notifications {
 }
 
 actual val platformName: String get() = "Android ${Build.VERSION.RELEASE}"
+
+/**
+ * Not wired yet: the Android app shows this code through its own BiometricPrompt
+ * (app/util/Biometric.kt). Refusing keeps the code hidden if this host is ever used.
+ */
+actual suspend fun authenticateUser(reason: String): Boolean = false

@@ -245,6 +245,24 @@
                                 android:text="@string/grade_migrate" />
                         </LinearLayout>
 
+                        <!-- 익명 코드 (지문 인증 후 보기) · 학번/익명 전환 (로그인한 경우) -->
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnShowCode"
+                            style="@style/Widget.Krds.Button.Tertiary"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="@string/grade_code_show"
+                            android:visibility="gone"
+                            app:icon="@drawable/ic_lock" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnSwitchMode"
+                            style="@style/Widget.Krds.Button.Tertiary"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:visibility="gone" />
+
                         <LinearLayout
                             android:id="@+id/inputRows"
                             android:layout_width="match_parent"

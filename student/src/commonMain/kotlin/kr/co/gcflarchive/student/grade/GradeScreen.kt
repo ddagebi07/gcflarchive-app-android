@@ -21,6 +21,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
@@ -68,6 +69,7 @@ import kr.co.gcflarchive.core.net.LoginRequiredException
 import kr.co.gcflarchive.core.util.fixed
 import kr.co.gcflarchive.student.AppState
 import kr.co.gcflarchive.student.LocalApp
+import kr.co.gcflarchive.student.platform.authenticateUser
 import kr.co.gcflarchive.student.ui.Badge
 import kr.co.gcflarchive.student.ui.BadgeTone
 import kr.co.gcflarchive.student.ui.ChoiceChips
@@ -96,7 +98,8 @@ private class RowState(val row: InputRow, subject: String?, score: String, wrong
 
 private sealed interface Phase {
     data object Loading : Phase
-    data object Access : Phase
+    /** [hakbun]: logged in (익명 setup pre-filled from it, and "학번으로 계속" offered). */
+    data class Access(val hakbun: String?) : Phase
     data object Consent : Phase
     data class Error(val message: String) : Phase
     data class Ready(val access: GradeAccess) : Phase
@@ -135,6 +138,8 @@ fun GradeScreen() {
         }
     }
 
+    val prefs = app.services.prefs
+
     LaunchedEffect(reload, app.sessionVersion) {
         refreshing = true
         phase = try {
@@ -143,19 +148,38 @@ fun GradeScreen() {
             if (migratePending && a is GradeAccess.Verified) {
                 migratePending = false
                 migrate()
+                prefs.gradeAccessMode = MODE_VERIFIED
                 a = app.services.grades.access()
             }
-            when (a) {
-                GradeAccess.None -> Phase.Access
-                GradeAccess.NeedsScoreConsent -> Phase.Consent
-                else -> Phase.Ready(a)
+            // A logged-in student who chose 익명 goes back into the saved anonymous identity.
+            val code = prefs.gradeGuestCode
+            val loggedIn = a is GradeAccess.Verified || a is GradeAccess.NeedsScoreConsent
+            if (loggedIn && prefs.gradeAccessMode == MODE_GUEST && code != null) {
+                val restored = runCatching { app.services.grades.guestLogin(code, keepLogin = true) }
+                if (restored.isSuccess) a = app.services.grades.access()
+                // 401 = no longer valid (e.g. a new exam started): forget it.
+                else if (restored.exceptionOrNull() is LoginRequiredException) prefs.gradeGuestCode = null
+            }
+            val hakbun = when (a) {
+                is GradeAccess.Verified -> a.userId
+                is GradeAccess.NeedsScoreConsent -> a.userId
+                is GradeAccess.Guest -> a.hakbun
+                GradeAccess.None -> null
+            }
+            when {
+                a is GradeAccess.Guest -> Phase.Ready(a)
+                // Logged in but no choice yet (or 익명 wanted without a usable saved code).
+                hakbun != null && prefs.gradeAccessMode != MODE_VERIFIED -> Phase.Access(hakbun)
+                a is GradeAccess.NeedsScoreConsent -> Phase.Consent
+                a is GradeAccess.Verified -> Phase.Ready(a)
+                else -> Phase.Access(null)
             }
         } catch (e: CancellationException) {
             throw e
         } catch (e: ScoreConsentRequiredException) {
             Phase.Consent
         } catch (e: LoginRequiredException) {
-            Phase.Access
+            Phase.Access(null)
         } catch (e: Exception) {
             Phase.Error(e.userMessage("등급컷 정보를 불러오지 못했습니다."))
         }
@@ -169,13 +193,35 @@ fun GradeScreen() {
                 PageHeader("등급컷 계산기", "과목별 점수 입력 및 실시간 예상 등급컷·오답률 통계")
                 when (val p = phase) {
                     Phase.Loading -> Loading()
-                    Phase.Access -> AccessCard(app, onDone = { reload++ })
+                    is Phase.Access -> AccessCard(app, p.hakbun, onDone = { reload++ })
                     Phase.Consent -> ConsentCard(app, onDone = { reload++ })
                     is Phase.Error -> StateMessage(p.message, null, "다시 시도", { reload++ })
                     is Phase.Ready -> Calculator(
                         app, p.access, reload,
-                        onReselect = { scope.launch { app.services.grades.clearGuest(); reload++ } },
-                        onMigrate = { migratePending = true; app.requireLogin() },
+                        // A new anonymous identity: don't log back into the saved one.
+                        onReselect = {
+                            val hakbun = (p.access as? GradeAccess.Guest)?.hakbun
+                            scope.launch { app.services.grades.clearGuest(); phase = Phase.Access(hakbun) }
+                        },
+                        onMigrate = {
+                            if ((p.access as? GradeAccess.Guest)?.keepsLogin == true) {
+                                scope.launch { migrate(); prefs.gradeAccessMode = MODE_VERIFIED; reload++ }
+                            } else {
+                                migratePending = true
+                                app.requireLogin()
+                            }
+                        },
+                        onSwitchMode = {
+                            scope.launch {
+                                if (p.access is GradeAccess.Guest) {
+                                    prefs.gradeAccessMode = MODE_VERIFIED
+                                    app.services.grades.clearGuest() // the saved code still brings it back
+                                } else {
+                                    prefs.gradeAccessMode = MODE_GUEST
+                                }
+                                reload++
+                            }
+                        },
                     )
                 }
             }
@@ -183,11 +229,16 @@ fun GradeScreen() {
     }
 }
 
+private const val MODE_VERIFIED = "verified"
+private const val MODE_GUEST = "guest"
+
 @Composable
-private fun AccessCard(app: AppState, onDone: () -> Unit) {
+private fun AccessCard(app: AppState, hakbun: String?, onDone: () -> Unit) {
     val scope = rememberCoroutineScope()
-    var grade by remember { mutableStateOf<String?>(null) }
-    var track by remember { mutableStateOf<String?>(null) }
+    // 학년·계열 pre-selected from the 학번 of a logged-in student.
+    val defaults = remember(hakbun) { GradeLogic.guestDefaults(hakbun) }
+    var grade by remember(hakbun) { mutableStateOf(defaults?.first) }
+    var track by remember(hakbun) { mutableStateOf(defaults?.second) }
     var status by remember { mutableStateOf<String?>(null) }
     var codeDialog by remember { mutableStateOf(false) }
 
@@ -205,8 +256,9 @@ private fun AccessCard(app: AppState, onDone: () -> Unit) {
             if (g == null || t == null) { status = "학년과 계열을 모두 선택해 주세요."; return@PrimaryButton }
             scope.launch {
                 try {
-                    app.services.grades.startGuest(g, t)
+                    app.services.grades.startGuest(g, t, keepLogin = hakbun != null)
                     app.services.prefs.gradeGuestCode = null
+                    if (hakbun != null) app.services.prefs.gradeAccessMode = MODE_GUEST
                     onDone()
                 } catch (e: CancellationException) {
                     throw e
@@ -216,12 +268,24 @@ private fun AccessCard(app: AppState, onDone: () -> Unit) {
             }
         }, Modifier.fillMaxWidth().padding(top = 8.dp))
         SecondaryButton("코드 로그인 (익명 재방문용)", { codeDialog = true }, Modifier.fillMaxWidth().padding(top = 8.dp))
-        SecondaryButton("학번 인증하기", { app.requireLogin() }, Modifier.fillMaxWidth().padding(top = 8.dp))
-        InfoBox("익명 제출 후 4자리 접근 코드가 발급됩니다. 코드를 저장하면 같은 시험 기간 동안 다시 접속해 점수 수정/조회가 가능합니다.", Modifier.padding(top = 12.dp))
+        if (hakbun != null) {
+            SecondaryButton("학번($hakbun)으로 계속", {
+                app.services.prefs.gradeAccessMode = MODE_VERIFIED
+                onDone()
+            }, Modifier.fillMaxWidth().padding(top = 8.dp))
+        } else {
+            SecondaryButton("학번 인증하기", { app.requireLogin() }, Modifier.fillMaxWidth().padding(top = 8.dp))
+        }
+        InfoBox(
+            if (defaults != null) "학번 기준으로 ${defaults.first}학년 ${defaults.second}를 골라 두었습니다. 익명으로 계속하면 점수가 학번과 연결되지 않으며, 발급되는 접근 코드는 이 기기에 자동으로 저장됩니다."
+            else "익명 제출 후 4자리 접근 코드가 발급되어 이 기기에 자동으로 저장됩니다. 같은 시험 기간 동안 다시 접속해 점수 수정/조회가 가능합니다.",
+            Modifier.padding(top = 12.dp),
+        )
     }
 
     if (codeDialog) {
-        var code by remember { mutableStateOf(app.services.prefs.gradeGuestCode.orEmpty()) }
+        // Never pre-filled: the saved code is only shown after 지문/Face ID.
+        var code by remember { mutableStateOf("") }
         var error by remember { mutableStateOf<String?>(null) }
         AlertDialog(
             onDismissRequest = { codeDialog = false },
@@ -242,8 +306,9 @@ private fun AccessCard(app: AppState, onDone: () -> Unit) {
                     if (code.length != 4) { error = "4자리 코드를 입력해 주세요."; return@TextButton }
                     scope.launch {
                         try {
-                            app.services.grades.guestLogin(code)
+                            app.services.grades.guestLogin(code, keepLogin = hakbun != null)
                             app.services.prefs.gradeGuestCode = code
+                            if (hakbun != null) app.services.prefs.gradeAccessMode = MODE_GUEST
                             codeDialog = false
                             onDone()
                         } catch (e: CancellationException) {
@@ -295,7 +360,14 @@ private fun ConsentCard(app: AppState, onDone: () -> Unit) {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun Calculator(app: AppState, access: GradeAccess, reloadKey: Int, onReselect: () -> Unit, onMigrate: () -> Unit) {
+private fun Calculator(
+    app: AppState,
+    access: GradeAccess,
+    reloadKey: Int,
+    onReselect: () -> Unit,
+    onMigrate: () -> Unit,
+    onSwitchMode: () -> Unit,
+) {
     val scope = rememberCoroutineScope()
     @Suppress("DEPRECATION") val clipboard = LocalClipboardManager.current
     val prefs = app.services.prefs
@@ -310,9 +382,19 @@ private fun Calculator(app: AppState, access: GradeAccess, reloadKey: Int, onRes
     var wrongSort by remember { mutableStateOf(WrongRateSort.QUESTION_ASC) }
     var statsVersion by remember { mutableIntStateOf(0) }
     var issuedCode by remember { mutableStateOf<String?>(null) }
+    var revealedCode by remember { mutableStateOf<String?>(null) }
     var confirm by remember { mutableStateOf<Pair<String, () -> Unit>?>(null) }
 
     val verified = access is GradeAccess.Verified
+
+    /** The saved anonymous code is shown only after 지문 / Face ID. */
+    fun revealCode() {
+        val code = prefs.gradeGuestCode ?: return app.toast("이 기기에 저장된 접근 코드가 없습니다.")
+        scope.launch {
+            if (authenticateUser("익명 접근 코드를 확인합니다.")) revealedCode = code
+            else app.toast("본인 확인을 하지 못했습니다. 기기에 지문(Face ID)이나 암호가 설정되어 있는지 확인해 주세요.")
+        }
+    }
     val testUser = GradeLogic.isTestUser((access as? GradeAccess.Verified)?.userId)
     val isAdmin = (access as? GradeAccess.Verified)?.isAdmin == true
 
@@ -430,7 +512,7 @@ private fun Calculator(app: AppState, access: GradeAccess, reloadKey: Int, onRes
         Text(
             when (access) {
                 is GradeAccess.Verified -> "${access.userId} · $exam"
-                is GradeAccess.Guest -> prefs.gradeGuestCode?.let { "${access.displayName} · 코드 $it · $exam" } ?: "${access.displayName} · 코드 미발급 · $exam"
+                is GradeAccess.Guest -> if (prefs.gradeGuestCode != null) "${access.displayName} · 코드 저장됨 · $exam" else "${access.displayName} · 코드 미발급 · $exam"
                 else -> exam
             },
             style = KrdsText.cardTitle,
@@ -438,7 +520,22 @@ private fun Calculator(app: AppState, access: GradeAccess, reloadKey: Int, onRes
         if (access is GradeAccess.Guest) {
             Row(Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 SecondaryButton("학년/계열 다시 선택", onReselect, Modifier.weight(1f))
-                SecondaryButton("내 학번에 등록", { confirm = "익명으로 입력한 점수를 학번 계정으로 이전하시겠습니까? 학번 인증 후 바로 이전됩니다." to onMigrate }, Modifier.weight(1f))
+                SecondaryButton("내 학번에 등록", {
+                    confirm = (if (access.keepsLogin) "익명으로 입력한 점수를 지금 로그인한 학번 계정으로 이전하시겠습니까?"
+                    else "익명으로 입력한 점수를 학번 계정으로 이전하시겠습니까? 학번 인증 후 바로 이전됩니다.") to onMigrate
+                }, Modifier.weight(1f))
+            }
+            if (prefs.gradeGuestCode != null) {
+                TextButton(onClick = ::revealCode, modifier = Modifier.padding(top = 4.dp)) {
+                    Icon(Icons.Filled.Lock, null, tint = Krds.colors.primaryText)
+                    Text(" 접근 코드 보기", color = Krds.colors.primaryText)
+                }
+            }
+        }
+        val loggedIn = access is GradeAccess.Verified || (access is GradeAccess.Guest && access.keepsLogin)
+        if (loggedIn && !testUser) {
+            TextButton(onClick = onSwitchMode, modifier = Modifier.padding(top = 4.dp)) {
+                Text(if (access is GradeAccess.Guest) "학번으로 이용하기" else "익명으로 이용하기", color = Krds.colors.primaryText)
             }
         }
     }
@@ -513,15 +610,24 @@ private fun Calculator(app: AppState, access: GradeAccess, reloadKey: Int, onRes
         wrongSubject?.let { subject -> WrongPanel(app, subject, statsMode, statsVersion, wrongSort, p) }
     }
 
-    issuedCode?.let { code ->
+    issuedCode?.let {
         AlertDialog(
-            onDismissRequest = {},
-            title = { Text("접근 코드: $code") },
-            text = { Text("복사해서 꼭 저장해 두세요. 이 코드는 지금 이 한 번만 표시됩니다.") },
-            confirmButton = {
-                TextButton(onClick = { clipboard.setText(AnnotatedString(code)); app.toast("코드를 복사했습니다."); issuedCode = null }) { Text("코드 복사") }
-            },
+            onDismissRequest = { issuedCode = null },
+            title = { Text("접근 코드를 저장했습니다") },
+            text = { Text("익명 접근 코드가 발급되어 이 기기에 자동으로 저장되었습니다. 다음에 들어오면 같은 익명 계정으로 이어집니다. 코드는 '접근 코드 보기'에서 지문(Face ID) 인증 후 확인할 수 있습니다.") },
+            confirmButton = { TextButton(onClick = { issuedCode = null; revealCode() }) { Text("접근 코드 보기") } },
             dismissButton = { TextButton(onClick = { issuedCode = null }) { Text("확인") } },
+        )
+    }
+    revealedCode?.let { code ->
+        AlertDialog(
+            onDismissRequest = { revealedCode = null },
+            title = { Text("접근 코드: $code") },
+            text = { Text("이 기기에 저장된 코드입니다. 다른 기기나 웹에서 '코드 로그인'에 입력하면 같은 익명 계정으로 들어갈 수 있습니다.") },
+            confirmButton = {
+                TextButton(onClick = { clipboard.setText(AnnotatedString(code)); app.toast("코드를 복사했습니다."); revealedCode = null }) { Text("코드 복사") }
+            },
+            dismissButton = { TextButton(onClick = { revealedCode = null }) { Text("확인") } },
         )
     }
     confirm?.let { (message, action) ->

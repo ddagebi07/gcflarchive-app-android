@@ -84,6 +84,24 @@ object GradeLogic {
 
     fun isTestUser(id: String?): Boolean = id?.toIntOrNull()?.let { it in 60000..99999 } == true
 
+    /**
+     * 익명 초기 설정 from a 학번 (학년 1자리 + 반 2자리 + 번호 2자리): ("2", "비영어과") for 20512.
+     * 1~4반 영어과, 5~10반 비영어과 (same split as the server). Null for 교사·특수 계정.
+     */
+    fun guestDefaults(hakbun: String?): Pair<String, String>? {
+        val id = hakbun?.trim().orEmpty()
+        if (id.length != 5 || !id.all(Char::isDigit) || isTestUser(id)) return null
+        val grade = id.substring(0, 1)
+        val klass = id.substring(1, 3).toInt()
+        if (grade !in setOf("1", "2", "3")) return null
+        val track = when (klass) {
+            in 1..4 -> "영어과"
+            in 5..10 -> "비영어과"
+            else -> return null
+        }
+        return grade to track
+    }
+
     fun normalizeGroups(raw: JArray?): List<SelectionGroup> {
         val seen = HashSet<String>()
         val out = mutableListOf<SelectionGroup>()

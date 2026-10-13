@@ -31,6 +31,7 @@ import kr.co.gcflarchive.app.databinding.ItemGradeInputBinding
 import kr.co.gcflarchive.app.databinding.ItemGradeScoreBinding
 import kr.co.gcflarchive.app.databinding.ItemMetaTileBinding
 import kr.co.gcflarchive.app.meal.MealRepository
+import kr.co.gcflarchive.app.util.Biometric
 import kr.co.gcflarchive.app.util.Links
 import java.time.Instant
 import java.time.format.DateTimeFormatter
@@ -51,6 +52,8 @@ class GradeActivity : AppCompatActivity() {
     private var wrongSubject: String? = null
     private var wrongSort = WrongRateSort.QUESTION_ASC
     private var guestCode: String? = null
+    /** 학번 of the logged-in student (also while they use the anonymous mode). */
+    private var loggedInId: String? = null
     private val rows = mutableListOf<RowState>()
 
     /** Migration to 학번 runs right after the login it asked for. */
@@ -83,19 +86,27 @@ class GradeActivity : AppCompatActivity() {
         binding.btnReselect.setOnClickListener {
             lifecycleScope.launch {
                 GradeRepository.clearGuest()
-                load()
+                // A new anonymous identity: don't log back into the saved one.
+                showAccessCard(loggedInId)
             }
         }
         binding.btnMigrate.setOnClickListener {
+            val keepsLogin = (access as? GradeAccess.Guest)?.keepsLogin == true
             MaterialAlertDialogBuilder(this)
-                .setMessage(R.string.grade_migrate_confirm)
+                .setMessage(if (keepsLogin) R.string.grade_migrate_confirm_logged_in else R.string.grade_migrate_confirm)
                 .setNegativeButton(R.string.cancel, null)
                 .setPositiveButton(R.string.confirm) { _, _ ->
-                    migrateAfterLogin = true
-                    login.launch(LoginActivity.intent(this))
+                    if (keepsLogin) {
+                        migrate()
+                    } else {
+                        migrateAfterLogin = true
+                        login.launch(LoginActivity.intent(this))
+                    }
                 }
                 .show()
         }
+        binding.btnShowCode.setOnClickListener { revealCode() }
+        binding.btnSwitchMode.setOnClickListener { switchMode() }
         binding.statsModeGroup.check(R.id.statsAll)
         binding.statsModeGroup.addOnButtonCheckedListener { group, id, checked ->
             if (!checked) return@addOnButtonCheckedListener
@@ -135,7 +146,15 @@ class GradeActivity : AppCompatActivity() {
         filterChip(binding.guestTrackGroup, getString(R.string.grade_track_en)).tag = "영어과"
         filterChip(binding.guestTrackGroup, getString(R.string.grade_track_non_en)).tag = "비영어과"
         binding.btnStartGuest.setOnClickListener { startGuest() }
-        binding.btnVerify.setOnClickListener { login.launch(LoginActivity.intent(this)) }
+        binding.btnVerify.setOnClickListener {
+            if (loggedInId != null) {
+                // Logged in: continue with the 학번 identity.
+                setMode(MODE_VERIFIED)
+                load()
+            } else {
+                login.launch(LoginActivity.intent(this))
+            }
+        }
         binding.btnCodeLogin.setOnClickListener { codeLogin() }
     }
 
@@ -144,24 +163,96 @@ class GradeActivity : AppCompatActivity() {
         binding.errorText.isVisible = false
         lifecycleScope.launch {
             try {
-                access = GradeRepository.access()
-                when (access) {
-                    GradeAccess.None -> showOnly(binding.accessCard)
-                    GradeAccess.NeedsScoreConsent -> showOnly(binding.consentCard)
-                    else -> enterCalculator()
+                access = resolveAccess()
+                loggedInId = when (val a = access) {
+                    is GradeAccess.Verified -> a.userId
+                    is GradeAccess.NeedsScoreConsent -> a.userId
+                    is GradeAccess.Guest -> a.hakbun
+                    else -> null
+                }
+                val a = access
+                when {
+                    a is GradeAccess.Guest -> enterCalculator()
+                    // Logged in but no choice yet (or anonymous wanted without a usable saved code).
+                    loggedInId != null && mode() != MODE_VERIFIED -> showAccessCard(loggedInId)
+                    a is GradeAccess.NeedsScoreConsent -> showOnly(binding.consentCard)
+                    a is GradeAccess.Verified -> enterCalculator()
+                    else -> showAccessCard(null)
                 }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: ScoreConsentRequiredException) {
                 showOnly(binding.consentCard)
             } catch (e: LoginRequiredException) {
-                showOnly(binding.accessCard)
+                showAccessCard(null)
             } catch (e: Exception) {
                 binding.errorText.isVisible = true
                 binding.errorText.text = e.message ?: getString(R.string.grade_error)
             } finally {
                 binding.swipe.isRefreshing = false
             }
+        }
+    }
+
+    /** A logged-in student who chose 익명 is put back into the saved anonymous identity. */
+    private suspend fun resolveAccess(): GradeAccess {
+        val a = GradeRepository.access()
+        val loggedIn = a is GradeAccess.Verified || a is GradeAccess.NeedsScoreConsent
+        val code = guestCode()
+        if (loggedIn && mode() == MODE_GUEST && code != null) {
+            val restored = runCatching { GradeRepository.guestLogin(code, keepLogin = true) }
+            if (restored.isSuccess) return GradeRepository.access()
+            // 401 = the code is no longer valid (e.g. a new exam started): forget it.
+            if (restored.exceptionOrNull() is LoginRequiredException) saveGuestCode(null)
+        }
+        return a
+    }
+
+    /**
+     * 접속 방식 선택. When logged in ([hakbun] set), 학년·계열 are pre-selected from the
+     * 학번 and the second button continues with the 학번 instead of opening the login.
+     */
+    private fun showAccessCard(hakbun: String?) {
+        showOnly(binding.accessCard)
+        binding.accessStatus.setText(R.string.grade_access_note)
+        binding.btnVerify.text = if (hakbun != null) getString(R.string.grade_continue_hakbun, hakbun) else getString(R.string.grade_verify)
+        GradeLogic.guestDefaults(hakbun)?.let { (grade, track) ->
+            binding.guestGradeGroup.chips().firstOrNull { it.tag == grade }?.isChecked = true
+            binding.guestTrackGroup.chips().firstOrNull { it.tag == track }?.isChecked = true
+            binding.accessStatus.text = getString(R.string.grade_access_prefilled, grade, track)
+        }
+    }
+
+    private fun ChipGroup.chips(): List<Chip> = (0 until childCount).mapNotNull { getChildAt(it) as? Chip }
+
+    private fun mode(): String? = prefs.getString(KEY_MODE, null)
+
+    private fun setMode(mode: String) = prefs.edit().putString(KEY_MODE, mode).apply()
+
+    /** 학번 ↔ 익명 while logged in. */
+    private fun switchMode() {
+        lifecycleScope.launch {
+            if (access is GradeAccess.Guest) {
+                setMode(MODE_VERIFIED)
+                GradeRepository.clearGuest() // the saved code still brings this identity back
+                load()
+            } else {
+                setMode(MODE_GUEST)
+                if (guestCode() != null) load() else showAccessCard(loggedInId)
+            }
+        }
+    }
+
+    /** The anonymous code is only shown after 지문 인증. */
+    private fun revealCode() {
+        val code = guestCode() ?: return snack(getString(R.string.grade_code_none))
+        Biometric.authenticate(this, getString(R.string.grade_code_auth_title), getString(R.string.grade_code_auth_desc)) {
+            MaterialAlertDialogBuilder(this)
+                .setTitle(getString(R.string.grade_code_issued_title, code))
+                .setMessage(R.string.grade_code_saved_desc)
+                .setPositiveButton(R.string.grade_copy_code) { _, _ -> Links.copy(this, getString(R.string.grade_title), code) }
+                .setNegativeButton(R.string.confirm, null)
+                .show()
         }
     }
 
@@ -179,9 +270,10 @@ class GradeActivity : AppCompatActivity() {
             return
         }
         lifecycleScope.launch {
-            runCatching { GradeRepository.startGuest(grade, track) }
+            runCatching { GradeRepository.startGuest(grade, track, keepLogin = loggedInId != null) }
                 .onSuccess {
                     saveGuestCode(null)
+                    if (loggedInId != null) setMode(MODE_GUEST)
                     load()
                 }
                 .onFailure { e -> if (e is CancellationException) throw e else binding.accessStatus.text = e.message }
@@ -206,9 +298,10 @@ class GradeActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
             lifecycleScope.launch {
-                runCatching { GradeRepository.guestLogin(code) }
+                runCatching { GradeRepository.guestLogin(code, keepLogin = loggedInId != null) }
                     .onSuccess {
                         saveGuestCode(code)
+                        if (loggedInId != null) setMode(MODE_GUEST)
                         dialog.dismiss()
                         load()
                     }
@@ -235,6 +328,7 @@ class GradeActivity : AppCompatActivity() {
             runCatching { GradeRepository.migrateGuestScores() }
                 .onSuccess { r ->
                     saveGuestCode(null)
+                    setMode(MODE_VERIFIED)
                     snack(
                         if (r.moved > 0) "익명 점수 ${r.moved}건을 학번 계정으로 이전했습니다." + (if (r.skipped > 0) " (중복 ${r.skipped}건 제외)" else "")
                         else "이전할 익명 점수가 없습니다.",
@@ -278,11 +372,17 @@ class GradeActivity : AppCompatActivity() {
 
     private fun renderIdentity(prof: GradeProfile) {
         val exam = prof.policy.examName.ifBlank { getString(R.string.grade_exam_unset) }
-        binding.guestRow.isVisible = access is GradeAccess.Guest
-        binding.identity.text = when (val a = access) {
+        val a = access
+        binding.guestRow.isVisible = a is GradeAccess.Guest
+        // The code itself is never shown here; "접근 코드 보기" asks for 지문 first.
+        binding.btnShowCode.isVisible = a is GradeAccess.Guest && guestCode() != null
+        val loggedIn = a is GradeAccess.Verified || (a is GradeAccess.Guest && a.keepsLogin)
+        binding.btnSwitchMode.isVisible = loggedIn && !isTestUser()
+        binding.btnSwitchMode.setText(if (a is GradeAccess.Guest) R.string.grade_switch_to_hakbun else R.string.grade_switch_to_guest)
+        binding.identity.text = when (a) {
             is GradeAccess.Verified -> getString(R.string.grade_identity_verified, a.userId, exam)
-            is GradeAccess.Guest -> guestCode()?.let { getString(R.string.grade_identity_guest, a.displayName, it, exam) }
-                ?: getString(R.string.grade_identity_guest_nocode, a.displayName, exam)
+            is GradeAccess.Guest -> if (guestCode() != null) getString(R.string.grade_identity_guest_saved, a.displayName, exam)
+                else getString(R.string.grade_identity_guest_nocode, a.displayName, exam)
             else -> exam
         }
     }
@@ -481,11 +581,10 @@ class GradeActivity : AppCompatActivity() {
         saveGuestCode(code)
         profile?.let(::renderIdentity)
         MaterialAlertDialogBuilder(this)
-            .setTitle(getString(R.string.grade_code_issued_title, code))
-            .setMessage(R.string.grade_code_issued_desc)
-            .setPositiveButton(R.string.grade_copy_code) { _, _ -> Links.copy(this, getString(R.string.grade_title), code) }
+            .setTitle(R.string.grade_code_saved_title)
+            .setMessage(R.string.grade_code_saved_issued)
+            .setPositiveButton(R.string.grade_code_show) { _, _ -> revealCode() }
             .setNegativeButton(R.string.confirm, null)
-            .setCancelable(false)
             .show()
     }
 
@@ -680,6 +779,10 @@ class GradeActivity : AppCompatActivity() {
 
     companion object {
         private const val KEY_CODE = "guest_access_code"
+        /** Logged-in students: "verified" or "guest" (익명 chosen); unset = ask. */
+        private const val KEY_MODE = "access_mode"
+        private const val MODE_VERIFIED = "verified"
+        private const val MODE_GUEST = "guest"
         private val TIME: DateTimeFormatter = DateTimeFormatter.ofPattern("M/d HH:mm")
 
         fun intent(context: Context) = Intent(context, GradeActivity::class.java)

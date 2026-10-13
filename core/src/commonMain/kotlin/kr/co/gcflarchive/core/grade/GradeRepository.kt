@@ -10,9 +10,12 @@ import kr.co.gcflarchive.core.net.jsonOf
 /** Who is using the calculator (grade-calculator.html init()). */
 sealed interface GradeAccess {
     data class Verified(val userId: String, val isAdmin: Boolean) : GradeAccess
-    data class Guest(val userId: String, val displayName: String) : GradeAccess
-    /** Logged in, but 원점수 수집·이용 (optional scope) was not agreed to yet. */
-    data object NeedsScoreConsent : GradeAccess
+    /** [hakbun] set: anonymous mode chosen by that logged-in student (site login kept). */
+    data class Guest(val userId: String, val displayName: String, val hakbun: String? = null) : GradeAccess {
+        val keepsLogin: Boolean get() = hakbun != null
+    }
+    /** Logged in as [userId], but 원점수 수집·이용 (optional scope) was not agreed to yet. */
+    data class NeedsScoreConsent(val userId: String) : GradeAccess
     data object None : GradeAccess
 }
 
@@ -26,13 +29,22 @@ data class MigrateOutcome(val moved: Int, val skipped: Int)
 class GradeRepository(private val site: SiteClient) {
     suspend fun access(): GradeAccess {
         val status = site.exchange("/api/verify-status").json
-        if (status.optBoolean("verified")) {
-            if (!status.optBoolean("scoreConsentGranted") || !status.optBoolean("hakbunConsentGranted")) return GradeAccess.NeedsScoreConsent
-            return GradeAccess.Verified(status.optString("userId"), adminStatus())
-        }
+        val verified = status.optBoolean("verified")
         val guest = site.exchange("/api/grades/guest-session")
         val g = guest.json
-        if (guest.isSuccessful && g.optBoolean("active")) return GradeAccess.Guest(g.optString("userId"), g.optString("displayName"))
+        // A guest session counts when logged out, or when a logged-in student chose it ("preferred").
+        if (guest.isSuccessful && g.optBoolean("active") && (!verified || g.optBoolean("preferred"))) {
+            return GradeAccess.Guest(
+                g.optString("userId"),
+                g.optString("displayName").ifBlank { "익명 사용자" },
+                hakbun = status.optString("userId").takeIf { verified && it.isNotBlank() },
+            )
+        }
+        if (verified) {
+            val id = status.optString("userId")
+            if (!status.optBoolean("scoreConsentGranted") || !status.optBoolean("hakbunConsentGranted")) return GradeAccess.NeedsScoreConsent(id)
+            return GradeAccess.Verified(id, adminStatus())
+        }
         return GradeAccess.None
     }
 
@@ -41,11 +53,12 @@ class GradeRepository(private val site: SiteClient) {
         j.optBoolean("loggedIn") && j.optBoolean("isAdmin")
     }.getOrDefault(false)
 
-    suspend fun startGuest(grade: String, track: String): GradeAccess.Guest =
-        guestFrom(ok(site.exchange("/api/grades/guest-session", "POST", jsonOf("grade" to grade, "track" to track))))
+    /** [keepLogin]: a logged-in student goes anonymous without being signed out of the site. */
+    suspend fun startGuest(grade: String, track: String, keepLogin: Boolean = false): GradeAccess.Guest =
+        guestFrom(ok(site.exchange("/api/grades/guest-session", "POST", jsonOf("grade" to grade, "track" to track, "preferGuest" to keepLogin))))
 
-    suspend fun guestLogin(code: String): GradeAccess.Guest =
-        guestFrom(ok(site.exchange("/api/grades/guest-access/login", "POST", jsonOf("code" to code))))
+    suspend fun guestLogin(code: String, keepLogin: Boolean = false): GradeAccess.Guest =
+        guestFrom(ok(site.exchange("/api/grades/guest-access/login", "POST", jsonOf("code" to code, "preferGuest" to keepLogin))))
 
     suspend fun clearGuest() {
         runCatching { site.exchange("/api/grades/guest-session", "DELETE") }

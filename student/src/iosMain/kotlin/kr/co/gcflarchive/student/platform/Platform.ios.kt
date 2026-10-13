@@ -27,6 +27,8 @@ import platform.Foundation.NSURL
 import platform.Foundation.dataWithBytes
 import platform.Foundation.dataWithContentsOfURL
 import platform.Foundation.writeToURL
+import platform.LocalAuthentication.LAContext
+import platform.LocalAuthentication.LAPolicyDeviceOwnerAuthentication
 import platform.MapKit.MKAnnotationProtocol
 import platform.MapKit.MKAnnotationView
 import platform.MapKit.MKCoordinateRegionMakeWithDistance
@@ -208,3 +210,13 @@ actual object Notifications {
 }
 
 actual val platformName: String get() = "${UIDevice.currentDevice.systemName} ${UIDevice.currentDevice.systemVersion}"
+
+/** Face ID / Touch ID, falling back to the device passcode (LAPolicyDeviceOwnerAuthentication). */
+actual suspend fun authenticateUser(reason: String): Boolean = suspendCoroutine { cont ->
+    val context = LAContext()
+    if (!context.canEvaluatePolicy(LAPolicyDeviceOwnerAuthentication, error = null)) {
+        cont.resume(false)
+        return@suspendCoroutine
+    }
+    context.evaluatePolicy(LAPolicyDeviceOwnerAuthentication, localizedReason = reason) { success, _ -> cont.resume(success) }
+}
