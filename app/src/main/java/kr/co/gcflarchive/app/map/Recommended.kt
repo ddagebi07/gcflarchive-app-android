@@ -2,7 +2,7 @@ package kr.co.gcflarchive.app.map
 
 import org.json.JSONObject
 
-/** 극플인이 추천한 곳: a place with reviews (GET /api/map/reviewed-places), with its 업종. */
+/** 극플인의 추천: a place with reviews (GET /api/map/reviewed-places), with its 업종. */
 data class RecommendedPlace(val place: Place, val businessType: String, val reviewCount: Int, val avgRating: Double?)
 
 data class RecommendedIndex(val places: List<RecommendedPlace>, val types: List<Pair<String, Int>>) {

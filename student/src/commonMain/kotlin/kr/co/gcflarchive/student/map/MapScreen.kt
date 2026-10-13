@@ -120,7 +120,7 @@ fun MapScreen(placeId: String?, placeName: String?) {
     var askNickname by remember { mutableStateOf(false) }
     var registerDialog by remember { mutableStateOf(false) }
     var scheduleFor by remember { mutableStateOf<Place?>(null) }
-    // 극플인이 추천한 곳 (places with reviews): colored pins by 업종 + the list shown before any search.
+    // 극플인의 추천 (places with reviews): colored pins by 업종 + the list shown before any search.
     var recommended by remember { mutableStateOf(RecommendedIndex.EMPTY) }
     var hiddenTypes by remember { mutableStateOf<Set<String>>(emptySet()) }
     var recommendedVersion by remember { mutableIntStateOf(0) }
@@ -182,7 +182,7 @@ fun MapScreen(placeId: String?, placeName: String?) {
         onBack = {
             when {
                 selected != null && (results.size > 1 || resultsTitle == null) -> selected = null
-                resultsTitle != null -> { results = emptyList(); resultsTitle = null; selected = null } // back to 극플인이 추천한 곳
+                resultsTitle != null -> { results = emptyList(); resultsTitle = null; selected = null } // back to 극플인의 추천
                 else -> app.pop()
             }
         },
@@ -249,7 +249,7 @@ fun MapScreen(placeId: String?, placeName: String?) {
         }
 
         BoxWithConstraints(Modifier.fillMaxSize()) {
-            // Colored 극플인이 추천한 곳 pins always (unless filtered); search results / the selected place on top.
+            // Colored 극플인의 추천 pins always (unless filtered); search results / the selected place on top.
             val recPins = recommended.places.filter { it.businessType !in hiddenTypes }
                 .map { MapPin(it.place, BusinessTypes.color(it.businessType), it.reviewCount.toString()) }
             val recIds = recPins.map { it.place.id }.toSet()
@@ -274,16 +274,16 @@ fun MapScreen(placeId: String?, placeName: String?) {
     scheduleFor?.let { p -> ScheduleDialog(app, p, stats[p.id]?.schedule.orEmpty(), onDismiss = { scheduleFor = null }) }
 }
 
-/** 극플인이 추천한 곳: places with 후기, most reviewed first; 업종 chips show / hide their pins. */
+/** 극플인의 추천: places with 후기, most reviewed first; 업종 chips show / hide their pins. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun RecommendedList(index: RecommendedIndex, hidden: Set<String>, onToggleType: (String) -> Unit, onSelect: (Place) -> Unit) {
     if (index.places.isEmpty()) {
-        InfoBox("가게 이름이나 키워드로 학교 주변 장소를 찾아보세요. 후기가 달린 장소는 '극플인이 추천한 곳'으로 지도에 표시됩니다.")
+        InfoBox("가게 이름이나 키워드로 학교 주변 장소를 찾아보세요. 후기가 달린 장소는 '극플인의 추천'으로 지도에 표시됩니다.")
         return
     }
     val visible = index.places.filter { it.businessType !in hidden }
-    Text("극플인이 추천한 곳 (${visible.size})", style = KrdsText.sectionTitle, modifier = Modifier.padding(vertical = 6.dp))
+    Text("극플인의 추천 | ${visible.size}곳", style = KrdsText.sectionTitle, modifier = Modifier.padding(vertical = 6.dp))
     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         index.types.forEach { (type, count) ->
             val on = type !in hidden
