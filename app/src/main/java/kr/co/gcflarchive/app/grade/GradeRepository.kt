@@ -22,7 +22,7 @@ data class SubmitOutcome(val guestAccessCode: String?)
 
 data class MigrateOutcome(val moved: Int, val skipped: Int)
 
-/** /api/grades/* (grade_calculator_backend.py). */
+/** /api/grades/… endpoints (grade_calculator_backend.py). */
 object GradeRepository {
     suspend fun access(): GradeAccess {
         val status = SiteApi.exchange("/api/verify-status").json

@@ -6,7 +6,7 @@ import org.json.JSONObject
 
 data class MapUser(val verified: Boolean, val nickname: String)
 
-/** /api/map/* (routes/map_api.py). */
+/** /api/map/… endpoints (routes/map_api.py). */
 object MapRepository {
     suspend fun search(query: String): List<Place> =
         MapLogic.parsePlaces(JSONObject(SiteApi.get("/api/map/search?q=" + android.net.Uri.encode(query))).optJSONArray("places"))
