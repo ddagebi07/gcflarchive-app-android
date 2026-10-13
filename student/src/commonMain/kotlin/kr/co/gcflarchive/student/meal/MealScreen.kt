@@ -1,7 +1,10 @@
 package kr.co.gcflarchive.student.meal
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.pager.HorizontalPager
@@ -15,7 +18,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
@@ -167,15 +169,23 @@ private fun DayCell(weekday: String, day: LocalDate, selected: Boolean, isToday:
         verticalArrangement = Arrangement.Center,
     ) {
         Text(weekday, style = KrdsText.label.copy(color = if (selected) onSel else k.textSecondary))
-        Text(
-            day.dayOfMonth.toString(),
-            style = KrdsText.sectionTitle.copy(color = when {
-                selected -> onSel
-                isToday -> k.primaryText
-                else -> k.textStrong
-            }),
-        )
-        Text("오늘", style = KrdsText.label.copy(fontSize = 11.sp, color = if (selected) onSel else k.primaryText), modifier = Modifier.alpha(if (isToday) 1f else 0f))
+        // Today: thin outlined circle (white on the selected fill).
+        Box(
+            Modifier
+                .padding(top = 2.dp)
+                .size(34.dp)
+                .then(if (isToday) Modifier.border(1.5.dp, if (selected) onSel else k.primaryText, CircleShape) else Modifier),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                day.dayOfMonth.toString(),
+                style = KrdsText.sectionTitle.copy(color = when {
+                    selected -> onSel
+                    isToday -> k.primaryText
+                    else -> k.textStrong
+                }),
+            )
+        }
     }
 }
 

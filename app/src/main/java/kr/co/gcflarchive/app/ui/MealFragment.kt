@@ -178,7 +178,6 @@ class MealFragment : Fragment(), MainActivity.Reselectable {
                 val isToday = day == today
                 cell.weekday.text = WEEKDAYS[i]
                 cell.dayNumber.text = day.dayOfMonth.toString()
-                cell.todayMark.visibility = if (isToday) View.VISIBLE else View.INVISIBLE
                 cell.root.setBackgroundResource(if (selected) R.drawable.bg_meal_day_selected else R.drawable.bg_meal_day)
                 val onSel = ctx.getColor(R.color.krds_on_primary)
                 cell.weekday.setTextColor(if (selected) onSel else ctx.getColor(R.color.krds_text_secondary))
@@ -189,7 +188,12 @@ class MealFragment : Fragment(), MainActivity.Reselectable {
                         else -> ctx.getColor(R.color.krds_text_strong)
                     },
                 )
-                cell.todayMark.setTextColor(if (selected) onSel else ctx.getColor(R.color.krds_primary_text))
+                // Today: thin outlined circle (white on the selected fill).
+                if (isToday) {
+                    cell.dayNumber.setBackgroundResource(if (selected) R.drawable.bg_meal_today_ring_selected else R.drawable.bg_meal_today_ring)
+                } else {
+                    cell.dayNumber.background = null
+                }
                 cell.root.isSelected = selected
                 cell.root.contentDescription = "${day.monthValue}월 ${day.dayOfMonth}일 ${WEEKDAYS[i]}요일" +
                     (if (isToday) ", 오늘" else "") + (if (selected) ", 선택됨" else "")
