@@ -14,9 +14,12 @@ class AppPrefs(private val settings: Settings = Settings()) {
         get() = settings.getInt(KEY_TIME, 7 * 60 + 30)
         set(value) = settings.putInt(KEY_TIME, value.coerceIn(0, 24 * 60 - 1))
 
-    var mealNotifyKind: MealKind
-        get() = MealKind.entries.getOrNull(settings.getInt(KEY_KIND, MealKind.ALL.ordinal)) ?: MealKind.ALL
-        set(value) = settings.putInt(KEY_KIND, value.ordinal)
+    /** 점심 / 저녁, any of 0–2 (empty = no 급식 알림). Migrates the old single choice on first read. */
+    var mealNotifyKinds: Set<MealKind>
+        get() = MealKind.decode(settings.getStringOrNull(KEY_KINDS))
+            ?: settings.getIntOrNull(KEY_KIND)?.let(MealKind::fromLegacy)
+            ?: MealKind.DEFAULT
+        set(value) = settings.putString(KEY_KINDS, MealKind.encode(value))
 
     /** 4-digit 등급컷 익명 접근 코드 shown once by the server, kept on this device. */
     var gradeGuestCode: String?
@@ -29,7 +32,8 @@ class AppPrefs(private val settings: Settings = Settings()) {
     private companion object {
         const val KEY_ENABLED = "meal_notify_enabled"
         const val KEY_TIME = "meal_notify_minute"
-        const val KEY_KIND = "meal_notify_kind"
+        const val KEY_KIND = "meal_notify_kind" // legacy single choice
+        const val KEY_KINDS = "meal_notify_kinds"
         const val KEY_GUEST_CODE = "grade_guest_code"
     }
 }

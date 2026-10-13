@@ -74,8 +74,8 @@ object MealNotifier {
 
     /** Returns false when there was nothing to show (no meal service that day). */
     @SuppressLint("MissingPermission") // checked by canPost()
-    fun post(context: Context, meals: List<Meal>, kind: AppPrefs.MealKind): Boolean {
-        val selected = kind.neisName?.let { name -> meals.filter { it.kind == name } } ?: meals
+    fun post(context: Context, meals: List<Meal>, kinds: Set<MealKind>): Boolean {
+        val selected = MealKind.filter(meals, kinds)
         if (selected.isEmpty() || !canPost(context)) return false
 
         val title = if (selected.size == 1) {
@@ -128,7 +128,7 @@ class MealNotifyWorker(context: Context, params: WorkerParameters) : CoroutineWo
         } catch (_: Exception) {
             return if (runAttemptCount < 3) Result.retry() else Result.success()
         }
-        if (MealNotifier.post(applicationContext, meals, prefs.mealNotifyKind)) {
+        if (MealNotifier.post(applicationContext, meals, prefs.mealNotifyKinds)) {
             prefs.lastNotifiedDate = key
         }
         return Result.success()

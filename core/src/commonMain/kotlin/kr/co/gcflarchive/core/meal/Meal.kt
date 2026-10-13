@@ -23,8 +23,29 @@ data class Meal(
     val dishes: List<Dish>,
 )
 
-enum class MealKind(val neisName: String?, val label: String) {
-    ALL(null, "모든 식사"), BREAKFAST("조식", "조식"), LUNCH("중식", "중식"), DINNER("석식", "석식"),
+/** Meals the 급식 알림 can include (조식 is not offered). */
+enum class MealKind(val neisName: String, val label: String) {
+    LUNCH("중식", "점심"), DINNER("석식", "저녁");
+
+    companion object {
+        val DEFAULT: Set<MealKind> = setOf(LUNCH, DINNER)
+
+        /** "LUNCH,DINNER" ↔ set; "" is a valid empty choice (no 급식 알림), null = never saved. */
+        fun decode(raw: String?): Set<MealKind>? =
+            raw?.split(',')?.mapNotNull { n -> entries.firstOrNull { it.name == n.trim() } }?.toSet()
+
+        fun encode(kinds: Set<MealKind>): String = entries.filter { it in kinds }.joinToString(",") { it.name }
+
+        /** The old single choice (0 전체, 1 조식, 2 중식, 3 석식). */
+        fun fromLegacy(ordinal: Int): Set<MealKind> = when (ordinal) {
+            2 -> setOf(LUNCH)
+            3 -> setOf(DINNER)
+            else -> DEFAULT
+        }
+
+        /** "점심·저녁", "점심", "선택 안 함" */
+        fun label(kinds: Set<MealKind>): String = entries.filter { it in kinds }.joinToString("·") { it.label }.ifEmpty { "선택 안 함" }
+    }
 }
 
 /** School meals from the NEIS open API (same key and school code as meal.html). */
@@ -73,9 +94,9 @@ class MealRepository(private val site: SiteClient) {
             return meals.firstOrNull { it.kind == preferred } ?: meals.firstOrNull()
         }
 
-        /** Meals matching the notification preference. */
-        fun forKind(meals: List<Meal>, kind: MealKind): List<Meal> =
-            if (kind.neisName == null) meals else meals.filter { it.kind == kind.neisName }
+        /** Meals matching the notification preference (조식 never included). */
+        fun forKinds(meals: List<Meal>, kinds: Set<MealKind>): List<Meal> =
+            meals.filter { m -> kinds.any { it.neisName == m.kind } }
 
         /** "10월 13일 (월)" */
         fun label(d: LocalDate): String {

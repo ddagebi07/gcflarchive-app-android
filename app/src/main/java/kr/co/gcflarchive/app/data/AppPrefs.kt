@@ -2,6 +2,7 @@ package kr.co.gcflarchive.app.data
 
 import android.content.Context
 import androidx.core.content.edit
+import kr.co.gcflarchive.app.meal.MealKind
 
 class AppPrefs(context: Context) {
     private val prefs = context.applicationContext.getSharedPreferences("gcfl_prefs", Context.MODE_PRIVATE)
@@ -15,9 +16,12 @@ class AppPrefs(context: Context) {
         get() = prefs.getInt(KEY_TIME, 7 * 60 + 30)
         set(value) = prefs.edit { putInt(KEY_TIME, value) }
 
-    var mealNotifyKind: MealKind
-        get() = MealKind.entries.getOrNull(prefs.getInt(KEY_KIND, MealKind.ALL.ordinal)) ?: MealKind.ALL
-        set(value) = prefs.edit { putInt(KEY_KIND, value.ordinal) }
+    /** 점심 / 저녁, any of 0–2 (empty = no 급식 알림). Migrates the old single choice on first read. */
+    var mealNotifyKinds: Set<MealKind>
+        get() = MealKind.decode(prefs.getString(KEY_KINDS, null))
+            ?: (if (prefs.contains(KEY_KIND)) MealKind.fromLegacy(prefs.getInt(KEY_KIND, 0)) else null)
+            ?: MealKind.DEFAULT
+        set(value) = prefs.edit { putString(KEY_KINDS, MealKind.encode(value)) }
 
     /** yyyyMMdd of the last day a meal notification was posted, to avoid duplicates. */
     var lastNotifiedDate: String?
@@ -28,17 +32,11 @@ class AppPrefs(context: Context) {
         get() = prefs.getBoolean(KEY_ONBOARDING, false)
         set(value) = prefs.edit { putBoolean(KEY_ONBOARDING, value) }
 
-    enum class MealKind(val neisName: String?) {
-        ALL(null),
-        BREAKFAST("조식"),
-        LUNCH("중식"),
-        DINNER("석식"),
-    }
-
     private companion object {
         const val KEY_ENABLED = "meal_notify_enabled"
         const val KEY_TIME = "meal_notify_minute"
-        const val KEY_KIND = "meal_notify_kind"
+        const val KEY_KIND = "meal_notify_kind" // legacy single choice
+        const val KEY_KINDS = "meal_notify_kinds"
         const val KEY_LAST = "meal_last_notified"
         const val KEY_ONBOARDING = "onboarding_shown"
     }

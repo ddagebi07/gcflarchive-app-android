@@ -10,13 +10,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -33,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import kr.co.gcflarchive.core.Config
@@ -115,7 +117,7 @@ fun SettingsScreen() {
                 Hairline()
                 SettingRow("알림 시간", prefs.mealNotifyTimeLabel, enabled = enabled, onClick = { pickTime = true })
                 Hairline()
-                SettingRow("알림 받을 식사", prefs.mealNotifyKind.label, enabled = enabled, onClick = { pickKind = true })
+                SettingRow("알림 받을 식사", MealKind.label(prefs.mealNotifyKinds), enabled = enabled, onClick = { pickKind = true })
             }
             if (enabled && permissionDenied) {
                 InfoBox("알림 권한이 꺼져 있어요. 기기의 설정 앱에서 GCFL 아카이브 알림을 허용해 주세요.", icon = Icons.Filled.NotificationsOff)
@@ -148,27 +150,33 @@ fun SettingsScreen() {
         )
     }
     if (pickKind) {
+        var kinds by remember { mutableStateOf(prefs.mealNotifyKinds) }
         AlertDialog(
             onDismissRequest = { pickKind = false },
             title = { Text("알림 받을 식사") },
             text = {
+                // 중복 선택: none, either or both.
                 Column {
                     MealKind.entries.forEach { k ->
+                        val checked = k in kinds
                         Row(
-                            Modifier.fillMaxWidth().heightIn(min = 48.dp).selectable(selected = prefs.mealNotifyKind == k) {
-                                prefs.mealNotifyKind = k
-                                pickKind = false
+                            Modifier.fillMaxWidth().heightIn(min = 48.dp).toggleable(value = checked, role = Role.Checkbox) { on ->
+                                kinds = if (on) kinds + k else kinds - k
+                                prefs.mealNotifyKinds = kinds
                                 changed()
                             },
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            RadioButton(selected = prefs.mealNotifyKind == k, onClick = null)
+                            Checkbox(checked = checked, onCheckedChange = null, colors = CheckboxDefaults.colors(checkedColor = Krds.colors.primary))
                             Text(k.label, style = KrdsText.body, modifier = Modifier.padding(start = 12.dp))
                         }
                     }
+                    if (kinds.isEmpty()) {
+                        Text("선택한 식사가 없으면 급식 알림이 오지 않습니다.", style = KrdsText.meta, modifier = Modifier.padding(top = 4.dp))
+                    }
                 }
             },
-            confirmButton = { TextButton(onClick = { pickKind = false }) { Text("닫기") } },
+            confirmButton = { TextButton(onClick = { pickKind = false }) { Text("확인") } },
         )
     }
 }

@@ -34,7 +34,7 @@ object MealAlarms {
         val notices = coroutineScope {
             days.map { d ->
                 async {
-                    val meals = runCatching { MealRepository.forKind(services.meals.fetch(d), prefs.mealNotifyKind) }.getOrDefault(emptyList())
+                    val meals = runCatching { MealRepository.forKinds(services.meals.fetch(d), prefs.mealNotifyKinds) }.getOrDefault(emptyList())
                     if (meals.isEmpty()) null else ScheduledNotice(
                         id = MealRepository.neisDate(d),
                         at = LocalDateTime(d.year, d.monthNumber, d.dayOfMonth, hour, minute),

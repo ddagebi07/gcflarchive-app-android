@@ -54,16 +54,11 @@
     <string name="settings_etc_section">기타</string>
     <string name="notify_enable">매일 급식 메뉴 알림 받기</string>
     <string name="notify_time">알림 시간</string>
-    <string name="notify_kind">알림 받을 급식</string>
+    <string name="notify_kind">알림 받을 식사</string>
+    <string name="notify_kind_none">알림 받을 식사(점심·저녁)가 선택되어 있지 않습니다.</string>
     <string name="notify_test">지금 알림 보내 보기</string>
     <string name="notify_system">시스템 알림 설정</string>
     <string name="notify_permission_denied">알림 권한이 꺼져 있습니다. 시스템 알림 설정에서 허용해 주세요.</string>
-    <string-array name="meal_kinds">
-        <item>전체 (조식·중식·석식)</item>
-        <item>조식</item>
-        <item>중식</item>
-        <item>석식</item>
-    </string-array>
     <string name="login">로그인 (학번 인증)</string>
     <string name="logout">로그아웃</string>
     <string name="logged_out">로그아웃되었습니다.</string>

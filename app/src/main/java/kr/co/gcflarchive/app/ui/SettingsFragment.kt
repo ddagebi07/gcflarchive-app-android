@@ -29,6 +29,7 @@ import kr.co.gcflarchive.app.data.Http
 import kr.co.gcflarchive.app.data.LoginState
 import kr.co.gcflarchive.app.data.SiteSession
 import kr.co.gcflarchive.app.databinding.FragmentSettingsBinding
+import kr.co.gcflarchive.app.meal.MealKind
 import kr.co.gcflarchive.app.meal.MealNotifier
 import kr.co.gcflarchive.app.meal.MealRepository
 import kr.co.gcflarchive.app.util.Links
@@ -100,7 +101,7 @@ class SettingsFragment : Fragment() {
         b.switchMeal.isChecked = prefs.mealNotifyEnabled
         val minute = prefs.mealNotifyMinuteOfDay
         b.timeValue.text = String.format(Locale.ROOT, "%02d:%02d", minute / 60, minute % 60)
-        b.kindValue.text = resources.getStringArray(R.array.meal_kinds)[prefs.mealNotifyKind.ordinal]
+        b.kindValue.text = MealKind.label(prefs.mealNotifyKinds)
         b.rowTime.isEnabled = prefs.mealNotifyEnabled
         b.rowKind.isEnabled = prefs.mealNotifyEnabled
         b.permissionWarning.visibility =
@@ -131,15 +132,18 @@ class SettingsFragment : Fragment() {
         picker.show(childFragmentManager, "time")
     }
 
+    /** 중복 선택: 점심·저녁 any of none / one / both; saved on each tap. */
     private fun pickKind() {
-        val kinds = resources.getTextArray(R.array.meal_kinds)
+        val all = MealKind.entries
+        val checked = all.map { it in prefs.mealNotifyKinds }.toBooleanArray()
         AlertDialog.Builder(requireContext())
             .setTitle(R.string.notify_kind)
-            .setSingleChoiceItems(kinds, prefs.mealNotifyKind.ordinal) { dialog, which ->
-                prefs.mealNotifyKind = AppPrefs.MealKind.entries[which]
-                dialog.dismiss()
+            .setMultiChoiceItems(all.map { it.label }.toTypedArray(), checked) { _, which, isChecked ->
+                checked[which] = isChecked
+                prefs.mealNotifyKinds = all.filterIndexed { i, _ -> checked[i] }.toSet()
                 render()
             }
+            .setPositiveButton(R.string.confirm, null)
             .show()
     }
 
@@ -151,8 +155,12 @@ class SettingsFragment : Fragment() {
                 Toast.makeText(ctx, R.string.meal_load_failed, Toast.LENGTH_SHORT).show()
                 return@launch
             }
-            if (!MealNotifier.post(ctx, meals, prefs.mealNotifyKind)) {
-                val msg = if (MealNotifier.canPost(ctx)) R.string.meal_none_today else R.string.notify_permission_denied
+            if (!MealNotifier.post(ctx, meals, prefs.mealNotifyKinds)) {
+                val msg = when {
+                    !MealNotifier.canPost(ctx) -> R.string.notify_permission_denied
+                    prefs.mealNotifyKinds.isEmpty() -> R.string.notify_kind_none
+                    else -> R.string.meal_none_today
+                }
                 Toast.makeText(ctx, msg, Toast.LENGTH_SHORT).show()
             }
         }
