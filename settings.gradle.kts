@@ -16,3 +16,6 @@ dependencyResolutionManagement {
 rootProject.name = "GCFLArchive"
 include(":app")
 include(":admin")
+// Shared with iPhone / iPad (Kotlin Multiplatform): see README "iPhone · iPad".
+include(":core")
+include(":student")

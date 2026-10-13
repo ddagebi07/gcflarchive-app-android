@@ -1,4 +1,4 @@
-# GCFL 아카이브 Android 앱 (학생용 `app` · 관리자용 `admin`)
+# GCFL 아카이브 앱 (Android 학생용 `app` · 관리자용 `admin` · iPhone/iPad 학생용 `iosApp`)
 
 `gcflarchive.co.kr` 서비스의 Kotlin 네이티브 앱입니다. **WebView 화면이 없습니다** — 모든 페이지를 서버 API로 직접
 그리고, 네이티브 화면이 없는 사이트 주소(예: 미니서비스)만 브라우저로 엽니다(`util/Links.kt`, `NativePages`).
@@ -64,6 +64,56 @@ app/src/main/java/kr/co/gcflarchive/app/
 - **서버 발송 푸시 (FCM)**: 지금 알림은 기기에서 예약하는 로컬 알림이라 서버가 필요 없습니다. 공지 등 관리자가 보내는 푸시가
   필요해지면 Firebase 프로젝트 + 서버에 토큰 등록 API를 추가해야 합니다.
 - 사진(JPG/PNG) 업로드: 현재 서버가 문서 파일만 받습니다. 서버의 허용 확장자를 늘리면 앱의 공유 필터(`AndroidManifest.xml`의 `image/*`)도 추가하세요.
+
+## iPhone · iPad (학생용)
+
+iOS 앱은 **Kotlin Multiplatform + Compose Multiplatform**으로 만들었습니다. 화면과 로직을 한 번만 작성해 iPhone·iPad·Android가 함께 씁니다.
+기능을 고칠 때는 아래 공용 모듈만 수정하면 두 플랫폼에 모두 반영됩니다.
+
+```
+core/       화면 없는 공용 코드: 서버 API, 로그인 쿠키, 급식·기출·등급컷·드라이브·지도 규칙 (단위 테스트 39개)
+student/    학생용 앱 화면 전체 (Compose): 홈·통합검색·급식·극플드라이브·설정, 기출·PDF·사진·영상·뷰어,
+            등급컷 계산기, 지도, 공지사항, 로그인 → iOS용 프레임워크 "StudentKit"
+  src/iosMain/     iOS 전용 부분: 공유 시트·파일 저장, 문서 선택기, Apple 지도(MapKit), 급식 로컬 알림
+  src/androidMain/ Android 전용 부분: 다운로드 폴더 저장, 파일 선택, OpenStreetMap
+iosApp/     Xcode 프로젝트 정의(XcodeGen `project.yml`), 앱 아이콘, Info.plist, Swift 진입점(StudentApp.swift)
+```
+
+iPad에서는 글 폭을 760dp로 맞추고, 사진은 3열·영상은 2열, 지도는 목록과 지도를 나란히 보여 줍니다. 가로 화면도 됩니다.
+
+### Mac에서 처음 실행하기 (무료 Apple ID로 내 아이폰에 설치)
+
+1. **Xcode** 설치 (App Store), 한 번 실행해서 추가 구성요소 설치. **JDK 17** 설치 (`brew install --cask temurin@17`).
+2. **XcodeGen** 설치 후 프로젝트 생성:
+   ```bash
+   brew install xcodegen
+   cd iosApp && xcodegen     # GCFLArchive.xcodeproj 생성 (project.yml이 바뀌면 다시 실행)
+   open GCFLArchive.xcodeproj
+   ```
+3. Xcode ▸ Settings ▸ Accounts 에서 Apple ID 로그인 → 타깃 **Student** ▸ Signing & Capabilities ▸ Team 에 본인 선택.
+   (번들 ID가 이미 쓰이고 있다는 오류가 나면 `kr.co.gcflarchive.student` 뒤에 아무 글자나 붙이세요.)
+4. 아이폰을 케이블로 연결 → 위쪽에서 기기 선택 → ▶ 실행. 첫 빌드는 Kotlin 컴파일 때문에 5~10분 걸립니다.
+   아이폰에서 설정 ▸ 일반 ▸ VPN 및 기기 관리 ▸ 개발자 앱 신뢰, 그리고 설정 ▸ 개인정보 보호 및 보안 ▸ 개발자 모드 켜기.
+5. 시뮬레이터(iPhone/iPad)는 Apple ID 없이도 바로 실행됩니다.
+
+무료 Apple ID로 설치한 앱은 **7일마다** Xcode에서 다시 실행해야 합니다. Apple Developer Program(연 129,000원)에 가입하면
+TestFlight로 다른 학생들에게 배포하고 App Store에 올릴 수 있습니다. 그때 `project.yml`의 `DEVELOPMENT_TEAM`에 팀 ID를 넣으면 됩니다.
+
+컴퓨터에서 화면만 빠르게 확인하려면 `./gradlew :student:run` (데스크톱 미리보기 창)도 됩니다.
+
+GitHub Actions의 **iOS app** 워크플로(`.github/workflows/ios.yml`)가 공용·iOS 코드가 바뀔 때마다 macOS에서 공용 테스트와
+시뮬레이터용 앱 빌드(서명 없음)를 확인합니다. (비공개 저장소에서는 macOS 실행 시간이 10배로 계산됩니다.)
+
+### 지금 iOS 판에서 다른 점
+
+- 급식 알림: 기기 로컬 알림으로 앞으로 7일 치(학교 가는 날)를 미리 예약하고, 앱을 열 때마다 다시 채웁니다.
+- 다운로드: 공유 시트가 열립니다 → "파일에 저장", AirDrop, 다른 앱에서 열기.
+- 지도: Apple 지도 위에 장소 표시, 길찾기는 카카오맵 웹으로 엽니다.
+- 다른 앱에서 공유 → 극플드라이브 올리기(Share Extension)와 유니버설 링크는 유료 개발자 계정이 생기면 추가할 수 있습니다.
+  지금은 앱 안에서 파일을 골라 올립니다. `gcflarchive://notice-view?id=3` 같은 앱 링크는 바로 됩니다.
+
+Android 앱(`app/`)은 기존 네이티브 화면을 그대로 씁니다. 공용 모듈이 충분히 검증되면 Android 앱도 `StudentApp()` 하나로
+옮겨 두 플랫폼을 완전히 한 코드로 관리할 수 있습니다.
 
 ## 디자인 (KRDS)
 

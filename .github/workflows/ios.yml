@@ -1,0 +1,46 @@
+name: iOS app
+
+# Builds the iPhone / iPad app (shared Kotlin UI + iosApp) for the simulator, unsigned.
+# macOS runners count 10x against private-repo Actions minutes, so this only runs
+# when shared or iOS code changes (or by hand).
+on:
+  push:
+    paths:
+      - "core/**"
+      - "student/**"
+      - "iosApp/**"
+      - "gradle/**"
+      - "*.gradle.kts"
+      - ".github/workflows/ios.yml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Shared core tests (iOS simulator)
+        run: ./gradlew --no-daemon :core:iosSimulatorArm64Test
+
+      - name: Generate Xcode project
+        run: |
+          brew install xcodegen
+          cd iosApp && xcodegen
+
+      - name: Build app for the simulator (unsigned)
+        run: |
+          cd iosApp
+          xcodebuild -project GCFLArchive.xcodeproj -scheme Student \
+            -configuration Debug -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO build

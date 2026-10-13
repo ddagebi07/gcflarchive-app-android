@@ -18,8 +18,9 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
+      # Also compiles the shared modules (:core, :student) for Android and runs core tests.
       - name: Test, build debug APK, lint
-        run: ./gradlew --no-daemon testDebugUnitTest assembleDebug lintDebug
+        run: ./gradlew --no-daemon testDebugUnitTest assembleDebug :app:lintDebug :admin:lintDebug
 
       - uses: actions/upload-artifact@v4
         with:
