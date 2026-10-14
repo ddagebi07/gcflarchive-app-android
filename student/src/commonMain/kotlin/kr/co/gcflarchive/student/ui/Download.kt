@@ -18,17 +18,17 @@ suspend fun AppState.download(url: String, fileName: String) {
     } catch (e: CancellationException) {
         throw e
     } catch (e: LoginRequiredException) {
-        toast("로그인 후 내려받을 수 있습니다.")
+        toast("로그인 후 내려받을 수 있어요.")
         requireLogin()
     } catch (e: ApiException) {
-        toast(e.message ?: "내려받지 못했습니다.")
+        toast(e.message ?: "내려받지 못했어요.")
     } catch (e: Exception) {
-        toast("내려받지 못했습니다. 네트워크를 확인해 주세요.")
+        toast("내려받지 못했어요. 인터넷 연결을 확인하고 다시 시도해주세요.")
     }
 }
 
 /** User-facing message for a failed request. */
-fun Throwable.userMessage(fallback: String = "네트워크 오류가 발생했습니다."): String = when (this) {
+fun Throwable.userMessage(fallback: String = "인터넷 연결이 불안정해요. 잠시 후 다시 시도해주세요."): String = when (this) {
     is LoginRequiredException, is ApiException -> message ?: fallback
     else -> fallback
 }

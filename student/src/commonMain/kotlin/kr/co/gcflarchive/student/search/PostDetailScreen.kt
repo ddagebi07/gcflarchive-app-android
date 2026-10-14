@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -38,6 +39,9 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import kr.co.gcflarchive.core.archive.PostDetail
 import kr.co.gcflarchive.core.archive.PostRef
+import kr.co.gcflarchive.core.archive.PreviewKinds
+import kr.co.gcflarchive.core.Config
+import kr.co.gcflarchive.student.Route
 import kr.co.gcflarchive.core.util.displayDate
 import kr.co.gcflarchive.core.util.formatBytes
 import kr.co.gcflarchive.student.LocalApp
@@ -73,18 +77,19 @@ fun PostDetailScreen(board: String, idx: String) {
     val p = post?.getOrNull()
 
     ScreenScaffold(
-        title = p?.boardName ?: "게시물",
+        title = p?.boardName ?: "글",
         actions = {
             if (p != null) {
-                IconButton(onClick = { shareText(listOfNotNull(p.title, p.originalUrl).joinToString("\n")) }) { Icon(Icons.Filled.Share, "공유") }
-                p.originalUrl?.let { u -> IconButton(onClick = { uri.openUri(u) }) { Icon(Icons.AutoMirrored.Filled.OpenInNew, "원문 보기") } }
+                // The archive's own link, so the post opens here instead of on the school site.
+                IconButton(onClick = { shareText(listOf(p.title, p.shareUrl).joinToString("\n")) }) { Icon(Icons.Filled.Share, "공유하기") }
+                p.originalUrl?.let { u -> IconButton(onClick = { uri.openUri(u) }) { Icon(Icons.AutoMirrored.Filled.OpenInNew, "학교 홈페이지에서 보기") } }
             }
         },
     ) {
         when (val r = post) {
             null -> Loading()
             else -> r.fold(
-                onFailure = { StateMessage("게시물을 불러오지 못했습니다.", "네트워크를 확인해 주세요.", "다시 시도", { reload++ }) },
+                onFailure = { StateMessage("글을 불러오지 못했어요.", "인터넷 연결을 확인하고 다시 불러와주세요.", "다시 불러오기", { reload++ }) },
                 onSuccess = { d ->
                     Column(Modifier.fillMaxSize().verticalScroll(scroll).padding(16.dp)) {
                         Badge(d.boardName)
@@ -105,6 +110,15 @@ fun PostDetailScreen(board: String, idx: String) {
                                         Spacer(Modifier.width(10.dp))
                                         Text(a.filename, style = KrdsText.body, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
                                         if (a.fileSize > 0) Text(formatBytes(a.fileSize), style = KrdsText.meta, modifier = Modifier.padding(start = 8.dp))
+                                        if (a.canPreview) {
+                                            TextButton(onClick = {
+                                                when (a.previewKind) {
+                                                    // HWP is drawn by the site's own viewer page.
+                                                    PreviewKinds.HWP -> a.previewPage?.let { uri.openUri(Config.url(it)) }
+                                                    else -> app.push(Route.Preview(a.previewApi!!, a.previewKind, a.filename, a.downloadUrl))
+                                                }
+                                            }) { Text("미리보기") }
+                                        }
                                     }
                                 }
                             }
@@ -113,14 +127,14 @@ fun PostDetailScreen(board: String, idx: String) {
                         if (d.prev != null || d.next != null) {
                             Column(Modifier.padding(top = 20.dp)) {
                                 StrongRule()
-                                NavRow("이전 글", d.prev, "이전 글이 없습니다.") { current = it }
+                                NavRow("이전 글", d.prev, "이전 글이 없어요.") { current = it }
                                 Hairline()
-                                NavRow("다음 글", d.next, "다음 글이 없습니다.") { current = it }
+                                NavRow("다음 글", d.next, "다음 글이 없어요.") { current = it }
                                 Hairline()
                             }
                         }
                         d.originalUrl?.let { u ->
-                            SecondaryButton("학교 홈페이지 원문 보기", { uri.openUri(u) }, Modifier.fillMaxWidth().padding(top = 20.dp), icon = Icons.AutoMirrored.Filled.OpenInNew)
+                            SecondaryButton("학교 홈페이지에서 보기", { uri.openUri(u) }, Modifier.fillMaxWidth().padding(top = 20.dp), icon = Icons.AutoMirrored.Filled.OpenInNew)
                         }
                     }
                 },

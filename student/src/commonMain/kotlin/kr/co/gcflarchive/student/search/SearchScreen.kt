@@ -62,7 +62,7 @@ import kr.co.gcflarchive.student.LocalApp
 import kr.co.gcflarchive.student.Route
 import kr.co.gcflarchive.student.ui.Badge
 import kr.co.gcflarchive.student.ui.BadgeTone
-import kr.co.gcflarchive.student.ui.ChoiceChips
+import kr.co.gcflarchive.student.ui.KrdsDropdown
 import kr.co.gcflarchive.student.ui.Hairline
 import kr.co.gcflarchive.student.ui.Krds
 import kr.co.gcflarchive.student.ui.KrdsChip
@@ -149,17 +149,18 @@ fun SearchScreen() {
                             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                             keyboardActions = KeyboardActions(onSearch = { submit() }),
                         )
-                        if (boards.isNotEmpty()) {
-                            ChoiceChips(
-                                options = listOf<Pair<String?, String>>(null to "전체 게시판") + boards.map { it.code to it.name },
-                                selected = query.board,
-                                onSelect = { query = query.copy(board = it) },
+                        // 게시판·정렬은 드롭다운, 첨부파일 조건은 칩 하나: 버튼이 줄줄이 늘어서지 않게.
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            KrdsDropdown(
+                                "게시판",
+                                listOf<Pair<String?, String>>(null to "전체") + boards.map { it.code to it.name },
+                                query.board,
+                                { query = query.copy(board = it) },
+                                Modifier.weight(1f),
                             )
+                            KrdsDropdown("정렬", SearchSort.entries.map { it to it.label }, query.sort, { query = query.copy(sort = it) }, Modifier.width(120.dp))
                         }
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            SearchSort.entries.forEach { s -> KrdsChip(s.label, query.sort == s) { query = query.copy(sort = s) } }
-                            KrdsChip("첨부파일 있음", query.attachmentsOnly) { query = query.copy(attachmentsOnly = !query.attachmentsOnly) }
-                        }
+                        KrdsChip("첨부파일 있는 글만", query.attachmentsOnly) { query = query.copy(attachmentsOnly = !query.attachmentsOnly) }
                         if (totalCount >= 0) {
                             Text(
                                 buildAnnotatedString {
@@ -174,9 +175,9 @@ fun SearchScreen() {
                     StrongRule(Modifier.padding(horizontal = 16.dp))
                 }
                 if (failed) item {
-                    StateMessage("검색하지 못했습니다.", "네트워크를 확인해 주세요.", "다시 시도", { load(append = false) })
+                    StateMessage("검색하지 못했어요.", "인터넷 연결을 확인하고 다시 시도해주세요.", "다시 불러오기", { load(append = false) })
                 } else if (totalCount == 0) item {
-                    StateMessage(if (query.q.isBlank()) "조건에 맞는 게시물이 없습니다." else "‘${query.q}’에 대한 결과가 없습니다.", "다른 검색어나 게시판을 선택해 보세요.")
+                    StateMessage(if (query.q.isBlank()) "조건에 맞는 글이 없어요. 조건을 바꿔보세요." else "‘${query.q}’(으)로 찾은 글이 없어요.", "다른 검색어나 게시판을 선택해 보세요.")
                 }
                 itemsIndexed(items, key = { i, p -> "${p.boardCode}/${p.idx}/$i" }) { i, post ->
                     if (i > 0) Hairline(Modifier.padding(horizontal = 16.dp))

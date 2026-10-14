@@ -62,7 +62,7 @@ fun VideosScreen() {
 
     LibraryFrame(
         title = "영상 아카이브",
-        desc = "공연·행사 영상을 유튜브로 감상하세요.",
+        desc = "공연·행사 영상을 유튜브로 볼 수 있어요.",
         searchHint = "영상 제목, 태그 검색",
         load = load,
         onReload = reload,
@@ -89,10 +89,10 @@ fun VideosScreen() {
         DetailSheet("영상 상세 정보", v.title, { detail = null }) {
             DetailPair("분류", v.category, "등록일", displayDate(v.timestamp))
             DetailRow("태그", v.tags.joinToString(", ") { "#$it" })
-            DetailInfo("설명", v.notes.ifBlank { "설명이 없습니다." })
+            DetailInfo("설명", v.notes.ifBlank { "설명이 없어요." })
             SecondaryButton("링크 복사", {
                 clipboard.setText(AnnotatedString(v.youtubeUrl))
-                app.toast("링크를 복사했습니다.")
+                app.toast("링크를 복사했어요.")
             }, Modifier.fillMaxWidth(), icon = Icons.Filled.Link)
             PrimaryButton("영상 보기", { uri.openUri(v.youtubeUrl) }, Modifier.fillMaxWidth(), icon = Icons.Filled.PlayCircle)
         }

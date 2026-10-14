@@ -29,4 +29,11 @@ class MealWeekTest {
         assertEquals("9월 28일 – 10월 2일", MealWeek.label(LocalDate(2026, 9, 28), wed))
         assertEquals("2027년 1월 4일 – 8일", MealWeek.label(LocalDate(2027, 1, 4), wed))
     }
+
+    @Test
+    fun dayTitleIsBigAndPlain() {
+        assertEquals("오늘 · 10월 14일(수)", MealWeek.dayTitle(wed, wed))
+        assertEquals("10월 16일(금)", MealWeek.dayTitle(LocalDate(2026, 10, 16), wed))
+        assertEquals("2027년 1월 4일(월)", MealWeek.dayTitle(LocalDate(2027, 1, 4), wed))
+    }
 }

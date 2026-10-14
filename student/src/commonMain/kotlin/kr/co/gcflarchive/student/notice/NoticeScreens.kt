@@ -55,7 +55,7 @@ fun NoticeListScreen() {
 
     LibraryFrame(
         title = "공지사항",
-        desc = "GCFL 아카이브 운영 소식을 알려 드립니다.",
+        desc = "GCFL 아카이브 운영 소식을 알려드려요.",
         searchHint = "제목, 작성자 검색",
         load = load,
         onReload = reload,
@@ -101,7 +101,7 @@ fun NoticeDetailScreen(id: Int) {
                 Hairline()
                 Text("목록으로", style = KrdsText.body.copy(color = Krds.colors.primaryText), modifier = Modifier.clickable { app.pop() }.padding(vertical = 16.dp))
             }
-            load.error != null -> StateMessage("공지사항을 불러오지 못했습니다.", null, "다시 시도", reload)
+            load.error != null -> StateMessage("공지를 불러오지 못했어요.", null, "다시 불러오기", reload)
             else -> Loading()
         }
     }

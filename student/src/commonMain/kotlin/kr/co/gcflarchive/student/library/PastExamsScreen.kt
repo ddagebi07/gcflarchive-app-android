@@ -87,7 +87,7 @@ fun PastExamsScreen() {
     val favorites = favOverride ?: load.data?.favorites
 
     fun toggleFavorite(doc: LibraryDocument) {
-        val current = favorites ?: run { app.toast("즐겨찾기는 로그인 후 이용할 수 있습니다."); app.requireLogin(); return }
+        val current = favorites ?: run { app.toast("즐겨찾기는 로그인 후 이용할 수 있어요."); app.requireLogin(); return }
         scope.launch {
             try {
                 val starred = app.services.library.toggleFavorite(doc.filename)
@@ -256,7 +256,7 @@ private fun ExamDetail(app: AppState, doc: LibraryDocument, onDismiss: () -> Uni
                         } catch (e: LoginRequiredException) {
                             app.requireLogin()
                         } catch (e: Exception) {
-                            app.toast(e.userMessage("정답지를 불러오지 못했습니다."))
+                            app.toast(e.userMessage("정답지를 불러오지 못했어요."))
                         }
                     }
                 }, Modifier.weight(1f), icon = Icons.Filled.Description)
@@ -270,7 +270,7 @@ private fun ExamDetail(app: AppState, doc: LibraryDocument, onDismiss: () -> Uni
             val body = buildList {
                 if (a.answers.isNotBlank()) add(a.answers)
                 a.essays.forEachIndexed { i, t -> if (t.isNotBlank()) add("서술형${i + 1}: $t") }
-            }.joinToString("\n").ifBlank { "등록된 정답이 없습니다." }
+            }.joinToString("\n").ifBlank { "등록된 정답이 없어요." }
             DetailPair("과목", a.subject, "연도", a.year)
             DetailPair("학기", a.term, "출제 교사", a.teachers.joinToString(", "))
             DetailInfo("정답", body)
@@ -294,7 +294,7 @@ private fun ExamDetail(app: AppState, doc: LibraryDocument, onDismiss: () -> Uni
                 } catch (e: LoginRequiredException) {
                     app.requireLogin()
                 } catch (e: Exception) {
-                    app.toast(e.userMessage("극플드라이브에 담지 못했습니다."))
+                    app.toast(e.userMessage("극플드라이브에 담지 못했어요."))
                 } finally {
                     adding = false
                 }
@@ -319,7 +319,7 @@ private fun CutoffTable(raw: String, average: String) {
             Text("점수", style = KrdsText.label.copy(color = Krds.colors.textStrong), modifier = Modifier.weight(1f))
         }
         Hairline()
-        if (rows.isEmpty()) Text("등록된 등급컷이 없습니다.", style = KrdsText.meta, modifier = Modifier.padding(vertical = 8.dp))
+        if (rows.isEmpty()) Text("등록된 등급컷이 없어요.", style = KrdsText.meta, modifier = Modifier.padding(vertical = 8.dp))
         rows.forEach { (g, s) ->
             Row(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
                 Text(g, style = KrdsText.body, modifier = Modifier.weight(1f))

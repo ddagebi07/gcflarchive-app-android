@@ -43,18 +43,20 @@ import kr.co.gcflarchive.core.meal.MealKind
 import kr.co.gcflarchive.student.LocalApp
 import kr.co.gcflarchive.student.meal.MealAlarms
 import kr.co.gcflarchive.student.platform.Notifications
+import kr.co.gcflarchive.student.platform.authenticateUser
+import kr.co.gcflarchive.student.platform.canAuthenticateUser
+import kr.co.gcflarchive.student.AppLock
+import kr.co.gcflarchive.student.ui.ScreenScaffold
 import kr.co.gcflarchive.student.platform.platformName
 import kr.co.gcflarchive.student.ui.Hairline
 import kr.co.gcflarchive.student.ui.InfoBox
 import kr.co.gcflarchive.student.ui.Krds
 import kr.co.gcflarchive.student.ui.KrdsCard
 import kr.co.gcflarchive.student.ui.KrdsText
-import kr.co.gcflarchive.student.ui.PageHeader
-import kr.co.gcflarchive.student.ui.contentWidth
 
 const val APP_VERSION = "2.0.0"
 
-/** 설정 tab: account, 급식 알림, links and version. */
+/** 설정 (더보기 › 설정): account, 급식 알림, 앱 잠금, links and version. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen() {
@@ -67,6 +69,7 @@ fun SettingsScreen() {
     var permissionDenied by remember { mutableStateOf(false) }
     var pickTime by remember { mutableStateOf(false) }
     var pickKind by remember { mutableStateOf(false) }
+    var lockMessage by remember { mutableStateOf<String?>(null) }
 
     fun changed() {
         version++
@@ -76,9 +79,8 @@ fun SettingsScreen() {
     @Suppress("UNUSED_VARIABLE") val v = version
     val enabled = prefs.mealNotifyEnabled
 
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
-        Column(Modifier.contentWidth().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            PageHeader("설정")
+    ScreenScaffold("설정") {
+        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
 
             Section("계정")
             KrdsCard(padding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
@@ -86,9 +88,9 @@ fun SettingsScreen() {
                     is LoginState.LoggedIn -> {
                         SettingRow("로그인됨", s.userId)
                         Hairline()
-                        SettingRow("로그아웃", danger = true, onClick = { app.logout() })
+                        SettingRow("로그아웃하기", danger = true, onClick = { app.logout() })
                     }
-                    else -> SettingRow("학번으로 로그인", "기출 정답지·드라이브·사진 이용", onClick = { app.requireLogin() })
+                    else -> SettingRow("학번으로 로그인하기", "기출 정답지·드라이브·사진", onClick = { app.requireLogin() })
                 }
             }
 
@@ -97,7 +99,7 @@ fun SettingsScreen() {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text("매일 급식 알림 받기", style = KrdsText.body)
-                        Text("학교 가는 날 정해진 시간에 메뉴를 알려 드려요.", style = KrdsText.meta)
+                        Text("학교 가는 날 정한 시간에 메뉴를 알려드려요.", style = KrdsText.meta)
                     }
                     Switch(
                         checked = enabled,
@@ -120,12 +122,43 @@ fun SettingsScreen() {
                 SettingRow("알림 받을 식사", MealKind.label(prefs.mealNotifyKinds), enabled = enabled, onClick = { pickKind = true })
             }
             if (enabled && permissionDenied) {
-                InfoBox("알림 권한이 꺼져 있어요. 기기의 설정 앱에서 GCFL 아카이브 알림을 허용해 주세요.", icon = Icons.Filled.NotificationsOff)
+                InfoBox("알림이 꺼져 있어요. 기기의 설정 앱에서 GCFL 아카이브 알림을 켜주세요.", icon = Icons.Filled.NotificationsOff)
             }
+
+            Section("보안")
+            KrdsCard(padding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
+                Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text("앱을 열 때 생체 인증", style = KrdsText.body)
+                        Text("앱을 열거나 1분 넘게 다른 앱을 쓰다 돌아오면 Face ID·Touch ID나 기기 암호로 확인해요.", style = KrdsText.meta)
+                    }
+                    Switch(
+                        checked = prefs.appLockEnabled,
+                        onCheckedChange = { on ->
+                            // Turning it on or off both need the device owner, so nobody else can switch it off.
+                            if (!canAuthenticateUser()) {
+                                lockMessage = "기기에 Face ID·Touch ID나 암호를 먼저 설정해주세요."
+                                return@Switch
+                            }
+                            scope.launch {
+                                if (authenticateUser(if (on) "앱 잠금을 켜요" else "앱 잠금을 꺼요")) {
+                                    prefs.appLockEnabled = on
+                                    AppLock.markUnlocked()
+                                    lockMessage = null
+                                    version++
+                                    app.toast(if (on) "앱 잠금을 켰어요." else "앱 잠금을 껐어요.")
+                                }
+                            }
+                        },
+                        colors = SwitchDefaults.colors(checkedTrackColor = Krds.colors.primary),
+                    )
+                }
+            }
+            lockMessage?.let { InfoBox(it) }
 
             Section("정보")
             KrdsCard(padding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
-                SettingRow("웹사이트 열기", Config.HOST, onClick = { uri.openUri(Config.BASE_URL) })
+                SettingRow("웹사이트에서 보기", Config.HOST, onClick = { uri.openUri(Config.BASE_URL) })
                 Hairline()
                 SettingRow("버전", "$APP_VERSION · $platformName")
             }
@@ -144,9 +177,9 @@ fun SettingsScreen() {
                     prefs.mealNotifyMinuteOfDay = state.hour * 60 + state.minute
                     pickTime = false
                     changed()
-                }) { Text("확인") }
+                }) { Text("저장하기") }
             },
-            dismissButton = { TextButton(onClick = { pickTime = false }) { Text("취소") } },
+            dismissButton = { TextButton(onClick = { pickTime = false }) { Text("닫기") } },
         )
     }
     if (pickKind) {
@@ -172,11 +205,11 @@ fun SettingsScreen() {
                         }
                     }
                     if (kinds.isEmpty()) {
-                        Text("선택한 식사가 없으면 급식 알림이 오지 않습니다.", style = KrdsText.meta, modifier = Modifier.padding(top = 4.dp))
+                        Text("고른 식사가 없으면 급식 알림이 오지 않아요.", style = KrdsText.meta, modifier = Modifier.padding(top = 4.dp))
                     }
                 }
             },
-            confirmButton = { TextButton(onClick = { pickKind = false }) { Text("확인") } },
+            confirmButton = { TextButton(onClick = { pickKind = false }) { Text("닫기") } },
         )
     }
 }

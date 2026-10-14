@@ -66,11 +66,11 @@ object DriveLogic {
 
     /** Client-side check before uploading; null when OK, else the message (share.html wording). */
     fun validate(files: List<Pair<String, Long>>): String? {
-        if (files.isEmpty()) return "업로드할 파일이 없습니다."
+        if (files.isEmpty()) return "올릴 파일을 골라주세요."
         files.firstOrNull { extensionOf(it.first) !in Config.DRIVE_ALLOWED_EXTENSIONS }?.let {
-            return "'${it.first}'은(는) 허용되지 않는 확장자입니다. (PDF·한글·오피스 문서·TXT·ZIP)"
+            return "'${it.first}' 파일은 올릴 수 없어요. PDF·한글·오피스 문서·TXT·ZIP 파일을 골라주세요."
         }
-        if (files.sumOf { it.second.coerceAtLeast(0) } > MAX_BYTES) return "선택한 파일 전체 크기가 10MB를 넘습니다."
+        if (files.sumOf { it.second.coerceAtLeast(0) } > MAX_BYTES) return "한 번에 10MB까지 올릴 수 있어요. 파일을 줄여서 다시 골라주세요."
         return null
     }
 
@@ -130,9 +130,9 @@ class DriveRepository(private val site: SiteClient) {
     suspend fun upload(files: List<UploadFile>, onProgress: (Float) -> Unit = {}): UploadResult {
         DriveLogic.validate(files.map { it.name to it.bytes.size.toLong() })?.let { return UploadResult.Failure(it) }
         val res = runCatching { site.upload("/api/share/upload", "files", files, onProgress = onProgress) }
-            .getOrElse { return UploadResult.Failure(it.message ?: "네트워크 오류가 발생했습니다.") }
+            .getOrElse { return UploadResult.Failure(it.message ?: "인터넷 연결이 불안정해요. 잠시 후 다시 시도해주세요.") }
         if (res.code == 401) return UploadResult.NeedLogin
-        if (!res.isSuccessful) return UploadResult.Failure(res.error ?: "업로드에 실패했습니다. (HTTP ${res.code})")
+        if (!res.isSuccessful) return UploadResult.Failure(res.error ?: "파일을 올리지 못했어요. 잠시 후 다시 시도해주세요.")
         val j = res.json
         return UploadResult.Success(
             j.optJSONArray("files").objects().map { UploadedFile(it.optString("filename"), it.optString("short_code")) },

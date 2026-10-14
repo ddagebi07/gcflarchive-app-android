@@ -4,10 +4,13 @@ package kr.co.gcflarchive.student.platform
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.UIKitView
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ObjCSignatureOverride
@@ -22,6 +25,8 @@ import platform.CoreGraphics.CGRectMake
 import platform.CoreLocation.CLLocationCoordinate2DMake
 import platform.Foundation.NSData
 import platform.Foundation.NSDateComponents
+import platform.Foundation.NSNotificationCenter
+import platform.Foundation.NSOperationQueue
 import platform.Foundation.NSTemporaryDirectory
 import platform.Foundation.NSURL
 import platform.Foundation.dataWithBytes
@@ -38,6 +43,8 @@ import platform.MapKit.MKMarkerAnnotationView
 import platform.MapKit.MKPointAnnotation
 import platform.UIKit.UIActivityViewController
 import platform.UIKit.UIApplication
+import platform.UIKit.UIApplicationDidEnterBackgroundNotification
+import platform.UIKit.UIApplicationWillEnterForegroundNotification
 import platform.UIKit.UIColor
 import platform.UIKit.UIDevice
 import platform.UIKit.UIDocumentPickerDelegateProtocol
@@ -54,8 +61,6 @@ import platform.UserNotifications.UNNotificationSound
 import platform.UserNotifications.UNUserNotificationCenter
 import platform.darwin.NSObject
 import platform.posix.memcpy
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 private fun topController(): UIViewController? {
     var c = UIApplication.sharedApplication.keyWindow?.rootViewController
@@ -243,4 +248,22 @@ actual suspend fun authenticateUser(reason: String): Boolean = suspendCoroutine 
         return@suspendCoroutine
     }
     context.evaluatePolicy(LAPolicyDeviceOwnerAuthentication, localizedReason = reason) { success, _ -> cont.resume(success) }
+}
+
+actual fun canAuthenticateUser(): Boolean = LAContext().canEvaluatePolicy(LAPolicyDeviceOwnerAuthentication, error = null)
+
+@Composable
+actual fun AppForegroundEffect(onForeground: () -> Unit, onBackground: () -> Unit) {
+    val foreground by rememberUpdatedState(onForeground)
+    val background by rememberUpdatedState(onBackground)
+    DisposableEffect(Unit) {
+        val center = NSNotificationCenter.defaultCenter
+        val queue = NSOperationQueue.mainQueue
+        val enter = center.addObserverForName(UIApplicationWillEnterForegroundNotification, null, queue) { _ -> foreground() }
+        val leave = center.addObserverForName(UIApplicationDidEnterBackgroundNotification, null, queue) { _ -> background() }
+        onDispose {
+            center.removeObserver(enter)
+            center.removeObserver(leave)
+        }
+    }
 }

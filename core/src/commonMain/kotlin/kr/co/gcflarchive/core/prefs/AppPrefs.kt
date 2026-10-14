@@ -31,6 +31,11 @@ class AppPrefs(private val settings: Settings = Settings()) {
         get() = settings.getStringOrNull(KEY_GRADE_MODE)
         set(value) = if (value == null) settings.remove(KEY_GRADE_MODE) else settings.putString(KEY_GRADE_MODE, value)
 
+    /** 앱을 열 때 생체 인증 (기본 꺼짐). */
+    var appLockEnabled: Boolean
+        get() = settings.getBoolean(KEY_APP_LOCK, false)
+        set(value) = settings.putBoolean(KEY_APP_LOCK, value)
+
     val mealNotifyTimeLabel: String
         get() = "${(mealNotifyMinuteOfDay / 60).toString().padStart(2, '0')}:${(mealNotifyMinuteOfDay % 60).toString().padStart(2, '0')}"
 
@@ -41,5 +46,6 @@ class AppPrefs(private val settings: Settings = Settings()) {
         const val KEY_KINDS = "meal_notify_kinds"
         const val KEY_GUEST_CODE = "grade_guest_code"
         const val KEY_GRADE_MODE = "grade_access_mode"
+        const val KEY_APP_LOCK = "app_lock_enabled"
     }
 }

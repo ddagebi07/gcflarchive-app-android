@@ -56,10 +56,15 @@ class MainActivity : AppCompatActivity() {
         openPathFromIntent(intent)
     }
 
-    /** Launcher shortcuts can deep-link to a site page (e.g. /past-exams). */
+    /** Launcher shortcuts and shared links can deep-link to a site page (e.g. /past-exams). */
     private fun openPathFromIntent(intent: Intent?) {
-        val path = intent?.getStringExtra(EXTRA_PATH)?.takeIf { it.startsWith("/") } ?: return
-        intent.removeExtra(EXTRA_PATH)
+        // A launcher shortcut's path, or a shared https://gcflarchive.co.kr/… link.
+        val link = intent?.data?.takeIf { intent?.action == Intent.ACTION_VIEW && Config.isOwnHost(it) }
+        val path = intent?.getStringExtra(EXTRA_PATH)?.takeIf { it.startsWith("/") }
+            ?: link?.let { (it.encodedPath ?: "/") + (it.encodedQuery?.let { q -> "?$q" } ?: "") }
+            ?: return
+        intent?.removeExtra(EXTRA_PATH)
+        intent?.data = null
         val target = NativePages.intentFor(this, path)
         when {
             target == null -> Links.openExternal(this, android.net.Uri.parse(Config.url(path)))

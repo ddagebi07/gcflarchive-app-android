@@ -27,7 +27,7 @@ class LibraryRepository(private val site: SiteClient) {
     /** Copies a past exam into 극플드라이브; returns the server's message. */
     suspend fun addExamToDrive(filename: String, includeAnswers: Boolean): String =
         site.postForJson("/api/share/add-exam", jsonOf("filename" to filename, "includeAnswers" to includeAnswers))
-            .str("message") ?: "극플드라이브에 담았습니다."
+            .str("message") ?: "극플드라이브에 담았어요."
 
     suspend fun photoAlbums(): List<PhotoAlbum> = LibraryParser.photoAlbums(site.get("/api/photo-albums"))
 

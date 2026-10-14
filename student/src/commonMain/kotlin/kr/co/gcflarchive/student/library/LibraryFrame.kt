@@ -115,10 +115,10 @@ fun <T> LibraryFrame(
                 val error = load.error
                 when {
                     error is LoginRequiredException && data == null -> item {
-                        StateMessage("로그인이 필요합니다.", "재학생 인증 후 이용할 수 있어요.", "로그인", { app.requireLogin() }, locked = true)
+                        StateMessage("로그인하면 이용할 수 있어요.", "재학생 인증 후 이용할 수 있어요.", "로그인", { app.requireLogin() }, locked = true)
                     }
                     error != null && data == null -> item {
-                        StateMessage("불러오지 못했습니다.", error.userMessage(), "다시 시도", onReload)
+                        StateMessage("불러오지 못했어요.", error.userMessage(), "다시 불러오기", onReload)
                     }
                     data != null -> content(data)
                 }
@@ -130,7 +130,7 @@ fun <T> LibraryFrame(
 /** Empty-result message for filtered lists. */
 fun LazyListScope.emptyItem(show: Boolean, query: String) {
     if (show) item {
-        StateMessage("자료가 없습니다.", if (query.isBlank()) "아직 등록된 자료가 없어요." else "다른 검색어로 찾아보세요.")
+        StateMessage("자료가 없어요.", if (query.isBlank()) "아직 등록된 자료가 없어요." else "다른 검색어로 찾아보세요.")
     }
 }
 

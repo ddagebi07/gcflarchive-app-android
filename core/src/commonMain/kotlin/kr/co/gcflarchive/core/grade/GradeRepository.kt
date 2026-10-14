@@ -19,7 +19,7 @@ sealed interface GradeAccess {
     data object None : GradeAccess
 }
 
-class ScoreConsentRequiredException : Exception("원점수 수집·이용 동의가 필요합니다.")
+class ScoreConsentRequiredException : Exception("원점수 수집·이용 동의가 필요해요.")
 
 data class SubmitOutcome(val guestAccessCode: String?)
 
@@ -110,9 +110,9 @@ class GradeRepository(private val site: SiteClient) {
 
     /** Body of a successful call; otherwise the server's own message. */
     private fun ok(res: SiteClient.Response): JObject {
-        if (res.code == 401) throw LoginRequiredException(res.error ?: "로그인이 필요합니다.")
+        if (res.code == 401) throw LoginRequiredException(res.error ?: "로그인하면 이용할 수 있어요.")
         if (!res.isSuccessful || res.json.has("success") && !res.json.optBoolean("success")) {
-            throw ApiException(res.code, res.error ?: "요청을 처리하지 못했습니다. (HTTP ${res.code})")
+            throw ApiException(res.code, res.error ?: "처리하지 못했어요. 잠시 후 다시 시도해주세요.")
         }
         return res.json
     }

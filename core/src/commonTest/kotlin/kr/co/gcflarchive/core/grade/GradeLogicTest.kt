@@ -58,8 +58,8 @@ class GradeLogicTest {
     @Test
     fun scoreValidation() {
         assertEquals(87.5, GradeLogic.parseScore(" 87.5 ").getOrThrow())
-        assertEquals("점수를 입력하세요.", GradeLogic.parseScore("").exceptionOrNull()?.message)
-        assertEquals("점수는 0~100 사이여야 합니다.", GradeLogic.parseScore("101").exceptionOrNull()?.message)
+        assertEquals("점수를 입력해주세요.", GradeLogic.parseScore("").exceptionOrNull()?.message)
+        assertEquals("점수는 0부터 100까지 입력할 수 있어요.", GradeLogic.parseScore("101").exceptionOrNull()?.message)
     }
 
     @Test

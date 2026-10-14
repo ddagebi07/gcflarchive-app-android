@@ -232,8 +232,8 @@ object GradeLogic {
 
     /** Parses 0~100; failures carry the web page's message. */
     fun parseScore(raw: String): Result<Double> {
-        val v = raw.trim().toDoubleOrNull() ?: return Result.failure(IllegalArgumentException("점수를 입력하세요."))
-        if (v < 0 || v > 100) return Result.failure(IllegalArgumentException("점수는 0~100 사이여야 합니다."))
+        val v = raw.trim().toDoubleOrNull() ?: return Result.failure(IllegalArgumentException("점수를 입력해주세요."))
+        if (v < 0 || v > 100) return Result.failure(IllegalArgumentException("점수는 0부터 100까지 입력할 수 있어요."))
         return Result.success(v)
     }
 

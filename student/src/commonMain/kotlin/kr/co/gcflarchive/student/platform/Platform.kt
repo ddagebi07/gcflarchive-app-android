@@ -59,3 +59,10 @@ expect val platformName: String
  * saved 등급컷 익명 접근 코드.
  */
 expect suspend fun authenticateUser(reason: String): Boolean
+
+/** Whether Face ID / Touch ID / 지문 or a device passcode is set up (needed for 앱 잠금). */
+expect fun canAuthenticateUser(): Boolean
+
+/** Calls [onForeground] / [onBackground] when the app comes back or leaves (앱 잠금 timing). */
+@Composable
+expect fun AppForegroundEffect(onForeground: () -> Unit, onBackground: () -> Unit)

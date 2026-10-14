@@ -130,3 +130,9 @@ actual val platformName: String get() = "Android ${Build.VERSION.RELEASE}"
  * (app/util/Biometric.kt). Refusing keeps the code hidden if this host is ever used.
  */
 actual suspend fun authenticateUser(reason: String): Boolean = false
+
+// The Android student app is the View-based :app module; this target only keeps the shared UI building.
+actual fun canAuthenticateUser(): Boolean = false
+
+@Composable
+actual fun AppForegroundEffect(onForeground: () -> Unit, onBackground: () -> Unit) = Unit

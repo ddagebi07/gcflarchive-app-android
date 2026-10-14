@@ -49,3 +49,8 @@ actual val platformName: String get() = "Desktop ${System.getProperty("os.name")
 
 /** Desktop preview only. */
 actual suspend fun authenticateUser(reason: String): Boolean = true
+
+actual fun canAuthenticateUser(): Boolean = true
+
+@Composable
+actual fun AppForegroundEffect(onForeground: () -> Unit, onBackground: () -> Unit) = Unit

@@ -55,7 +55,7 @@ fun HtmlContent(html: String, baseUrl: String, dark: Boolean, modifier: Modifier
     val linkColor = Krds.colors.primaryText
     val textStyle = KrdsText.body.copy(lineHeight = 26.sp)
     Column(modifier) {
-        if (blocks.isEmpty()) Text("내용이 없습니다.", style = KrdsText.meta)
+        if (blocks.isEmpty()) Text("내용이 없어요.", style = KrdsText.meta)
         blocks.forEach { block ->
             when (block) {
                 is HtmlBlock.Text -> {

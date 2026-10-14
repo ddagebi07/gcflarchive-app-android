@@ -59,5 +59,18 @@ class ArchiveRepositoryTest {
         assertEquals("https://gcflarchive.co.kr/api/archive/download/notice/1234/%EC%95%88", post.attachments.single().downloadUrl)
         assertEquals("1233", post.prev?.idx)
         assertNull(post.next)
+        // Older servers send neither share_url nor preview fields: the app builds them.
+        assertEquals("https://gcflarchive.co.kr/search?s=notice%3A1234", post.shareUrl)
+        val att = post.attachments.single()
+        assertEquals(PreviewKinds.HWP, att.previewKind)
+        assertEquals("/api/archive/preview/notice/1234/%EC%95%88%EB%82%B4%EB%AC%B8.hwp", att.previewApi)
+        assertEquals("/archive/preview/notice/1234/%EC%95%88%EB%82%B4%EB%AC%B8.hwp", att.previewPage)
+    }
+
+    @Test
+    fun previewKindsFollowTheServer() {
+        assertEquals(PreviewKinds.PDF, PreviewKinds.of("가정통신문.PDF"))
+        assertEquals(PreviewKinds.IMAGE, PreviewKinds.of("a.jpeg"))
+        assertEquals(PreviewKinds.NONE, PreviewKinds.of("표.xlsx"))
     }
 }

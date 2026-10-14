@@ -129,8 +129,8 @@ fun ViewerScreen(filename: String, title: String, includeAnswers: Boolean) {
                     )
                 }
             }
-            load.error is LoginRequiredException -> StateMessage("로그인이 필요합니다.", "재학생 인증 후 볼 수 있는 자료입니다.", "로그인", { app.requireLogin() }, locked = true)
-            load.error != null -> StateMessage("문서를 열지 못했습니다.", "잠시 후 다시 시도해 주세요.", "다시 시도", reload)
+            load.error is LoginRequiredException -> StateMessage("로그인하면 이용할 수 있어요.", "재학생 인증 후 볼 수 있는 자료예요.", "로그인", { app.requireLogin() }, locked = true)
+            load.error != null -> StateMessage("문서를 열지 못했어요.", "잠시 후 다시 시도해주세요.", "다시 불러오기", reload)
             else -> Loading()
         }
     }

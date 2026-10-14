@@ -9,7 +9,7 @@ import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -49,6 +49,12 @@ import kr.co.gcflarchive.student.platform.PlatformBackHandler
 import kr.co.gcflarchive.student.search.PostDetailScreen
 import kr.co.gcflarchive.student.search.SearchScreen
 import kr.co.gcflarchive.student.settings.SettingsScreen
+import kr.co.gcflarchive.student.more.MoreScreen
+import kr.co.gcflarchive.student.community.CommunityScreen
+import kr.co.gcflarchive.student.community.CommunityPostScreen
+import kr.co.gcflarchive.student.community.CommunityWriteScreen
+import kr.co.gcflarchive.student.grade.MyScoresScreen
+import kr.co.gcflarchive.student.search.PreviewScreen
 import kr.co.gcflarchive.student.ui.Krds
 import kr.co.gcflarchive.student.ui.KrdsTheme
 
@@ -97,6 +103,7 @@ fun StudentApp(services: Services = sharedServices, startLink: String? = null) {
                         Box(Modifier.fillMaxSize().background(Krds.colors.bg)) { RouteScreen(route) }
                     }
                 }
+                AppLockGate(services.prefs)
             }
         }
     }
@@ -120,7 +127,7 @@ private fun MainTabs(app: AppState) {
                                     Tab.SEARCH -> Icons.Filled.Search
                                     Tab.MEAL -> Icons.Filled.Restaurant
                                     Tab.DRIVE -> Icons.Filled.CloudUpload
-                                    Tab.SETTINGS -> Icons.Filled.Settings
+                                    Tab.MORE -> Icons.Filled.MoreHoriz
                                 },
                                 contentDescription = null,
                             )
@@ -144,7 +151,7 @@ private fun MainTabs(app: AppState) {
                 Tab.SEARCH -> SearchScreen()
                 Tab.MEAL -> MealScreen()
                 Tab.DRIVE -> DriveScreen()
-                Tab.SETTINGS -> SettingsScreen()
+                Tab.MORE -> MoreScreen()
             }
         }
     }
@@ -165,5 +172,11 @@ private fun RouteScreen(route: Route) {
         Route.Notices -> NoticeListScreen()
         is Route.NoticeDetail -> NoticeDetailScreen(route.id)
         is Route.Upload -> UploadScreen(route.files)
+        Route.Settings -> SettingsScreen()
+        Route.MyScores -> MyScoresScreen()
+        Route.Community -> CommunityScreen()
+        is Route.CommunityPost -> CommunityPostScreen(route.id)
+        is Route.CommunityWrite -> CommunityWriteScreen(route)
+        is Route.Preview -> PreviewScreen(route.api, route.kind, route.filename, route.downloadUrl)
     }
 }

@@ -17,7 +17,7 @@ class MealKindTest {
         assertEquals(listOf(dinner), MealRepository.forKinds(all, setOf(MealKind.DINNER)))
         assertEquals(emptyList(), MealRepository.forKinds(all, emptySet()))
         assertEquals("점심·저녁", MealKind.label(setOf(MealKind.DINNER, MealKind.LUNCH)))
-        assertEquals("선택 안 함", MealKind.label(emptySet()))
+        assertEquals("고르지 않음", MealKind.label(emptySet()))
     }
 
     @Test

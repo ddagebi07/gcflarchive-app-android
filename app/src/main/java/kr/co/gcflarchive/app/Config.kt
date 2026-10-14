@@ -54,7 +54,17 @@ object NativePages {
         fun tab(name: String) = kr.co.gcflarchive.app.MainActivity.intent(context, name)
         val cls = when (path) {
             "/" -> return tab(kr.co.gcflarchive.app.MainActivity.TAB_HOME)
-            "/search", "/archive" -> return tab(kr.co.gcflarchive.app.MainActivity.TAB_SEARCH)
+            "/search", "/archive" -> {
+                // Shared archive links (/search?s=<board>:<idx>) open that post.
+                val shared = uri.getQueryParameter("s")
+                val board = uri.getQueryParameter("share_board") ?: shared?.substringBefore(':', "")
+                val idx = uri.getQueryParameter("share_idx") ?: shared?.substringAfter(':', "")
+                return if (!board.isNullOrBlank() && !idx.isNullOrBlank()) {
+                    kr.co.gcflarchive.app.archive.PostDetailActivity.intent(context, board, idx)
+                } else {
+                    tab(kr.co.gcflarchive.app.MainActivity.TAB_SEARCH)
+                }
+            }
             "/meal" -> return tab(kr.co.gcflarchive.app.MainActivity.TAB_MEAL)
             "/share" -> return tab(kr.co.gcflarchive.app.MainActivity.TAB_DRIVE)
             "/verify" -> return kr.co.gcflarchive.app.auth.LoginActivity.intent(context)

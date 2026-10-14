@@ -43,8 +43,8 @@ enum class MealKind(val neisName: String, val label: String) {
             else -> DEFAULT
         }
 
-        /** "점심·저녁", "점심", "선택 안 함" */
-        fun label(kinds: Set<MealKind>): String = entries.filter { it in kinds }.joinToString("·") { it.label }.ifEmpty { "선택 안 함" }
+        /** "점심·저녁", "점심", "고르지 않음" */
+        fun label(kinds: Set<MealKind>): String = entries.filter { it in kinds }.joinToString("·") { it.label }.ifEmpty { "고르지 않음" }
     }
 }
 

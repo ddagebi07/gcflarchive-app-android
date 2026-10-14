@@ -61,6 +61,7 @@ import kr.co.gcflarchive.core.grade.GradeLogic
 import kr.co.gcflarchive.core.grade.GradePolicy
 import kr.co.gcflarchive.core.grade.GradeProfile
 import kr.co.gcflarchive.core.grade.InputRow
+import kr.co.gcflarchive.core.grade.MyScore
 import kr.co.gcflarchive.core.grade.ScoreConsentRequiredException
 import kr.co.gcflarchive.core.grade.WrongRate
 import kr.co.gcflarchive.core.grade.WrongRateSort
@@ -77,6 +78,7 @@ import kr.co.gcflarchive.student.ui.InfoBox
 import kr.co.gcflarchive.student.ui.Krds
 import kr.co.gcflarchive.student.ui.KrdsCard
 import kr.co.gcflarchive.student.ui.KrdsChip
+import kr.co.gcflarchive.student.ui.KrdsDropdown
 import kr.co.gcflarchive.student.ui.KrdsText
 import kr.co.gcflarchive.student.ui.Loading
 import kr.co.gcflarchive.student.ui.MetaTile
@@ -106,7 +108,7 @@ private sealed interface Phase {
 }
 
 private fun kst(i: Instant): String = i.toLocalDateTime(MealRepository.SEOUL).let {
-    "${it.monthNumber}/${it.dayOfMonth} ${it.hour.toString().padStart(2, '0')}:${it.minute.toString().padStart(2, '0')}"
+    "${it.monthNumber}월 ${it.dayOfMonth}일 ${it.hour.toString().padStart(2, '0')}:${it.minute.toString().padStart(2, '0')}"
 }
 
 /**
@@ -128,13 +130,13 @@ fun GradeScreen() {
             val r = app.services.grades.migrateGuestScores()
             app.services.prefs.gradeGuestCode = null
             app.toast(
-                if (r.moved > 0) "익명 점수 ${r.moved}건을 학번 계정으로 이전했습니다." + (if (r.skipped > 0) " (중복 ${r.skipped}건 제외)" else "")
-                else "이전할 익명 점수가 없습니다.",
+                if (r.moved > 0) "익명 점수 ${r.moved}개를 학번으로 옮겼어요." + (if (r.skipped > 0) " (중복 ${r.skipped}건 제외)" else "")
+                else "옮길 익명 점수가 없어요.",
             )
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            app.toast(e.userMessage("익명 점수를 학번 계정으로 이전하지 못했습니다."))
+            app.toast(e.userMessage("익명 점수를 옮기지 못했어요. 다시 시도해주세요."))
         }
     }
 
@@ -181,7 +183,7 @@ fun GradeScreen() {
         } catch (e: LoginRequiredException) {
             Phase.Access(null)
         } catch (e: Exception) {
-            Phase.Error(e.userMessage("등급컷 정보를 불러오지 못했습니다."))
+            Phase.Error(e.userMessage("등급컷 정보를 불러오지 못했어요."))
         }
         refreshing = false
     }
@@ -195,7 +197,7 @@ fun GradeScreen() {
                     Phase.Loading -> Loading()
                     is Phase.Access -> AccessCard(app, p.hakbun, onDone = { reload++ })
                     Phase.Consent -> ConsentCard(app, onDone = { reload++ })
-                    is Phase.Error -> StateMessage(p.message, null, "다시 시도", { reload++ })
+                    is Phase.Error -> StateMessage(p.message, null, "다시 불러오기", { reload++ })
                     is Phase.Ready -> Calculator(
                         app, p.access, reload,
                         // A new anonymous identity: don't log back into the saved one.
@@ -244,7 +246,7 @@ private fun AccessCard(app: AppState, hakbun: String?, onDone: () -> Unit) {
 
     KrdsCard {
         Text("접속 방식 선택", style = KrdsText.cardTitle)
-        Text("학번 인증 없이 익명으로도 사용할 수 있습니다. 익명 모드에서는 학년/계열만 선택합니다.", style = KrdsText.meta, modifier = Modifier.padding(top = 4.dp, bottom = 12.dp))
+        Text("학번 인증 없이 익명으로도 사용할 수 있어요. 익명 모드에서는 학년/계열만 선택해요.", style = KrdsText.meta, modifier = Modifier.padding(top = 4.dp, bottom = 12.dp))
         Text("학년", style = KrdsText.label)
         ChoiceChips(listOf<Pair<String?, String>>("1" to "1학년", "2" to "2학년", "3" to "3학년"), grade, { grade = it }, Modifier.padding(vertical = 6.dp))
         Text("계열", style = KrdsText.label)
@@ -253,7 +255,7 @@ private fun AccessCard(app: AppState, hakbun: String?, onDone: () -> Unit) {
         PrimaryButton("익명으로 계속", {
             val g = grade
             val t = track
-            if (g == null || t == null) { status = "학년과 계열을 모두 선택해 주세요."; return@PrimaryButton }
+            if (g == null || t == null) { status = "학년과 계열을 모두 선택해주세요."; return@PrimaryButton }
             scope.launch {
                 try {
                     app.services.grades.startGuest(g, t, keepLogin = hakbun != null)
@@ -277,8 +279,8 @@ private fun AccessCard(app: AppState, hakbun: String?, onDone: () -> Unit) {
             SecondaryButton("학번 인증하기", { app.requireLogin() }, Modifier.fillMaxWidth().padding(top = 8.dp))
         }
         InfoBox(
-            if (defaults != null) "학번 기준으로 ${defaults.first}학년 ${defaults.second}를 골라 두었습니다. 익명으로 계속하면 점수가 학번과 연결되지 않으며, 발급되는 접근 코드는 이 기기에 자동으로 저장됩니다."
-            else "익명 제출 후 4자리 접근 코드가 발급되어 이 기기에 자동으로 저장됩니다. 같은 시험 기간 동안 다시 접속해 점수 수정/조회가 가능합니다.",
+            if (defaults != null) "학번 기준으로 ${defaults.first}학년 ${defaults.second}를 골라 두었어요. 익명으로 계속하면 점수가 학번과 연결되지 않으며, 발급되는 접근 코드는 이 기기에 자동으로 저장돼요."
+            else "익명 제출 후 4자리 접근 코드가 발급되어 이 기기에 자동으로 저장돼요. 같은 시험 기간 동안 다시 접속해 점수 수정/조회가 가능해요.",
             Modifier.padding(top = 12.dp),
         )
     }
@@ -303,7 +305,7 @@ private fun AccessCard(app: AppState, hakbun: String?, onDone: () -> Unit) {
             },
             confirmButton = {
                 TextButton(onClick = {
-                    if (code.length != 4) { error = "4자리 코드를 입력해 주세요."; return@TextButton }
+                    if (code.length != 4) { error = "4자리 코드를 입력해주세요."; return@TextButton }
                     scope.launch {
                         try {
                             app.services.grades.guestLogin(code, keepLogin = hakbun != null)
@@ -317,9 +319,9 @@ private fun AccessCard(app: AppState, hakbun: String?, onDone: () -> Unit) {
                             error = e.userMessage()
                         }
                     }
-                }) { Text("확인") }
+                }) { Text("들어가기") }
             },
-            dismissButton = { TextButton(onClick = { codeDialog = false }) { Text("취소") } },
+            dismissButton = { TextButton(onClick = { codeDialog = false }) { Text("닫기") } },
         )
     }
 }
@@ -332,13 +334,13 @@ private fun ConsentCard(app: AppState, onDone: () -> Unit) {
     KrdsCard {
         Text("원점수 수집·이용 동의", style = KrdsText.cardTitle)
         Text(
-            "등급컷 서비스는 시험 원점수를 수집합니다. 수집한 원점수는 등급컷과 백분위 산출을 위한 자료로만 활용되며, 암호화되어 저장되므로 관리자는 개인의 학번과 점수를 열람할 수 없습니다. 원점수는 당해 평가 종료일로부터 30일 동안 보관됩니다.",
+            "등급컷 서비스는 시험 원점수를 수집해요. 수집한 원점수는 등급컷과 백분위 산출을 위한 자료로만 활용되며, 암호화되어 저장되므로 관리자는 개인의 학번과 점수를 열람할 수 없어요. 원점수는 당해 평가 종료일로부터 30일 동안 보관돼요.",
             style = KrdsText.body.copy(fontSize = 14.sp, lineHeight = 21.sp),
             modifier = Modifier.padding(top = 8.dp),
         )
         Row(Modifier.fillMaxWidth().clickable { checked = !checked }.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
             Checkbox(checked, { checked = it }, colors = CheckboxDefaults.colors(checkedColor = Krds.colors.primary))
-            Text("[선택] 원점수 수집·이용에 동의합니다.", style = KrdsText.body)
+            Text("[선택] 원점수 수집·이용에 동의해요.", style = KrdsText.body)
         }
         PrimaryButton("동의하고 계속", {
             busy = true
@@ -389,10 +391,10 @@ private fun Calculator(
 
     /** The saved anonymous code is shown only after 지문 / Face ID. */
     fun revealCode() {
-        val code = prefs.gradeGuestCode ?: return app.toast("이 기기에 저장된 접근 코드가 없습니다.")
+        val code = prefs.gradeGuestCode ?: return app.toast("이 기기에 저장된 접근 코드가 없어요.")
         scope.launch {
-            if (authenticateUser("익명 접근 코드를 확인합니다.")) revealedCode = code
-            else app.toast("본인 확인을 하지 못했습니다. 기기에 지문(Face ID)이나 암호가 설정되어 있는지 확인해 주세요.")
+            if (authenticateUser("익명 접근 코드를 확인해요.")) revealedCode = code
+            else app.toast("본인인지 확인하지 못했어요. 기기에 Face ID·Touch ID나 암호가 설정돼 있는지 확인해주세요.")
         }
     }
     val testUser = GradeLogic.isTestUser((access as? GradeAccess.Verified)?.userId)
@@ -424,7 +426,7 @@ private fun Calculator(
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            error = e.userMessage("등급컷 정보를 불러오지 못했습니다.")
+            error = e.userMessage("등급컷 정보를 불러오지 못했어요.")
         }
     }
 
@@ -436,13 +438,13 @@ private fun Calculator(
 
     fun guarded(needsGuestConfirm: Boolean, action: () -> Unit) {
         if (needsGuestConfirm && access is GradeAccess.Guest && prefs.gradeGuestCode == null) {
-            confirm = "익명으로 제출하면 4자리 접근 코드가 발급됩니다. 코드를 저장하면 이번 시험 기간 동안 다시 접속해 점수 수정/조회가 가능합니다. 제출하시겠습니까?" to action
+            confirm = "익명으로 제출하면 4자리 접근 코드가 발급돼요. 코드를 저장하면 이번 시험 기간 동안 다시 접속해 점수 수정/조회가 가능해요. 제출할까요?" to action
         } else action()
     }
 
     fun perform(state: RowState, action: String) {
         val subject = state.subject ?: return
-        if (policy?.examName.isNullOrBlank()) return app.toast("현재 시험명이 아직 설정되지 않았습니다. 관리자에게 문의하세요.")
+        if (policy?.examName.isNullOrBlank()) return app.toast("이번 시험이 아직 정해지지 않았어요. 관리자에게 문의해주세요.")
         scope.launch {
             try {
                 when (action) {
@@ -465,20 +467,20 @@ private fun Calculator(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                app.toast(e.message ?: "처리하지 못했습니다.")
+                app.toast(e.message ?: "처리하지 못했어요.")
             }
         }
     }
 
     fun submitAll() {
         val p = policy ?: return
-        if (p.examName.isBlank()) return app.toast("현재 시험명이 아직 설정되지 않았습니다. 관리자에게 문의하세요.")
+        if (p.examName.isBlank()) return app.toast("이번 시험이 아직 정해지지 않았어요. 관리자에게 문의해주세요.")
         val targets = rows.filter { s ->
             val subject = s.subject ?: return@filter false
             profile?.current?.containsKey(subject) != true &&
                 GradeLogic.openInfo(s.row.scheduleSubject.ifBlank { subject }, p).open && s.score.isNotBlank()
         }
-        if (targets.isEmpty()) return app.toast("제출 가능한 과목의 점수를 하나 이상 입력하세요.")
+        if (targets.isEmpty()) return app.toast("낼 수 있는 과목의 점수를 하나 이상 입력해주세요.")
         guarded(true) {
             scope.launch {
                 submitStatus = "${targets.size}개 과목 제출 중…"
@@ -521,8 +523,8 @@ private fun Calculator(
             Row(Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 SecondaryButton("학년/계열 다시 선택", onReselect, Modifier.weight(1f))
                 SecondaryButton("내 학번에 등록", {
-                    confirm = (if (access.keepsLogin) "익명으로 입력한 점수를 지금 로그인한 학번 계정으로 이전하시겠습니까?"
-                    else "익명으로 입력한 점수를 학번 계정으로 이전하시겠습니까? 학번 인증 후 바로 이전됩니다.") to onMigrate
+                    confirm = (if (access.keepsLogin) "익명으로 입력한 점수를 지금 로그인한 학번으로 옮길까요?"
+                    else "익명으로 입력한 점수를 학번으로 옮길까요? 학번으로 로그인하면 바로 옮겨요.") to onMigrate
                 }, Modifier.weight(1f))
             }
             if (prefs.gradeGuestCode != null) {
@@ -542,13 +544,13 @@ private fun Calculator(
 
     if (!testUser) {
         Section("1", "원점수 입력")
-        InfoBox("관리자가 설정한 현재 시험에 대해서만 제출/수정/삭제할 수 있습니다.")
-        if (rows.isEmpty()) Text("허용된 과목이 없습니다. 관리자에게 문의하세요.", style = KrdsText.meta)
+        InfoBox("관리자가 설정한 현재 시험에 대해서만 제출/수정/삭제할 수 있어요.")
+        if (rows.isEmpty()) Text("점수를 낼 수 있는 과목이 없어요. 관리자에게 문의해주세요.", style = KrdsText.meta)
         rows.forEach { s ->
             InputCard(s, p, prof, onAction = { action ->
                 val subject = s.subject ?: return@InputCard
                 when (action) {
-                    "delete" -> confirm = "$subject 과목의 현재 시험 점수를 삭제하시겠습니까?" to { perform(s, action) }
+                    "delete" -> confirm = "$subject 과목의 이번 시험 점수를 지울까요?" to { perform(s, action) }
                     "submit" -> guarded(true) { perform(s, action) }
                     else -> perform(s, action)
                 }
@@ -558,38 +560,24 @@ private fun Calculator(
         submitStatus?.let { Text(it, style = KrdsText.meta.copy(color = Krds.colors.primaryText)) }
 
         Section("2", "내 점수")
-        Text("현재까지 제출한 점수입니다. 표본 수가 적은 경우 등급이 부정확하게 산출될 수 있습니다.", style = KrdsText.meta)
-        if (prof.scores.isEmpty()) Text("아직 제출한 성적이 없습니다.", style = KrdsText.meta.copy(color = Krds.colors.textDisabled))
-        prof.scores.forEach { s ->
-            KrdsCard {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text(s.subject, style = KrdsText.cardTitle)
-                        val parts = mutableListOf(s.examName)
-                        if (s.percentile != "-") parts += "백분위 ${s.percentile}"
-                        GradeLogic.parseInstant(s.timestamp)?.let { parts += kst(it) }
-                        Text(parts.joinToString(" · "), style = KrdsText.meta)
-                    }
-                    Text("${s.score}점", style = KrdsText.sectionTitle, modifier = Modifier.padding(horizontal = 8.dp))
-                    s.grade?.let { GradeBadge(it) }
-                }
-            }
-        }
+        Text("현재까지 제출한 점수예요. 표본 수가 적은 경우 등급이 부정확하게 산출될 수 있어요.", style = KrdsText.meta)
+        if (prof.scores.isEmpty()) Text("아직 낸 점수가 없어요.", style = KrdsText.meta.copy(color = Krds.colors.textDisabled))
+        prof.scores.forEach { MyScoreCard(it) }
     }
 
     Section(if (testUser) "1" else "3", "과목별 등급컷")
     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         KrdsChip("전체(학번+익명)", statsMode == GradeLogic.STATS_ALL) { statsMode = GradeLogic.STATS_ALL }
         KrdsChip("학번 인증만", statsMode == GradeLogic.STATS_VERIFIED) {
-            if (!verified) app.toast("익명 사용자는 학번 인증 점수만의 통계를 볼 수 없습니다. 학번으로 로그인해 점수를 이전하면 볼 수 있어요.")
+            if (!verified) app.toast("익명 사용자는 학번 인증 점수만의 통계를 볼 수 없어요. 학번으로 로그인해 점수를 이전하면 볼 수 있어요.")
             else statsMode = GradeLogic.STATS_VERIFIED
         }
     }
     val statsSubjects = GradeLogic.statsSubjects(prof, testUser, isAdmin)
     if (statsSubjects.isEmpty()) {
-        Text("점수를 제출한 과목만 조회할 수 있습니다. 먼저 점수를 제출하세요.", style = KrdsText.meta)
+        Text("점수를 제출한 과목만 조회할 수 있어요. 먼저 점수를 내주세요.", style = KrdsText.meta)
     } else {
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) { statsSubjects.forEach { s -> KrdsChip(s, s == cutoffSubject) { cutoffSubject = s } } }
+        KrdsDropdown("과목", statsSubjects.map { it to it }, cutoffSubject ?: "", { cutoffSubject = it }, Modifier.fillMaxWidth())
         cutoffSubject?.let { subject ->
             CutoffPanel(app, subject, statsMode, statsVersion, prof.scores.firstOrNull { it.subject == subject }?.score?.toDoubleOrNull())
         }
@@ -597,45 +585,50 @@ private fun Calculator(
 
     Section(if (testUser) "2" else "4", "과목/문항별 오답률")
     if (statsSubjects.isNotEmpty()) {
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) { statsSubjects.forEach { s -> KrdsChip(s, s == wrongSubject) { wrongSubject = s } } }
-        ChoiceChips(
-            listOf(
-                WrongRateSort.QUESTION_ASC to "문항 번호순",
-                WrongRateSort.QUESTION_DESC to "문항 역순",
-                WrongRateSort.RATE_DESC to "오답률 높은순",
-                WrongRateSort.RATE_ASC to "오답률 낮은순",
-            ),
-            wrongSort, { wrongSort = it },
-        )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            KrdsDropdown("과목", statsSubjects.map { it to it }, wrongSubject ?: "", { wrongSubject = it }, Modifier.weight(1f))
+            KrdsDropdown(
+                "정렬",
+                listOf(
+                    WrongRateSort.QUESTION_ASC to "번호순",
+                    WrongRateSort.QUESTION_DESC to "번호 거꾸로",
+                    WrongRateSort.RATE_DESC to "오답률 높은 순",
+                    WrongRateSort.RATE_ASC to "오답률 낮은 순",
+                ),
+                wrongSort, { wrongSort = it },
+                Modifier.weight(1f),
+            )
+        }
         wrongSubject?.let { subject -> WrongPanel(app, subject, statsMode, statsVersion, wrongSort, p) }
     }
 
     issuedCode?.let {
         AlertDialog(
             onDismissRequest = { issuedCode = null },
-            title = { Text("접근 코드를 저장했습니다") },
-            text = { Text("익명 접근 코드가 발급되어 이 기기에 자동으로 저장되었습니다. 다음에 들어오면 같은 익명 계정으로 이어집니다. 코드는 '접근 코드 보기'에서 지문(Face ID) 인증 후 확인할 수 있습니다.") },
+            title = { Text("접근 코드를 저장했어요") },
+            text = { Text("익명 접근 코드를 이 기기에 저장했어요. 다음에 들어오면 같은 익명 계정으로 이어져요. 코드는 '접근 코드 보기'에서 지문(Face ID) 인증 후 확인할 수 있어요.") },
             confirmButton = { TextButton(onClick = { issuedCode = null; revealCode() }) { Text("접근 코드 보기") } },
-            dismissButton = { TextButton(onClick = { issuedCode = null }) { Text("확인") } },
+            dismissButton = { TextButton(onClick = { issuedCode = null }) { Text("닫기") } },
         )
     }
     revealedCode?.let { code ->
         AlertDialog(
             onDismissRequest = { revealedCode = null },
             title = { Text("접근 코드: $code") },
-            text = { Text("이 기기에 저장된 코드입니다. 다른 기기나 웹에서 '코드 로그인'에 입력하면 같은 익명 계정으로 들어갈 수 있습니다.") },
+            text = { Text("이 기기에 저장된 코드예요. 다른 기기나 웹에서 '코드 로그인'에 입력하면 같은 익명 계정으로 들어갈 수 있어요.") },
             confirmButton = {
-                TextButton(onClick = { clipboard.setText(AnnotatedString(code)); app.toast("코드를 복사했습니다."); revealedCode = null }) { Text("코드 복사") }
+                TextButton(onClick = { clipboard.setText(AnnotatedString(code)); app.toast("코드를 복사했어요."); revealedCode = null }) { Text("코드 복사") }
             },
-            dismissButton = { TextButton(onClick = { revealedCode = null }) { Text("확인") } },
+            dismissButton = { TextButton(onClick = { revealedCode = null }) { Text("닫기") } },
         )
     }
     confirm?.let { (message, action) ->
         AlertDialog(
             onDismissRequest = { confirm = null },
             text = { Text(message) },
-            confirmButton = { TextButton(onClick = { confirm = null; action() }) { Text("확인") } },
-            dismissButton = { TextButton(onClick = { confirm = null }) { Text("취소") } },
+            // Buttons say what happens: the only confirmations here are 지우기 and 점수 내기.
+            confirmButton = { TextButton(onClick = { confirm = null; action() }) { Text(if ("지울까요" in message) "지우기" else "내기") } },
+            dismissButton = { TextButton(onClick = { confirm = null }) { Text("닫기") } },
         )
     }
 }
@@ -652,6 +645,24 @@ private fun Section(step: String, title: String) {
         )
         Spacer(Modifier.width(8.dp))
         Text(title, style = KrdsText.sectionTitle)
+    }
+}
+
+/** One submitted score (shared with 내 점수 기록). */
+@Composable
+internal fun MyScoreCard(s: MyScore) {
+    KrdsCard {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(s.subject, style = KrdsText.cardTitle)
+                val parts = mutableListOf(s.examName)
+                if (s.percentile != "-") parts += "백분위 ${s.percentile}"
+                GradeLogic.parseInstant(s.timestamp)?.let { parts += kst(it) }
+                Text(parts.joinToString(" · "), style = KrdsText.meta)
+            }
+            Text("${s.score}점", style = KrdsText.sectionTitle, modifier = Modifier.padding(horizontal = 8.dp))
+            s.grade?.let { GradeBadge(it) }
+        }
     }
 }
 
@@ -753,13 +764,13 @@ private fun CutoffPanel(app: AppState, subject: String, statsMode: String, versi
         if (mine != null) MetaTile("내 점수", "${GradeLogic.formatScore(mine)}점", Modifier.weight(1f))
     }
     if (!c.visible) {
-        val parts = mutableListOf("등급컷이 아직 공개되지 않았습니다.")
-        if (c.requiredSampleCount > c.sampleCount) parts += "표본이 ${c.requiredSampleCount - c.sampleCount}명 더 필요합니다."
+        val parts = mutableListOf("등급컷이 아직 공개되지 않았어요.")
+        if (c.requiredSampleCount > c.sampleCount) parts += "표본이 ${c.requiredSampleCount - c.sampleCount}명 더 필요해요."
         GradeLogic.parseInstant(c.publicationTime)?.let { parts += "예정 공개 시간: ${kst(it)}" }
         InfoBox(parts.joinToString("\n"))
         return
     }
-    Text(if (c.rows.isEmpty()) "데이터가 없습니다." else "등급컷 공개 중", style = KrdsText.meta)
+    Text(if (c.rows.isEmpty()) "아직 보여드릴 통계가 없어요." else "등급컷 공개 중", style = KrdsText.meta)
     val myGrade = GradeLogic.myGrade(c.rows, mine)
     KrdsCard(padding = androidx.compose.foundation.layout.PaddingValues(vertical = 4.dp)) {
         c.rows.forEach { row ->
@@ -776,7 +787,7 @@ private fun CutoffPanel(app: AppState, subject: String, statsMode: String, versi
                     )
                     Text(row.score?.let { "${it.fixed(1)}점" } ?: "X (산출불가)", style = KrdsText.body, modifier = Modifier.padding(start = 10.dp).widthIn(min = 64.dp))
                 }
-                if (isMine && mine != null) Text("내 점수 ${GradeLogic.formatScore(mine)}점이 이 등급입니다.", style = KrdsText.meta.copy(color = Krds.colors.primaryText))
+                if (isMine && mine != null) Text("내 점수 ${GradeLogic.formatScore(mine)}점이 이 등급이에요.", style = KrdsText.meta.copy(color = Krds.colors.primaryText))
             }
         }
     }
@@ -794,7 +805,7 @@ private fun WrongPanel(app: AppState, subject: String, statsMode: String, versio
     val (rates, responses) = r.getOrNull() ?: return
     MetaTile("응답 수", "${responses}명")
     val sorted = GradeLogic.sortWrongRates(rates, sort)
-    if (sorted.isEmpty()) return Text("데이터가 없습니다.", style = KrdsText.meta)
+    if (sorted.isEmpty()) return Text("아직 보여드릴 통계가 없어요.", style = KrdsText.meta)
     KrdsCard(padding = androidx.compose.foundation.layout.PaddingValues(vertical = 4.dp)) {
         sorted.forEach { w ->
             Column(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 8.dp)) {

@@ -70,7 +70,7 @@ fun DocumentsScreen() {
 
     LibraryFrame(
         title = "PDF 자료실",
-        desc = "수업자료·행정서식·학교 규정을 모아 두었습니다.",
+        desc = "수업자료·행정서식·학교 규정을 모아 두었어요.",
         searchHint = "자료 이름, 태그 검색",
         load = load,
         onReload = reload,

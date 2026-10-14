@@ -55,7 +55,7 @@ fun PhotosScreen() {
 
     LibraryFrame(
         title = "사진 아카이브",
-        desc = "행사·공연 사진 앨범을 모았습니다.",
+        desc = "행사·공연 사진 앨범을 모았어요.",
         searchHint = "앨범 이름, 출연진 검색",
         load = load,
         onReload = reload,
@@ -87,7 +87,7 @@ fun PhotosScreen() {
             DetailInfo("설명", a.notes)
             SecondaryButton("링크 복사", {
                 clipboard.setText(AnnotatedString(a.albumUrl))
-                app.toast("링크를 복사했습니다.")
+                app.toast("링크를 복사했어요.")
             }, Modifier.fillMaxWidth(), icon = Icons.Filled.Link)
             PrimaryButton("앨범 열기", { if (a.albumUrl.isNotBlank()) uri.openUri(a.albumUrl) }, Modifier.fillMaxWidth(), icon = Icons.AutoMirrored.Filled.OpenInNew)
         }

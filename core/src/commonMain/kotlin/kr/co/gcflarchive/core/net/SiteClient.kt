@@ -24,7 +24,7 @@ import kotlinx.serialization.json.JsonObject
 import kr.co.gcflarchive.core.Config
 
 /** The site answered 401: the user has to log in first. */
-class LoginRequiredException(message: String = "로그인이 필요합니다.") : Exception(message)
+class LoginRequiredException(message: String = "로그인하면 이용할 수 있어요.") : Exception(message)
 
 class ApiException(val code: Int, message: String) : Exception(message)
 
@@ -98,8 +98,8 @@ class SiteClient(
     }
 
     private fun checked(res: Response): String {
-        if (res.code == 401) throw LoginRequiredException(res.error ?: "로그인이 필요합니다.")
-        if (!res.isSuccessful) throw ApiException(res.code, res.error ?: "HTTP ${res.code}")
+        if (res.code == 401) throw LoginRequiredException(res.error ?: "로그인하면 이용할 수 있어요.")
+        if (!res.isSuccessful) throw ApiException(res.code, res.error ?: "처리하지 못했어요. 잠시 후 다시 시도해주세요.")
         return res.body
     }
 

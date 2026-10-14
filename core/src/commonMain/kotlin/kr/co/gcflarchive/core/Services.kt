@@ -1,6 +1,7 @@
 package kr.co.gcflarchive.core
 
 import kr.co.gcflarchive.core.archive.ArchiveRepository
+import kr.co.gcflarchive.core.community.CommunityRepository
 import kr.co.gcflarchive.core.auth.AuthApi
 import kr.co.gcflarchive.core.drive.DriveRepository
 import kr.co.gcflarchive.core.grade.GradeRepository
@@ -21,4 +22,5 @@ class Services(val site: SiteClient = SiteClient(), val prefs: AppPrefs = AppPre
     val grades = GradeRepository(site)
     val notices = NoticeRepository(site)
     val map = MapRepository(site)
+    val community = CommunityRepository(site)
 }

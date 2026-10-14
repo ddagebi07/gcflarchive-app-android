@@ -83,7 +83,7 @@ fun HomeScreen() {
                 is LoginState.LoggedIn -> Text(
                     buildAnnotatedString {
                         withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append("${s.userId}님") }
-                        append(", 환영합니다!")
+                        append(", 반가워요!")
                     },
                     style = KrdsText.sectionTitle.copy(fontWeight = FontWeight.Normal),
                     modifier = Modifier.padding(top = 4.dp, bottom = 4.dp),
@@ -105,8 +105,8 @@ fun HomeScreen() {
                     when (val r = meal) {
                         null -> "불러오는 중…"
                         else -> r.fold(
-                            onSuccess = { m -> m?.dishes?.joinToString(" · ") { it.name } ?: "오늘은 급식이 없습니다." },
-                            onFailure = { "급식 정보를 불러오지 못했습니다." },
+                            onSuccess = { m -> m?.dishes?.joinToString(" · ") { it.name } ?: "오늘은 급식이 없어요." },
+                            onFailure = { "급식 정보를 불러오지 못했어요." },
                         )
                     },
                     style = KrdsText.body,
@@ -122,7 +122,7 @@ fun HomeScreen() {
                     Spacer(Modifier.width(14.dp))
                     Column(Modifier.weight(1f)) {
                         Text("극플드라이브에 파일 올리기", style = KrdsText.cardTitle.copy(color = Krds.colors.onPrimary))
-                        Text("PDF·한글·오피스 문서를 올리고 학교에서 바로 인쇄하세요.", style = KrdsText.meta.copy(color = Krds.colors.onPrimary.copy(alpha = 0.85f)))
+                        Text("PDF·한글·오피스 문서를 올리면 학교에서 바로 인쇄할 수 있어요.", style = KrdsText.meta.copy(color = Krds.colors.onPrimary.copy(alpha = 0.85f)))
                     }
                 }
             }
@@ -173,7 +173,7 @@ private fun ArchiveTile(t: Tile, modifier: Modifier) {
 private fun LoginBanner(onLogin: () -> Unit) {
     Column(Modifier.fillMaxWidth().background(Krds.colors.primary, RoundedCornerShape(16.dp)).padding(20.dp)) {
         Icon(Icons.Filled.Lock, null, tint = Krds.colors.onPrimary, modifier = Modifier.size(36.dp))
-        Text("로그인하고 GCFL 아카이브를 모두 이용하세요", style = KrdsText.sectionTitle.copy(color = Krds.colors.onPrimary), modifier = Modifier.padding(top = 12.dp))
+        Text("로그인하고 GCFL 아카이브를 모두 써보세요", style = KrdsText.sectionTitle.copy(color = Krds.colors.onPrimary), modifier = Modifier.padding(top = 12.dp))
         Text(
             "기출 정답지·즐겨찾기, 사진 아카이브, 극플드라이브 업로드는 재학생 인증 후 이용할 수 있어요.",
             style = KrdsText.meta.copy(color = Krds.colors.onPrimary.copy(alpha = 0.85f)),

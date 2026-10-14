@@ -131,7 +131,8 @@ object KrdsText {
     val pageDesc: TextStyle @Composable get() = MaterialTheme.typography.bodyMedium.copy(color = Krds.colors.textSecondary)
     val cardTitle: TextStyle @Composable get() = MaterialTheme.typography.titleSmall.copy(color = Krds.colors.textStrong, fontSize = 16.sp, fontWeight = FontWeight.Bold)
     val sectionTitle: TextStyle @Composable get() = MaterialTheme.typography.titleMedium.copy(color = Krds.colors.textStrong, fontWeight = FontWeight.Bold)
-    val meta: TextStyle @Composable get() = MaterialTheme.typography.bodySmall.copy(color = Krds.colors.textSecondary)
-    val label: TextStyle @Composable get() = MaterialTheme.typography.labelMedium.copy(color = Krds.colors.textSecondary)
+    // One size above Material's small styles so secondary info stays readable.
+    val meta: TextStyle @Composable get() = MaterialTheme.typography.bodySmall.copy(color = Krds.colors.textSecondary, fontSize = 14.sp)
+    val label: TextStyle @Composable get() = MaterialTheme.typography.labelMedium.copy(color = Krds.colors.textSecondary, fontSize = 13.sp)
     val body: TextStyle @Composable get() = MaterialTheme.typography.bodyLarge.copy(color = Krds.colors.text)
 }

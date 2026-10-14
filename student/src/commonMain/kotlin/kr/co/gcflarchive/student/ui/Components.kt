@@ -39,6 +39,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -172,6 +179,43 @@ fun SecondaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modi
 fun <T> ChoiceChips(options: List<Pair<T, String>>, selected: T, onSelect: (T) -> Unit, modifier: Modifier = Modifier) {
     Row(modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         options.forEach { (value, label) -> KrdsChip(label, value == selected) { onSelect(value) } }
+    }
+}
+
+/**
+ * One dropdown (.krds-select) instead of a row of buttons: shows the chosen [options]
+ * label under [label] and opens a menu of every option.
+ */
+@Composable
+fun <T> KrdsDropdown(label: String, options: List<Pair<T, String>>, selected: T, onSelect: (T) -> Unit, modifier: Modifier = Modifier) {
+    var open by remember { mutableStateOf(false) }
+    val current = options.firstOrNull { it.first == selected }?.second ?: options.firstOrNull()?.second.orEmpty()
+    Box(modifier) {
+        Column(
+            Modifier.fillMaxWidth()
+                .heightIn(min = 52.dp)
+                .border(1.dp, Krds.colors.borderStrong, RoundedCornerShape(8.dp))
+                .clickable { open = true }
+                .padding(horizontal = 12.dp, vertical = 6.dp),
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Text(label, style = KrdsText.label)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(current, style = KrdsText.body, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                Icon(Icons.Filled.ArrowDropDown, null, tint = Krds.colors.textSecondary)
+            }
+        }
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            options.forEach { (value, text) ->
+                DropdownMenuItem(
+                    text = { Text(text, style = KrdsText.body.copy(fontWeight = if (value == selected) FontWeight.Bold else FontWeight.Normal)) },
+                    onClick = {
+                        open = false
+                        if (value != selected) onSelect(value)
+                    },
+                )
+            }
+        }
     }
 }
 

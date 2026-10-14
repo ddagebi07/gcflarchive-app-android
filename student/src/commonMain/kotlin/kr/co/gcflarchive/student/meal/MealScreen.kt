@@ -51,6 +51,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import kr.co.gcflarchive.core.Config
 import kr.co.gcflarchive.core.meal.Meal
 import kr.co.gcflarchive.core.meal.MealRepository
@@ -115,7 +116,7 @@ fun MealScreen() {
                 // Week header: range + 오늘로 (kept in place so the row never jumps).
                 val onToday = date == MealWeek.schoolDay(today)
                 Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text(MealWeek.label(MealWeek.monday(date), today), style = KrdsText.sectionTitle, modifier = Modifier.weight(1f))
+                    Text(MealWeek.label(MealWeek.monday(date), today), style = KrdsText.sectionTitle.copy(fontSize = 20.sp), modifier = Modifier.weight(1f))
                     OutlinedButton(
                         onClick = { setDate(today) },
                         enabled = !onToday,
@@ -123,7 +124,7 @@ fun MealScreen() {
                     ) { Text("오늘로") }
                 }
 
-                HorizontalPager(state = pager, modifier = Modifier.fillMaxWidth().height(76.dp), beyondViewportPageCount = 1) { page ->
+                HorizontalPager(state = pager, modifier = Modifier.fillMaxWidth().height(88.dp), beyondViewportPageCount = 1) { page ->
                     Row(Modifier.fillMaxSize().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         MealWeek.days(mondayOf(page)).forEachIndexed { i, day ->
                             DayCell(MealWeek.WEEKDAYS[i], day, selected = day == date, isToday = day == today, Modifier.weight(1f)) { setDate(day) }
@@ -133,15 +134,16 @@ fun MealScreen() {
                 Hairline()
 
                 Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(MealRepository.label(date), style = KrdsText.meta)
+                    // The chosen day, large: the first thing people check on this tab.
+                    Text(MealWeek.dayTitle(date, today), style = KrdsText.pageTitle)
                     when (val r = meals) {
                         null -> Unit
                         else -> r.fold(
                             onSuccess = { list ->
-                                if (list.isEmpty()) StateMessage("급식이 없는 날입니다.", "공휴일·방학에는 급식이 없어요.")
+                                if (list.isEmpty()) StateMessage("급식이 없는 날이에요.", "공휴일·방학에는 급식이 없어요.")
                                 list.forEach { MealCard(it) }
                             },
-                            onFailure = { StateMessage("급식 정보를 불러오지 못했습니다.", "네트워크를 확인해 주세요.", "다시 시도", { reload++ }) },
+                            onFailure = { StateMessage("급식 정보를 불러오지 못했어요.", "인터넷 연결을 확인하고 다시 시도해주세요.", "다시 불러오기", { reload++ }) },
                         )
                     }
                 }
@@ -168,18 +170,18 @@ private fun DayCell(weekday: String, day: LocalDate, selected: Boolean, isToday:
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Text(weekday, style = KrdsText.label.copy(color = if (selected) onSel else k.textSecondary))
+        Text(weekday, style = KrdsText.body.copy(fontSize = 14.sp, color = if (selected) onSel else k.textSecondary))
         // Today: thin outlined circle (white on the selected fill).
         Box(
             Modifier
                 .padding(top = 2.dp)
-                .size(34.dp)
+                .size(40.dp)
                 .then(if (isToday) Modifier.border(1.5.dp, if (selected) onSel else k.primaryText, CircleShape) else Modifier),
             contentAlignment = Alignment.Center,
         ) {
             Text(
                 day.dayOfMonth.toString(),
-                style = KrdsText.sectionTitle.copy(color = when {
+                style = KrdsText.sectionTitle.copy(fontSize = 20.sp, color = when {
                     selected -> onSel
                     isToday -> k.primaryText
                     else -> k.textStrong
@@ -206,6 +208,6 @@ private fun MealCard(meal: Meal) {
                 }
             }
         }
-        if (meal.dishes.isNotEmpty()) Text("알레르기 번호는 교육청 표기 기준입니다.", style = KrdsText.meta.copy(color = Krds.colors.textDisabled), modifier = Modifier.padding(top = 8.dp))
+        if (meal.dishes.isNotEmpty()) Text("알레르기 번호는 교육청 표기를 따라요.", style = KrdsText.meta, modifier = Modifier.padding(top = 8.dp))
     }
 }

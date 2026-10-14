@@ -97,7 +97,7 @@ fun UploadScreen(files: List<UploadFile>) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Filled.CheckCircle, null, tint = Krds.colors.successFg)
                         Spacer(Modifier.width(8.dp))
-                        Text(if (r.zipped) "여러 파일을 ZIP 하나로 묶어 올렸습니다." else "업로드했습니다.", style = KrdsText.cardTitle)
+                        Text(if (r.zipped) "여러 파일을 ZIP 하나로 묶어 올렸어요." else "업로드했어요.", style = KrdsText.cardTitle)
                     }
                     r.files.forEach { up ->
                         KrdsCard(padding = androidx.compose.foundation.layout.PaddingValues(start = 16.dp, top = 12.dp, end = 4.dp, bottom = 12.dp)) {
@@ -106,7 +106,7 @@ fun UploadScreen(files: List<UploadFile>) {
                                     Text(up.name, style = KrdsText.cardTitle, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                     Text(up.shortUrl, style = KrdsText.meta.copy(color = Krds.colors.primaryText))
                                 }
-                                IconButton(onClick = { clipboard.setText(AnnotatedString(up.shortUrl)); app.toast("링크를 복사했습니다.") }) {
+                                IconButton(onClick = { clipboard.setText(AnnotatedString(up.shortUrl)); app.toast("링크를 복사했어요.") }) {
                                     Icon(Icons.Filled.ContentCopy, "링크 복사")
                                 }
                                 IconButton(onClick = { shareText("${up.name}\n${up.shortUrl}") }) { Icon(Icons.Filled.Share, "공유") }
@@ -119,7 +119,7 @@ fun UploadScreen(files: List<UploadFile>) {
                     }, Modifier.fillMaxWidth())
                 }
                 is UploadResult.Failure -> InfoBox(r.message, icon = Icons.Filled.ErrorOutline)
-                UploadResult.NeedLogin -> InfoBox("로그인 후 다시 올려 주세요.", icon = Icons.Filled.ErrorOutline)
+                UploadResult.NeedLogin -> InfoBox("로그인 후 다시 올려주세요.", icon = Icons.Filled.ErrorOutline)
                 null -> Unit
             }
 
@@ -136,7 +136,7 @@ fun UploadScreen(files: List<UploadFile>) {
                 )
                 SecondaryButton("취소", { app.pop() }, Modifier.fillMaxWidth(), enabled = !uploading)
             }
-            InfoBox("올린 파일은 7일간 보관되며, 학교 컴퓨터에서 드라이브 주소로 내려받을 수 있습니다.")
+            InfoBox("올린 파일은 7일간 보관되며, 학교 컴퓨터에서 드라이브 주소로 내려받을 수 있어요.")
         }
     }
 }

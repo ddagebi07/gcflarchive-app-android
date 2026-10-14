@@ -15,7 +15,7 @@ import kr.co.gcflarchive.core.Services
 import kr.co.gcflarchive.core.auth.LoginState
 import kr.co.gcflarchive.core.net.UploadFile
 
-enum class Tab(val label: String) { HOME("홈"), SEARCH("통합검색"), MEAL("급식"), DRIVE("극플드라이브"), SETTINGS("설정") }
+enum class Tab(val label: String) { HOME("홈"), SEARCH("통합검색"), MEAL("급식"), DRIVE("극플드라이브"), MORE("더보기") }
 
 /** Screens pushed over the tabs. */
 sealed interface Route {
@@ -31,6 +31,14 @@ sealed interface Route {
     data object Notices : Route
     data class NoticeDetail(val id: Int) : Route
     data class Upload(val files: List<UploadFile>) : Route
+    data object Settings : Route
+    data object MyScores : Route
+    data object Community : Route
+    data class CommunityPost(val id: Int) : Route
+    /** New post on [boardId], or edit [editId] (with its current [title] / [content]). */
+    data class CommunityWrite(val boardId: String?, val editId: Int = 0, val title: String = "", val content: String = "") : Route
+    /** 통합검색 첨부파일 미리보기 (pdf / image / text). */
+    data class Preview(val api: String, val kind: String, val filename: String, val downloadUrl: String) : Route
 }
 
 /** App-wide state: current tab, pushed screens, login, snackbar. */
@@ -44,6 +52,14 @@ class AppState(val services: Services, private val scope: CoroutineScope) {
     /** Bumped after login/logout so screens reload their data. */
     var sessionVersion by mutableIntStateOf(0)
         private set
+
+    /** Bumped after posting / editing so open lists and posts reload. */
+    var contentVersion by mutableIntStateOf(0)
+        private set
+
+    fun contentChanged() {
+        contentVersion++
+    }
 
     val snackbar = SnackbarHostState()
 
@@ -79,7 +95,7 @@ class AppState(val services: Services, private val scope: CoroutineScope) {
             services.auth.logout()
             login = LoginState.LoggedOut
             sessionVersion++
-            toast("로그아웃되었습니다.")
+            toast("로그아웃했어요.")
         }
     }
 
@@ -101,7 +117,16 @@ class AppState(val services: Services, private val scope: CoroutineScope) {
         }.toMap()
         when (path) {
             "/" -> { stack.clear(); tab = Tab.HOME }
-            "/search", "/archive" -> { stack.clear(); tab = Tab.SEARCH }
+            "/search", "/archive" -> {
+                stack.clear()
+                tab = Tab.SEARCH
+                // Shared archive links: /search?s=<board>:<idx> opens that post.
+                val shared = query["s"]?.let { decodeQuery(it) }
+                val board = query["share_board"] ?: shared?.substringBefore(':', "")
+                val idx = query["share_idx"] ?: shared?.substringAfter(':', "")
+                if (!board.isNullOrBlank() && !idx.isNullOrBlank()) push(Route.PostDetail(board, idx))
+            }
+            "/community" -> push(Route.Community)
             "/meal" -> { stack.clear(); tab = Tab.MEAL }
             "/share" -> { stack.clear(); tab = Tab.DRIVE }
             "/verify" -> push(Route.Login)
@@ -116,6 +141,30 @@ class AppState(val services: Services, private val scope: CoroutineScope) {
             else -> openExternal(Config.url(pathAndQuery))
         }
     }
+}
+
+/** %XX and + decoding for one query value (UTF-8). */
+private fun decodeQuery(value: String): String {
+    val bytes = mutableListOf<Byte>()
+    var i = 0
+    while (i < value.length) {
+        val c = value[i]
+        when {
+            c == '%' && i + 2 <= value.lastIndex -> {
+                val hex = value.substring(i + 1, i + 3).toIntOrNull(16)
+                if (hex != null) {
+                    bytes += hex.toByte()
+                    i += 3
+                    continue
+                }
+                bytes += c.code.toByte()
+            }
+            c == '+' -> bytes += ' '.code.toByte()
+            else -> c.toString().encodeToByteArray().forEach { bytes += it }
+        }
+        i++
+    }
+    return bytes.toByteArray().decodeToString()
 }
 
 val LocalApp = staticCompositionLocalOf<AppState> { error("AppState not provided") }

@@ -109,9 +109,9 @@ fun DriveScreen() {
                 when {
                     r == null -> Unit
                     error is LoginRequiredException -> StateMessage(
-                        "로그인이 필요합니다.", "극플드라이브는 재학생 인증 후 이용할 수 있어요.", "로그인", { app.requireLogin() }, locked = true,
+                        "로그인하면 이용할 수 있어요.", "극플드라이브는 재학생 인증 후 이용할 수 있어요.", "로그인", { app.requireLogin() }, locked = true,
                     )
-                    error != null -> StateMessage("드라이브를 불러오지 못했습니다.", error.userMessage(), "다시 시도", { reload++ })
+                    error != null -> StateMessage("드라이브를 불러오지 못했어요.", error.userMessage(), "다시 불러오기", { reload++ })
                     else -> {
                         val data = r.getOrThrow()
                         val usage = DriveLogic.usage(data.files)
@@ -141,7 +141,7 @@ fun DriveScreen() {
                             Text("PIN ${data.pin} · 학교 컴퓨터에서 위 주소를 열면 파일을 받을 수 있어요.", style = KrdsText.meta, modifier = Modifier.padding(top = 4.dp))
                             Row(Modifier.padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 SecondaryButton("주소 복사", {
-                                    url?.let { clipboard.setText(AnnotatedString(it)); app.toast("주소를 복사했습니다.") }
+                                    url?.let { clipboard.setText(AnnotatedString(it)); app.toast("주소를 복사했어요.") }
                                 }, Modifier.weight(1f), icon = Icons.Filled.ContentCopy)
                                 SecondaryButton("PIN 변경", { editPin = true }, Modifier.weight(1f))
                             }
@@ -160,7 +160,7 @@ fun DriveScreen() {
                         }
 
                         Text("보관 중인 파일", style = KrdsText.sectionTitle, modifier = Modifier.padding(top = 8.dp))
-                        if (data.files.isEmpty()) InfoBox("아직 올린 파일이 없습니다.")
+                        if (data.files.isEmpty()) InfoBox("아직 올린 파일이 없어요.")
                         data.files.forEach { f ->
                             FileCard(
                                 f,
@@ -169,7 +169,7 @@ fun DriveScreen() {
                                 onDelete = { confirmDelete = f },
                             )
                         }
-                        InfoBox("파일은 올린 뒤 7일간 보관되고, 한 번 내려받으면 5분 뒤 자동으로 삭제됩니다.")
+                        InfoBox("파일은 올린 뒤 7일간 보관되고, 한 번 내려받으면 5분 뒤 자동으로 삭제돼요.")
                     }
                 }
             }
@@ -180,28 +180,28 @@ fun DriveScreen() {
         AlertDialog(
             onDismissRequest = { confirmDownload = null },
             title = { Text("파일을 내려받을까요?") },
-            text = { Text("내려받으면 5분 뒤 드라이브에서 자동으로 삭제됩니다.") },
+            text = { Text("내려받으면 5분 뒤 드라이브에서 자동으로 삭제돼요.") },
             confirmButton = {
                 TextButton(onClick = {
                     confirmDownload = null
                     scope.launch { app.download(f.shortUrl, f.filename); reload++ }
                 }) { Text("내려받기") }
             },
-            dismissButton = { TextButton(onClick = { confirmDownload = null }) { Text("취소") } },
+            dismissButton = { TextButton(onClick = { confirmDownload = null }) { Text("닫기") } },
         )
     }
     confirmDelete?.let { f ->
         AlertDialog(
             onDismissRequest = { confirmDelete = null },
             title = { Text("파일을 삭제할까요?") },
-            text = { Text("‘${f.filename}’을(를) 삭제하면 되돌릴 수 없습니다.") },
+            text = { Text("‘${f.filename}’을(를) 삭제하면 되돌릴 수 없어요.") },
             confirmButton = {
                 TextButton(onClick = {
                     confirmDelete = null
                     scope.launch {
                         try {
                             app.services.drive.delete(f.fileId)
-                            app.toast("삭제했습니다.")
+                            app.toast("삭제했어요.")
                             reload++
                         } catch (e: CancellationException) {
                             throw e
@@ -211,7 +211,7 @@ fun DriveScreen() {
                     }
                 }) { Text("삭제", color = Krds.colors.danger) }
             },
-            dismissButton = { TextButton(onClick = { confirmDelete = null }) { Text("취소") } },
+            dismissButton = { TextButton(onClick = { confirmDelete = null }) { Text("닫기") } },
         )
     }
     if (editPin) {
@@ -263,7 +263,7 @@ private fun PinDialog(current: String, onDismiss: () -> Unit, onSaved: () -> Uni
         title = { Text("PIN 변경") },
         text = {
             Column {
-                Text("드라이브 주소에 쓰이는 숫자 4자리입니다.", style = KrdsText.meta)
+                Text("드라이브 주소에 쓰이는 숫자 4자리예요.", style = KrdsText.meta)
                 OutlinedTextField(
                     value = pin,
                     onValueChange = { v -> pin = v.filter(Char::isDigit).take(4); error = null },
@@ -279,23 +279,23 @@ private fun PinDialog(current: String, onDismiss: () -> Unit, onSaved: () -> Uni
         },
         confirmButton = {
             TextButton(enabled = !busy, onClick = {
-                if (!DriveLogic.isValidPin(pin)) { error = "숫자 4자리를 입력해 주세요."; return@TextButton }
+                if (!DriveLogic.isValidPin(pin)) { error = "숫자 4자리를 입력해주세요."; return@TextButton }
                 busy = true
                 scope.launch {
                     try {
                         app.services.drive.setPin(pin)
-                        app.toast("PIN을 변경했습니다.")
+                        app.toast("PIN을 변경했어요.")
                         onSaved()
                     } catch (e: CancellationException) {
                         throw e
                     } catch (e: Exception) {
-                        error = e.userMessage("PIN을 변경하지 못했습니다.")
+                        error = e.userMessage("PIN을 변경하지 못했어요.")
                     } finally {
                         busy = false
                     }
                 }
             }) { Text("변경") }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("취소") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("닫기") } },
     )
 }
