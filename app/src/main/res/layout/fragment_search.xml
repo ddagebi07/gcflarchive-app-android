@@ -49,51 +49,62 @@
             app:singleSelection="true" />
     </HorizontalScrollView>
 
-    <LinearLayout
+    <!-- Filters on their own (scrollable) row so the result count never has to wrap. -->
+    <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="16dp">
+        android:scrollbars="none">
 
-        <TextView
-            android:id="@+id/resultCount"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textAppearance="@style/TextAppearance.Krds.Total" />
-
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chipAttachments"
-            style="@style/Widget.Krds.FilterChip"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="6dp"
-            android:text="@string/search_attachments_only" />
-
-        <com.google.android.material.chip.ChipGroup
-            android:id="@+id/sortGroup"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:chipSpacingHorizontal="4dp"
-            app:selectionRequired="true"
-            app:singleSelection="true">
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp">
 
             <com.google.android.material.chip.Chip
-                android:id="@+id/sortRelevance"
+                android:id="@+id/chipAttachments"
                 style="@style/Widget.Krds.FilterChip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/search_sort_relevance" />
+                android:layout_marginEnd="6dp"
+                android:text="@string/search_attachments_only" />
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/sortDate"
-                style="@style/Widget.Krds.FilterChip"
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/sortGroup"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/search_sort_date" />
-        </com.google.android.material.chip.ChipGroup>
-    </LinearLayout>
+                app:chipSpacingHorizontal="4dp"
+                app:selectionRequired="true"
+                app:singleLine="true"
+                app:singleSelection="true">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/sortRelevance"
+                    style="@style/Widget.Krds.FilterChip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/search_sort_relevance" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/sortDate"
+                    style="@style/Widget.Krds.FilterChip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/search_sort_date" />
+            </com.google.android.material.chip.ChipGroup>
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <TextView
+        android:id="@+id/resultCount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:paddingHorizontal="16dp"
+        android:textAppearance="@style/TextAppearance.Krds.Total" />
 
     <!-- KRDS board list: strong rule on top of the result rows -->
     <View
