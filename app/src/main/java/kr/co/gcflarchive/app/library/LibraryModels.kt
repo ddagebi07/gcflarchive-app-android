@@ -122,7 +122,7 @@ enum class DocCategory(val label: String) {
 }
 
 enum class DocSort(val label: String) {
-    DATE_DESC("최신 등록순"), DATE_ASC("오래된순"), VIEWS_DESC("조회수 많은순"), NAME_ASC("가나다순"), SIZE_DESC("파일 크기순");
+    DATE_DESC("최근 올린 순"), DATE_ASC("오래된 순"), VIEWS_DESC("조회 많은 순"), NAME_ASC("가나다순"), SIZE_DESC("파일 큰 순");
 
     val comparator: Comparator<LibraryDocument>
         get() = when (this) {

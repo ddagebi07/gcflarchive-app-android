@@ -351,20 +351,19 @@
                             style="@style/Widget.Gcfl.StepTitle"
                             android:text="@string/grade_step_cutoff" />
 
-                        <HorizontalScrollView
+                        <com.google.android.material.textfield.TextInputLayout
+                            style="@style/Widget.Krds.Dropdown"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
-                            android:scrollbars="none">
+                            android:hint="@string/grade_subject">
 
-                            <com.google.android.material.chip.ChipGroup
-                                android:id="@+id/cutoffSubjects"
-                                android:layout_width="wrap_content"
+                            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                                android:id="@+id/cutoffSubjectPicker"
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                app:selectionRequired="true"
-                                app:singleLine="true"
-                                app:singleSelection="true" />
-                        </HorizontalScrollView>
+                                android:inputType="none" />
+                        </com.google.android.material.textfield.TextInputLayout>
 
                         <LinearLayout
                             android:id="@+id/cutoffMeta"
@@ -399,35 +398,39 @@
                             style="@style/Widget.Gcfl.StepTitle"
                             android:text="@string/grade_step_wrong" />
 
-                        <HorizontalScrollView
+                        <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
-                            android:scrollbars="none">
+                            android:orientation="horizontal">
 
-                            <com.google.android.material.chip.ChipGroup
-                                android:id="@+id/wrongSubjects"
-                                android:layout_width="wrap_content"
+                            <com.google.android.material.textfield.TextInputLayout
+                                style="@style/Widget.Krds.Dropdown"
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                app:selectionRequired="true"
-                                app:singleLine="true"
-                                app:singleSelection="true" />
-                        </HorizontalScrollView>
+                                android:layout_weight="1"
+                                android:hint="@string/grade_subject">
 
-                        <HorizontalScrollView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:scrollbars="none">
-
-                            <com.google.android.material.chip.ChipGroup
-                                android:id="@+id/wrongSort"
-                                android:layout_width="wrap_content"
+                                <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                                    android:id="@+id/wrongSubjectPicker"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:inputType="none" />
+                            </com.google.android.material.textfield.TextInputLayout>
+                            <com.google.android.material.textfield.TextInputLayout
+                                style="@style/Widget.Krds.Dropdown"
+                                android:layout_width="148dp"
                                 android:layout_height="wrap_content"
-                                app:selectionRequired="true"
-                                app:singleLine="true"
-                                app:singleSelection="true" />
-                        </HorizontalScrollView>
+                                android:layout_marginStart="8dp"
+                                android:hint="@string/grade_sort">
+
+                                <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                                    android:id="@+id/wrongSortPicker"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:inputType="none" />
+                            </com.google.android.material.textfield.TextInputLayout>
+                        </LinearLayout>
 
                         <LinearLayout
                             android:id="@+id/wrongMeta"

@@ -30,4 +30,12 @@ class MealWeekTest {
         assertEquals("9월 28일 – 10월 2일", MealWeek.label(LocalDate.of(2026, 9, 28), wed))
         assertEquals("2027년 1월 4일 – 8일", MealWeek.label(LocalDate.of(2027, 1, 4), wed))
     }
+
+    @Test
+    fun dayTitleIsBigAndPlain() {
+        val today = java.time.LocalDate.of(2026, 10, 14)
+        assertEquals("오늘 · 10월 14일(수)", MealWeek.dayTitle(today, today))
+        assertEquals("10월 16일(금)", MealWeek.dayTitle(java.time.LocalDate.of(2026, 10, 16), today))
+        assertEquals("2027년 1월 4일(월)", MealWeek.dayTitle(java.time.LocalDate.of(2027, 1, 4), today))
+    }
 }

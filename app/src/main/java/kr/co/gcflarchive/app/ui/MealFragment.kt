@@ -105,6 +105,7 @@ class MealFragment : Fragment(), MainActivity.Reselectable {
     private fun load() {
         val b = binding
         b.weekLabel.text = MealWeek.label(MealWeek.monday(date), MealRepository.today())
+        b.dayTitle.text = MealWeek.dayTitle(date, MealRepository.today())
         // INVISIBLE (not GONE) so the header doesn't jump when the button appears.
         b.btnToday.visibility = if (date == MealWeek.schoolDay(MealRepository.today())) View.INVISIBLE else View.VISIBLE
         b.mealContainer.removeAllViews()

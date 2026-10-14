@@ -31,70 +31,50 @@
             android:maxLines="1" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <HorizontalScrollView
-        android:id="@+id/boardScroll"
+    <!-- 게시판·정렬은 드롭다운, 첨부파일 조건은 칩 하나: 버튼이 줄줄이 늘어서지 않게. -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:scrollbars="none"
-        android:visibility="gone">
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp">
 
-        <com.google.android.material.chip.ChipGroup
-            android:id="@+id/boardGroup"
-            android:layout_width="wrap_content"
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.Krds.Dropdown"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:paddingHorizontal="16dp"
-            app:selectionRequired="true"
-            app:singleLine="true"
-            app:singleSelection="true" />
-    </HorizontalScrollView>
+            android:layout_weight="1"
+            android:hint="@string/search_board">
 
-    <!-- Filters on their own (scrollable) row so the result count never has to wrap. -->
-    <HorizontalScrollView
-        android:layout_width="match_parent"
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:id="@+id/boardPicker"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="none" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.Krds.Dropdown"
+            android:layout_width="120dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:hint="@string/search_sort">
+
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:id="@+id/sortPicker"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="none" />
+        </com.google.android.material.textfield.TextInputLayout>
+    </LinearLayout>
+
+    <com.google.android.material.chip.Chip
+        android:id="@+id/chipAttachments"
+        style="@style/Widget.Krds.FilterChip"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:scrollbars="none">
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingHorizontal="16dp">
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipAttachments"
-                style="@style/Widget.Krds.FilterChip"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="6dp"
-                android:text="@string/search_attachments_only" />
-
-            <com.google.android.material.chip.ChipGroup
-                android:id="@+id/sortGroup"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:chipSpacingHorizontal="4dp"
-                app:selectionRequired="true"
-                app:singleLine="true"
-                app:singleSelection="true">
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/sortRelevance"
-                    style="@style/Widget.Krds.FilterChip"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/search_sort_relevance" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/sortDate"
-                    style="@style/Widget.Krds.FilterChip"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/search_sort_date" />
-            </com.google.android.material.chip.ChipGroup>
-        </LinearLayout>
-    </HorizontalScrollView>
+        android:layout_marginStart="16dp"
+        android:text="@string/search_attachments_only" />
 
     <TextView
         android:id="@+id/resultCount"

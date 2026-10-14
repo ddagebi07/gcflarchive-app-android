@@ -12,7 +12,7 @@ import org.json.JSONObject
 import java.io.IOException
 
 /** The site answered 401: the user has to log in (on the website) first. */
-class LoginRequiredException(message: String = "로그인이 필요합니다.") : IOException(message)
+class LoginRequiredException(message: String = "로그인하면 이용할 수 있어요.") : IOException(message)
 
 class ApiException(val code: Int, message: String) : IOException(message)
 

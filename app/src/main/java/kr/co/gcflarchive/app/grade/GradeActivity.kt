@@ -7,6 +7,7 @@ import android.text.InputFilter
 import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.ArrayAdapter
 import android.widget.LinearLayout
 import android.widget.PopupMenu
 import android.widget.TextView
@@ -16,6 +17,7 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
+import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.CancellationException
@@ -95,7 +97,7 @@ class GradeActivity : AppCompatActivity() {
             MaterialAlertDialogBuilder(this)
                 .setMessage(if (keepsLogin) R.string.grade_migrate_confirm_logged_in else R.string.grade_migrate_confirm)
                 .setNegativeButton(R.string.cancel, null)
-                .setPositiveButton(R.string.confirm) { _, _ ->
+                .setPositiveButton(R.string.grade_migrate_ok) { _, _ ->
                     if (keepsLogin) {
                         migrate()
                     } else {
@@ -122,18 +124,17 @@ class GradeActivity : AppCompatActivity() {
                 loadWrongRates()
             }
         }
-        for ((sort, label) in listOf(
+        val sorts = listOf(
             WrongRateSort.QUESTION_ASC to R.string.grade_sort_q_asc,
             WrongRateSort.QUESTION_DESC to R.string.grade_sort_q_desc,
             WrongRateSort.RATE_DESC to R.string.grade_sort_rate_desc,
             WrongRateSort.RATE_ASC to R.string.grade_sort_rate_asc,
-        )) {
-            val chip = filterChip(binding.wrongSort, getString(label))
-            chip.isChecked = sort == wrongSort
-            chip.setOnClickListener {
-                wrongSort = sort
-                loadWrongRates()
-            }
+        )
+        binding.wrongSortPicker.setAdapter(ArrayAdapter(this, R.layout.item_dropdown, sorts.map { getString(it.second) }))
+        binding.wrongSortPicker.setText(getString(sorts.first { it.first == wrongSort }.second), false)
+        binding.wrongSortPicker.setOnItemClickListener { _, _, position, _ ->
+            wrongSort = sorts[position].first
+            loadWrongRates()
         }
         binding.swipe.setOnRefreshListener { load() }
         load()
@@ -251,7 +252,7 @@ class GradeActivity : AppCompatActivity() {
                 .setTitle(getString(R.string.grade_code_issued_title, code))
                 .setMessage(R.string.grade_code_saved_desc)
                 .setPositiveButton(R.string.grade_copy_code) { _, _ -> Links.copy(this, getString(R.string.grade_title), code) }
-                .setNegativeButton(R.string.confirm, null)
+                .setNegativeButton(R.string.close, null)
                 .show()
         }
     }
@@ -289,7 +290,7 @@ class GradeActivity : AppCompatActivity() {
             .setTitle(R.string.grade_code_title)
             .setView(field.root)
             .setNegativeButton(R.string.cancel, null)
-            .setPositiveButton(R.string.confirm, null)
+            .setPositiveButton(R.string.grade_code_enter, null)
             .show()
         dialog.getButton(android.content.DialogInterface.BUTTON_POSITIVE).setOnClickListener {
             val code = field.input.text?.toString().orEmpty()
@@ -330,11 +331,11 @@ class GradeActivity : AppCompatActivity() {
                     saveGuestCode(null)
                     setMode(MODE_VERIFIED)
                     snack(
-                        if (r.moved > 0) "익명 점수 ${r.moved}건을 학번 계정으로 이전했습니다." + (if (r.skipped > 0) " (중복 ${r.skipped}건 제외)" else "")
-                        else "이전할 익명 점수가 없습니다.",
+                        if (r.moved > 0) "익명 점수 ${r.moved}개를 학번으로 옮겼어요." + (if (r.skipped > 0) " 이미 있던 ${r.skipped}개는 빼고 옮겼어요." else "")
+                        else "옮길 익명 점수가 없어요.",
                     )
                 }
-                .onFailure { e -> if (e is CancellationException) throw e else snack(e.message ?: "익명 점수를 학번 계정으로 이전하지 못했습니다.") }
+                .onFailure { e -> if (e is CancellationException) throw e else snack(e.message ?: "익명 점수를 옮기지 못했어요. 다시 시도해주세요.") }
             load()
         }
     }
@@ -553,7 +554,7 @@ class GradeActivity : AppCompatActivity() {
                     } catch (e: CancellationException) {
                         throw e
                     } catch (e: Exception) {
-                        failures += "$subject: ${e.message ?: "제출 실패"}"
+                        failures += "$subject: ${e.message ?: "내지 못했어요"}"
                     }
                 }
                 val ok = targets.size - failures.size
@@ -584,7 +585,7 @@ class GradeActivity : AppCompatActivity() {
             .setTitle(R.string.grade_code_saved_title)
             .setMessage(R.string.grade_code_saved_issued)
             .setPositiveButton(R.string.grade_code_show) { _, _ -> revealCode() }
-            .setNegativeButton(R.string.confirm, null)
+            .setNegativeButton(R.string.close, null)
             .show()
     }
 
@@ -612,17 +613,15 @@ class GradeActivity : AppCompatActivity() {
         val subjects = GradeLogic.statsSubjects(prof, isTestUser(), isAdmin())
         cutoffSubject = cutoffSubject?.takeIf { it in subjects } ?: subjects.firstOrNull()
         wrongSubject = wrongSubject?.takeIf { it in subjects } ?: subjects.firstOrNull()
-        fillSubjectChips(binding.cutoffSubjects, subjects, cutoffSubject) { cutoffSubject = it; loadCutoff() }
-        fillSubjectChips(binding.wrongSubjects, subjects, wrongSubject) { wrongSubject = it; loadWrongRates() }
+        fillSubjectPicker(binding.cutoffSubjectPicker, subjects, cutoffSubject) { cutoffSubject = it; loadCutoff() }
+        fillSubjectPicker(binding.wrongSubjectPicker, subjects, wrongSubject) { wrongSubject = it; loadWrongRates() }
     }
 
-    private fun fillSubjectChips(group: ChipGroup, subjects: List<String>, selected: String?, onPick: (String) -> Unit) {
-        group.removeAllViews()
-        for (s in subjects) {
-            val chip = filterChip(group, s)
-            chip.isChecked = s == selected
-            chip.setOnClickListener { onPick(s) }
-        }
+    /** Subjects in a dropdown: there can be many, so no long row of chips. */
+    private fun fillSubjectPicker(picker: MaterialAutoCompleteTextView, subjects: List<String>, selected: String?, onPick: (String) -> Unit) {
+        picker.setAdapter(ArrayAdapter(this, R.layout.item_dropdown, subjects))
+        picker.setText(selected.orEmpty(), false)
+        picker.setOnItemClickListener { _, _, position, _ -> onPick(subjects[position]) }
     }
 
     private fun loadCutoff() {

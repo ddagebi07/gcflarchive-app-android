@@ -24,7 +24,7 @@
             android:background="?attr/selectableItemBackground"
             android:drawablePadding="4dp"
             android:paddingVertical="6dp"
-            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:textAppearance="?attr/textAppearanceTitleLarge"
             android:textColor="@color/krds_text_strong"
             android:textStyle="bold"
             app:drawableEndCompat="@drawable/ic_chevron_down_small" />
@@ -41,7 +41,7 @@
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/weekPager"
         android:layout_width="match_parent"
-        android:layout_height="76dp"
+        android:layout_height="88dp"
         android:layout_marginBottom="8dp"
         android:contentDescription="@string/meal_week_pager" />
 
@@ -65,6 +65,14 @@
                 android:orientation="vertical"
                 android:padding="16dp">
 
+                <!-- The chosen day, large: the first thing people check on this tab. -->
+                <TextView
+                    android:id="@+id/dayTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:textAppearance="@style/TextAppearance.Krds.PageTitle" />
+
                 <LinearLayout
                     android:id="@+id/stateGroup"
                     android:layout_width="match_parent"
@@ -86,7 +94,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
                         android:gravity="center"
-                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
                         android:textColor="@color/text_secondary" />
                 </LinearLayout>
 
@@ -102,7 +110,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:lineSpacingMultiplier="1.2"
-                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:textAppearance="?attr/textAppearanceBodyMedium"
                     android:textColor="@color/text_secondary" />
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>

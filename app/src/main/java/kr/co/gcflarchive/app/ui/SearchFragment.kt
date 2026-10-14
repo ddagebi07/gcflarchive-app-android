@@ -7,12 +7,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
+import android.widget.ArrayAdapter
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.chip.Chip
 import com.google.android.material.divider.MaterialDividerItemDecoration
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -85,9 +85,13 @@ class SearchFragment : Fragment(), MainActivity.Reselectable {
             submit()
         }
 
-        binding.sortGroup.check(R.id.sortRelevance)
-        binding.sortGroup.setOnCheckedStateChangeListener { _, ids ->
-            val sort = if (ids.firstOrNull() == R.id.sortDate) SearchSort.DATE else SearchSort.RELEVANCE
+        val sorts = listOf(SearchSort.RELEVANCE to R.string.search_sort_relevance, SearchSort.DATE to R.string.search_sort_date)
+        binding.sortPicker.setAdapter(ArrayAdapter(requireContext(), R.layout.item_dropdown, sorts.map { getString(it.second) }))
+        // setText(..., false): a filtering setText would narrow the list to the current choice.
+        binding.sortPicker.setText(getString(sorts.first { it.first == query.sort }.second), false)
+        binding.boardPicker.setText(getString(R.string.search_board_all), false)
+        binding.sortPicker.setOnItemClickListener { _, _, position, _ ->
+            val sort = sorts[position].first
             if (sort != query.sort) {
                 query = query.copy(sort = sort)
                 load(append = false)
@@ -125,25 +129,18 @@ class SearchFragment : Fragment(), MainActivity.Reselectable {
             val boards = runCatching { ArchiveRepository.boards() }.getOrNull() ?: return@launch
             val b = _binding ?: return@launch
             boardsLoaded = true
-            b.boardGroup.removeAllViews()
-            b.boardGroup.addView(boardChip(getString(R.string.search_board_all), null))
-            boards.forEach { b.boardGroup.addView(boardChip(it.name, it.code)) }
-            b.boardGroup.check(b.boardGroup.getChildAt(0).id)
-            b.boardScroll.isVisible = true
-        }
-    }
-
-    private fun boardChip(label: String, code: String?): Chip =
-        (layoutInflater.inflate(R.layout.item_krds_filter_chip, binding.boardGroup, false) as Chip).apply {
-            id = View.generateViewId()
-            text = label
-            setOnClickListener {
+            // null = 전체
+            val options = listOf<Pair<String, String?>>(getString(R.string.search_board_all) to null) + boards.map { it.name to it.code }
+            b.boardPicker.setAdapter(ArrayAdapter(b.root.context, R.layout.item_dropdown, options.map { it.first }))
+            b.boardPicker.setOnItemClickListener { _, _, position, _ ->
+                val code = options[position].second
                 if (query.board != code) {
                     query = query.copy(board = code)
                     load(append = false)
                 }
             }
         }
+    }
 
     private fun load(append: Boolean) {
         loadJob?.cancel()

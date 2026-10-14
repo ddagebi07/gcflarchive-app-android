@@ -167,7 +167,7 @@ class SettingsFragment : Fragment() {
                 prefs.mealNotifyKinds = all.filterIndexed { i, _ -> checked[i] }.toSet()
                 render()
             }
-            .setPositiveButton(R.string.confirm, null)
+            .setPositiveButton(R.string.close, null)
             .show()
     }
 

@@ -12,17 +12,17 @@
         android:id="@+id/weekday"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?attr/textAppearanceLabelMedium"
+        android:textAppearance="?attr/textAppearanceLabelLarge"
         android:textColor="@color/krds_text_secondary" />
 
     <!-- Fixed square so today's ring (background) is a circle. -->
     <TextView
         android:id="@+id/dayNumber"
-        android:layout_width="34dp"
-        android:layout_height="34dp"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:layout_marginTop="2dp"
         android:gravity="center"
-        android:textAppearance="?attr/textAppearanceTitleMedium"
+        android:textAppearance="?attr/textAppearanceTitleLarge"
         android:textColor="@color/krds_text_strong"
         android:textStyle="bold" />
 </LinearLayout>

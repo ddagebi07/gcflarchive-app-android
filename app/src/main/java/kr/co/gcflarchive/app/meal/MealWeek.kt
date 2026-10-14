@@ -33,4 +33,13 @@ object MealWeek {
         val year = if (monday.year != today.year) "${monday.year}년 " else ""
         return "$year$start – $end"
     }
+
+    private val WEEKDAYS = listOf("월", "화", "수", "목", "금", "토", "일")
+
+    /** 고른 날의 큰 제목: "10월 14일(화)", 오늘이면 "오늘 · 10월 14일(화)", 다른 해면 앞에 연도. */
+    fun dayTitle(d: LocalDate, today: LocalDate): String {
+        val year = if (d.year != today.year) "${d.year}년 " else ""
+        val day = "$year${d.monthValue}월 ${d.dayOfMonth}일(${WEEKDAYS[d.dayOfWeek.value - 1]})"
+        return if (d == today) "오늘 · $day" else day
+    }
 }

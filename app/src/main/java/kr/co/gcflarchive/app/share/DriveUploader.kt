@@ -102,11 +102,11 @@ class DriveUploader(private val resolver: ContentResolver) {
                     return@use if (res.request.url.encodedPath.startsWith("/verify")) {
                         UploadResult.NeedLogin
                     } else {
-                        UploadResult.Failure("서버 응답을 해석할 수 없습니다. (HTTP ${res.code})")
+                        UploadResult.Failure("서버 답을 읽지 못했어요. 잠시 후 다시 시도해주세요.")
                     }
                 }
                 when {
-                    !res.isSuccessful -> UploadResult.Failure(json.optString("error").ifBlank { "업로드 실패 (HTTP ${res.code})" })
+                    !res.isSuccessful -> UploadResult.Failure(json.optString("error").ifBlank { "파일을 올리지 못했어요. 잠시 후 다시 시도해주세요." })
                     else -> {
                         val arr = json.optJSONArray("files")
                         val uploaded = (0 until (arr?.length() ?: 0)).map { i ->
@@ -118,7 +118,7 @@ class DriveUploader(private val resolver: ContentResolver) {
                 }
             }
         } catch (e: IOException) {
-            UploadResult.Failure("네트워크 오류: ${e.message ?: "연결할 수 없습니다."}")
+            UploadResult.Failure("인터넷 연결이 불안정해요. 잠시 후 다시 시도해주세요.")
         }
     }
 
@@ -130,7 +130,7 @@ class DriveUploader(private val resolver: ContentResolver) {
         override fun contentType() = type
         override fun contentLength() = file.size
         override fun writeTo(sink: BufferedSink) {
-            val input = resolver.openInputStream(file.uri) ?: throw IOException("${file.name}을(를) 열 수 없습니다.")
+            val input = resolver.openInputStream(file.uri) ?: throw IOException("${file.name} 파일을 열지 못했어요. 다른 파일을 골라주세요.")
             input.source().use { source ->
                 while (true) {
                     val n = source.read(sink.buffer, 64 * 1024L)

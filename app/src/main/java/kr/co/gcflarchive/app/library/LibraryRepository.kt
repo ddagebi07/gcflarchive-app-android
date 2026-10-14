@@ -29,7 +29,7 @@ object LibraryRepository {
                 "/api/share/add-exam",
                 JSONObject().put("filename", filename).put("includeAnswers", includeAnswers),
             ),
-        ).optString("message", "극플드라이브에 담았습니다.")
+        ).optString("message", "극플드라이브에 담았어요.")
 
     suspend fun photoAlbums(): List<PhotoAlbum> = LibraryParser.photoAlbums(SiteApi.get("/api/photo-albums"))
 

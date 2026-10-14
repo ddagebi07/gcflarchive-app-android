@@ -58,6 +58,8 @@
     </style>
 
     <style name="TextAppearance.Gcfl.BodySmall" parent="TextAppearance.Material3.BodySmall">
+        <!-- Larger than Material's default so secondary info stays readable. -->
+        <item name="android:textSize">14sp</item>
         <item name="android:fontFamily">@font/pretendard_gov</item>
         <item name="fontFamily">@font/pretendard_gov</item>
     </style>
@@ -68,11 +70,15 @@
     </style>
 
     <style name="TextAppearance.Gcfl.LabelMedium" parent="TextAppearance.Material3.LabelMedium">
+        <!-- Larger than Material's default so secondary info stays readable. -->
+        <item name="android:textSize">13sp</item>
         <item name="android:fontFamily">@font/pretendard_gov</item>
         <item name="fontFamily">@font/pretendard_gov</item>
     </style>
 
     <style name="TextAppearance.Gcfl.LabelSmall" parent="TextAppearance.Material3.LabelSmall">
+        <!-- Larger than Material's default so secondary info stays readable. -->
+        <item name="android:textSize">12sp</item>
         <item name="android:fontFamily">@font/pretendard_gov</item>
         <item name="fontFamily">@font/pretendard_gov</item>
     </style>
@@ -121,6 +127,7 @@
 
     <style name="TextAppearance.Krds.Meta" parent="TextAppearance.Material3.BodySmall">
         <item name="android:textColor">@color/krds_text_secondary</item>
+        <item name="android:textSize">14sp</item>
         <item name="android:fontFamily">@font/pretendard_gov</item>
         <item name="fontFamily">@font/pretendard_gov</item>
     </style>

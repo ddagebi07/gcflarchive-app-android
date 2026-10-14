@@ -41,7 +41,7 @@ object MapLogic {
     /** Order and Korean labels of the weekly schedule keys. */
     val DAYS = listOf("mon" to "월", "tue" to "화", "wed" to "수", "thu" to "목", "fri" to "금", "sat" to "토", "sun" to "일")
 
-    val RATING_LABELS = listOf("별점 선택 안 함", "최악이에요 😞", "그냥 그래요 😐", "괜찮아요 🙂", "맛있어요/좋아요 😋", "최고의 명소에요! 😍")
+    val RATING_LABELS = listOf("별점 없이 올리기", "1점 · 별로예요", "2점 · 그저 그래요", "3점 · 괜찮아요", "4점 · 좋아요", "5점 · 정말 좋아요")
 
     /** Search results, favorites: Kakao-shaped objects. */
     fun parsePlace(o: JSONObject): Place? {
@@ -103,10 +103,10 @@ object MapLogic {
         }
     }
 
-    /** "09:00 ~ 21:00 (휴게시간: 15:00 ~ 17:00)" or "휴무일". */
-    fun describe(d: DaySchedule): String = if (d.holiday) "휴무일" else buildString {
+    /** "09:00 ~ 21:00 (쉬는 시간 15:00 ~ 17:00)" or "쉬는 날". */
+    fun describe(d: DaySchedule): String = if (d.holiday) "쉬는 날" else buildString {
         append("${d.open} ~ ${d.close}")
-        if (d.breakStart.isNotBlank() && d.breakEnd.isNotBlank()) append(" (휴게시간: ${d.breakStart} ~ ${d.breakEnd})")
+        if (d.breakStart.isNotBlank() && d.breakEnd.isNotBlank()) append(" (쉬는 시간 ${d.breakStart} ~ ${d.breakEnd})")
     }
 
     fun isValidTime(t: String): Boolean = t.isEmpty() || Regex("""([01]\d|2[0-3]):[0-5]\d""").matches(t)
@@ -126,9 +126,9 @@ object MapLogic {
     fun nicknameError(name: String): String? {
         val n = name.trim()
         return when {
-            n.isEmpty() -> "닉네임을 입력해 주세요."
-            n.length !in 2..15 -> "닉네임은 2자 이상 15자 이하여야 합니다."
-            !Regex("""^[a-zA-Z0-9가-힣\s_]+$""").matches(n) -> "닉네임에는 한글, 영문, 숫자, 밑줄, 공백만 사용 가능합니다."
+            n.isEmpty() -> "닉네임을 입력해주세요."
+            n.length !in 2..15 -> "닉네임은 2~15자로 정해주세요."
+            !Regex("""^[a-zA-Z0-9가-힣\s_]+$""").matches(n) -> "닉네임은 한글, 영문, 숫자, 밑줄, 띄어쓰기로 정해주세요."
             else -> null
         }
     }
