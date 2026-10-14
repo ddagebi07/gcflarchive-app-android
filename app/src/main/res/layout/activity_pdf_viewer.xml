@@ -30,6 +30,24 @@
                 android:paddingVertical="8dp" />
         </kr.co.gcflarchive.app.library.ZoomLayout>
 
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/textScroll"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/krds_surface"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/textBody"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:lineSpacingMultiplier="1.3"
+                android:padding="16dp"
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:textColor="@color/krds_text_primary"
+                android:textIsSelectable="true" />
+        </androidx.core.widget.NestedScrollView>
+
         <com.google.android.material.progressindicator.CircularProgressIndicator
             android:id="@+id/progress"
             android:layout_width="wrap_content"

@@ -14,10 +14,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
+import kr.co.gcflarchive.app.Config
 import kr.co.gcflarchive.app.R
 import kr.co.gcflarchive.app.databinding.ActivityPostDetailBinding
 import kr.co.gcflarchive.app.databinding.ItemAttachmentBinding
 import kr.co.gcflarchive.app.html.HtmlRenderer
+import kr.co.gcflarchive.app.library.PdfViewerActivity
 import kr.co.gcflarchive.app.util.Links
 
 /** One school-homepage post from the archive, with its attachments and prev/next navigation. */
@@ -83,6 +85,9 @@ class PostDetailActivity : AppCompatActivity() {
             row.root.setOnClickListener {
                 Links.download(this, a.downloadUrl, fileName = a.filename)
             }
+            row.btnPreview.isVisible = a.canPreview
+            row.btnPreview.contentDescription = getString(R.string.attachment_preview_named, a.filename)
+            row.btnPreview.setOnClickListener { openPreview(a) }
             binding.attachments.addView(row.root)
         }
 
@@ -92,6 +97,15 @@ class PostDetailActivity : AppCompatActivity() {
 
         binding.btnOriginal.isVisible = p.originalUrl != null
         binding.btnOriginal.setOnClickListener { p.originalUrl?.let { Links.openExternal(this, Uri.parse(it)) } }
+    }
+
+    private fun openPreview(a: Attachment) {
+        val api = a.previewApi ?: return
+        when (a.previewKind) {
+            // HWP is drawn by the site's own viewer, so it opens the preview page.
+            PreviewKinds.HWP -> a.previewPage?.let { Links.open(this, Uri.parse(Config.url(it))) }
+            else -> startActivity(PdfViewerActivity.archivePreview(this, a.filename, api, a.previewKind, a.downloadUrl))
+        }
     }
 
     private fun bindNav(row: View, title: TextView, ref: PostRef?, emptyRes: Int) {
@@ -123,7 +137,8 @@ class PostDetailActivity : AppCompatActivity() {
         }
         R.id.action_share -> {
             post?.let { p ->
-                val text = listOfNotNull(p.title, p.originalUrl).joinToString("\n")
+                // The archive's own link, so the post opens here instead of on the school site.
+                val text = listOf(p.title, p.shareUrl).joinToString("\n")
                 startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text), null))
             }
             true

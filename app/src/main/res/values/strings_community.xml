@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="community_title">커뮤니티</string>
+    <string name="community_desc">학교생활 이야기와 정보를 나눠요.</string>
+    <string name="community_board">게시판</string>
+    <string name="community_sort">정렬</string>
+    <string name="community_search_hint">제목이나 내용으로 찾기</string>
+    <string name="community_write">글쓰기</string>
+    <string name="community_total">글 %1$,d개</string>
+    <string name="community_no_boards">지금은 볼 수 있는 게시판이 없어요.</string>
+    <string name="community_empty">아직 글이 없어요. 첫 글을 남겨보세요.</string>
+    <string name="community_no_results">찾는 글이 없어요. 다른 낱말로 찾아보세요.</string>
+    <string name="community_login_desc">로그인하면 커뮤니티를 이용할 수 있어요.</string>
+    <string name="community_likes">추천 %1$d</string>
+    <string name="community_comments">댓글 %1$d</string>
+    <string name="community_views">조회 %1$d</string>
+    <string name="community_edited">수정됨</string>
+
+    <string name="community_blinded_moderator">신고가 쌓여 다른 사람에게는 숨겨진 글이에요. 관리 앱에서 검토해주세요.</string>
+    <string name="community_like_count">추천 %1$d</string>
+    <string name="community_like_desc">추천하기, 지금 추천 %1$d개</string>
+    <string name="community_unlike_desc">추천 취소하기, 지금 추천 %1$d개</string>
+    <string name="community_comment_header">댓글 %1$d개</string>
+    <string name="community_no_comments">아직 댓글이 없어요.</string>
+    <string name="community_comment_hint">댓글 남기기</string>
+    <string name="community_comment_send">댓글 올리기</string>
+    <string name="community_comment_actions">댓글 메뉴</string>
+    <string name="community_edit">고치기</string>
+    <string name="community_delete">지우기</string>
+    <string name="community_report">신고하기</string>
+    <string name="community_save">저장하기</string>
+    <string name="community_edit_comment">댓글 고치기</string>
+    <string name="community_delete_post_confirm">이 글을 지울까요? 지운 글은 되살릴 수 없어요.</string>
+    <string name="community_delete_comment_confirm">이 댓글을 지울까요?</string>
+    <string name="community_report_title">신고하는 이유를 골라주세요</string>
+    <string name="community_reported">신고했어요. 관리자가 확인할게요.</string>
+    <string name="community_reported_blinded">신고했어요. 신고가 쌓여 관리자가 확인할 때까지 숨겨져요.</string>
+    <string-array name="community_report_reasons">
+        <item>욕설이나 비하</item>
+        <item>음란하거나 불쾌한 내용</item>
+        <item>광고나 도배</item>
+        <item>개인정보 노출</item>
+        <item>그 밖의 문제</item>
+    </string-array>
+
+    <string name="community_nickname_title">닉네임을 정해주세요</string>
+    <string name="community_nickname_desc">글과 댓글에는 닉네임이 보여요. 지도 후기와 같은 닉네임을 써요. 한글·영문·숫자·밑줄로 2~15자예요.</string>
+    <string name="community_nickname_submit">정하기</string>
+    <string name="community_nickname_set">닉네임을 정했어요.</string>
+
+    <string name="community_write_title">글쓰기</string>
+    <string name="community_edit_title">글 고치기</string>
+    <string name="community_title_hint">제목</string>
+    <string name="community_content_hint">내용</string>
+    <string name="community_title_required">제목을 입력해주세요.</string>
+    <string name="community_content_required">내용을 입력해주세요.</string>
+    <string name="community_pick_board">게시판을 골라주세요.</string>
+    <string name="community_anonymous">익명으로 올리기</string>
+    <string name="community_author">%1$s(으)로 올려요.</string>
+    <string name="community_author_none">처음 올릴 때 닉네임을 정해요.</string>
+    <string name="community_rules">서로 존중해주세요. 욕설·비하·개인정보가 담긴 글은 올라가지 않거나, 신고가 쌓이면 관리자가 확인할 때까지 숨겨져요. 모든 활동은 기록돼요.</string>
+    <string name="community_submit">올리기</string>
+    <string name="community_leave_confirm">쓰던 내용을 지우고 나갈까요?</string>
+    <string name="community_keep_writing">계속 쓰기</string>
+    <string name="community_leave">나가기</string>
+</resources>

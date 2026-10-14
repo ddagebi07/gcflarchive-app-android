@@ -65,6 +65,7 @@ object NativePages {
                 kr.co.gcflarchive.app.notice.NoticeDetailActivity.intent(context, it)
             }
             "/notice" -> kr.co.gcflarchive.app.notice.NoticeListActivity::class.java
+            "/community" -> kr.co.gcflarchive.app.community.CommunityActivity::class.java
             "/grade-calculator", "/grade-consent" -> kr.co.gcflarchive.app.grade.GradeActivity::class.java
             "/past-exams" -> kr.co.gcflarchive.app.library.PastExamsActivity::class.java
             "/documents" -> kr.co.gcflarchive.app.library.DocumentsActivity::class.java

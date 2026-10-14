@@ -40,11 +40,24 @@
             android:textAppearance="@style/TextAppearance.Krds.Meta" />
     </LinearLayout>
 
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnPreview"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:minWidth="0dp"
+        android:paddingHorizontal="10dp"
+        android:text="@string/attachment_preview"
+        android:textColor="@color/krds_primary_text"
+        android:visibility="gone" />
+
     <ImageView
+        android:id="@+id/downloadIcon"
         android:layout_width="20dp"
         android:layout_height="20dp"
         android:layout_marginStart="8dp"
-        android:importantForAccessibility="no"
+        android:contentDescription="@string/attachment_download"
         android:src="@drawable/ic_download"
         app:tint="@color/krds_primary_text" />
 </LinearLayout>

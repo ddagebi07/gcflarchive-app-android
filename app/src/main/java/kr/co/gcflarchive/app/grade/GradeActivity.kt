@@ -603,14 +603,7 @@ class GradeActivity : AppCompatActivity() {
         }
         for (s in prof.scores) {
             val v = ItemGradeScoreBinding.inflate(layoutInflater, binding.mineRows, false)
-            v.title.text = s.subject
-            val parts = mutableListOf(s.examName)
-            if (s.percentile != "-") parts += getString(R.string.grade_percentile, s.percentile)
-            GradeLogic.parseInstant(s.timestamp)?.let { parts += kst(it) }
-            v.meta.text = parts.joinToString(" · ")
-            v.score.text = getString(R.string.grade_score_value, s.score)
-            v.grade.isVisible = s.grade != null
-            s.grade?.let { styleGradeChip(v.grade, it) }
+            GradeViews.bindScore(v, s)
             binding.mineRows.addView(v.root)
         }
     }
@@ -746,17 +739,7 @@ class GradeActivity : AppCompatActivity() {
         }
     }
 
-    private fun styleGradeChip(view: TextView, grade: Int) {
-        view.text = getString(R.string.grade_n, grade)
-        val (bg, fg) = when {
-            grade <= 2 -> R.drawable.bg_krds_badge_info to R.color.krds_badge_info_fg
-            grade <= 4 -> R.drawable.bg_krds_badge_success to R.color.krds_badge_success_fg
-            grade <= 6 -> R.drawable.bg_krds_badge_neutral to R.color.krds_badge_neutral_fg
-            else -> R.drawable.bg_krds_badge_danger to R.color.krds_danger
-        }
-        view.setBackgroundResource(bg)
-        view.setTextColor(getColor(fg))
-    }
+    private fun styleGradeChip(view: TextView, grade: Int) = GradeViews.styleGradeChip(view, grade)
 
     private fun metaText(text: String) = TextView(this).apply {
         this.text = text

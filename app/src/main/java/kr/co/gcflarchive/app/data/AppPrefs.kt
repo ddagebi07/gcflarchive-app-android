@@ -28,6 +28,11 @@ class AppPrefs(context: Context) {
         get() = prefs.getString(KEY_LAST, null)
         set(value) = prefs.edit { putString(KEY_LAST, value) }
 
+    /** 앱을 열 때 생체 인증 (기본 꺼짐). */
+    var appLockEnabled: Boolean
+        get() = prefs.getBoolean(KEY_APP_LOCK, false)
+        set(value) = prefs.edit { putBoolean(KEY_APP_LOCK, value) }
+
     var onboardingShown: Boolean
         get() = prefs.getBoolean(KEY_ONBOARDING, false)
         set(value) = prefs.edit { putBoolean(KEY_ONBOARDING, value) }
@@ -39,5 +44,6 @@ class AppPrefs(context: Context) {
         const val KEY_KINDS = "meal_notify_kinds"
         const val KEY_LAST = "meal_last_notified"
         const val KEY_ONBOARDING = "onboarding_shown"
+        const val KEY_APP_LOCK = "app_lock_enabled"
     }
 }

@@ -12,8 +12,38 @@ import java.io.IOException
 
 data class Board(val code: String, val name: String, val postCount: Int)
 
-data class Attachment(val filename: String, val fileSize: Long, val downloadPath: String) {
+data class Attachment(
+    val filename: String,
+    val fileSize: Long,
+    val downloadPath: String,
+    /** pdf | image | text | hwp | none (미리보기를 지원하지 않는 형식). */
+    val previewKind: String = PreviewKinds.of(filename),
+    /** /api/archive/preview/<board>/<idx>/<file> — append /info, /page/N.png or /raw. */
+    val previewApi: String? = null,
+    /** /archive/preview/... web page (HWP is shown there with the site's viewer). */
+    val previewPage: String? = null,
+) {
     val downloadUrl: String get() = Config.url(downloadPath)
+    val canPreview: Boolean get() = previewKind != PreviewKinds.NONE && previewApi != null
+}
+
+/** Mirrors PREVIEW_KINDS in routes/archive_crawl.py. */
+object PreviewKinds {
+    const val PDF = "pdf"
+    const val IMAGE = "image"
+    const val TEXT = "text"
+    const val HWP = "hwp"
+    const val NONE = "none"
+
+    private val byExtension = mapOf(
+        "pdf" to PDF,
+        "png" to IMAGE, "jpg" to IMAGE, "jpeg" to IMAGE, "gif" to IMAGE, "webp" to IMAGE, "bmp" to IMAGE,
+        "txt" to TEXT, "csv" to TEXT, "md" to TEXT,
+        "hwp" to HWP, "hwpx" to HWP,
+    )
+
+    fun of(filename: String): String =
+        byExtension[filename.substringAfterLast('.', "").lowercase()] ?: NONE
 }
 
 data class PostSummary(
@@ -41,6 +71,8 @@ data class PostDetail(
     val postedAt: String,
     val contentHtml: String,
     val originalUrl: String?,
+    /** The archive's own link to this post (shared instead of the school site's URL). */
+    val shareUrl: String,
     val attachments: List<Attachment>,
     val prev: PostRef?,
     val next: PostRef?,
@@ -133,8 +165,20 @@ object ArchiveRepository {
             postedAt = json.optString("posted_at"),
             contentHtml = json.optStringOrNull("content_html") ?: json.optString("content_text"),
             originalUrl = json.optStringOrNull("original_url"),
+            shareUrl = json.optStringOrNull("share_url") ?: shareUrl(json.optString("board_code"), json.optString("idx")),
             attachments = (json.optJSONArray("attachments") ?: JSONArray()).objects().map {
-                Attachment(it.optString("filename"), it.optLong("file_size"), it.optString("download_url"))
+                val name = it.optString("filename")
+                val api = it.optStringOrNull("preview_api")
+                    ?: previewPath("/api/archive/preview", json.optString("board_code"), json.optString("idx"), name)
+                Attachment(
+                    filename = name,
+                    fileSize = it.optLong("file_size"),
+                    downloadPath = it.optString("download_url"),
+                    previewKind = it.optStringOrNull("preview_kind") ?: PreviewKinds.of(name),
+                    previewApi = api,
+                    previewPage = it.optStringOrNull("preview_url")
+                        ?: previewPath("/archive/preview", json.optString("board_code"), json.optString("idx"), name),
+                )
             }.filter { it.downloadPath.isNotBlank() },
             prev = ref("prev_post"),
             next = ref("next_post"),
@@ -169,6 +213,18 @@ object ArchiveRepository {
     }
 
     /** "2025-03-10 09:00:00" → "2025.03.10" */
+    /** Same link the website's 공유 button copies: /search?s=<board>:<idx>. */
+    fun shareUrl(boardCode: String, idx: String): String =
+        Config.url("/search?s=" + java.net.URLEncoder.encode("$boardCode:$idx", "UTF-8"))
+
+    private fun previewPath(prefix: String, boardCode: String, idx: String, filename: String): String? {
+        if (boardCode.isBlank() || idx.isBlank() || filename.isBlank()) return null
+        return "$prefix/${pathSegment(boardCode)}/${pathSegment(idx)}/${pathSegment(filename)}"
+    }
+
+    // Plain JVM encoding (android.net.Uri isn't available in unit tests).
+    private fun pathSegment(value: String) = java.net.URLEncoder.encode(value, "UTF-8").replace("+", "%20")
+
     fun displayDate(postedAt: String): String = postedAt.take(10).replace('-', '.')
 
     private fun JSONArray.objects(): List<JSONObject> = (0 until length()).mapNotNull { optJSONObject(it) }

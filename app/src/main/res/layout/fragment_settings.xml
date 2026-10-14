@@ -113,6 +113,39 @@
             android:paddingHorizontal="20dp"
             android:paddingTop="8dp"
             android:paddingBottom="4dp"
+            android:text="@string/settings_security_section"
+            android:textAppearance="@style/TextAppearance.Gcfl.Section" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switchAppLock"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="56dp"
+            android:paddingHorizontal="20dp"
+            android:text="@string/settings_app_lock"
+            android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+        <TextView
+            android:id="@+id/appLockDesc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="20dp"
+            android:paddingBottom="8dp"
+            android:text="@string/settings_app_lock_desc"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="@color/krds_text_secondary" />
+
+        <com.google.android.material.divider.MaterialDivider
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="20dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="4dp"
             android:text="@string/settings_account_section"
             android:textAppearance="@style/TextAppearance.Gcfl.Section" />
 

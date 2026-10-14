@@ -32,6 +32,8 @@ import kr.co.gcflarchive.app.databinding.FragmentSettingsBinding
 import kr.co.gcflarchive.app.meal.MealKind
 import kr.co.gcflarchive.app.meal.MealNotifier
 import kr.co.gcflarchive.app.meal.MealRepository
+import kr.co.gcflarchive.app.util.AppLock
+import kr.co.gcflarchive.app.util.Biometric
 import kr.co.gcflarchive.app.util.Links
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -73,6 +75,11 @@ class SettingsFragment : Fragment() {
                     .putExtra(Settings.EXTRA_APP_PACKAGE, requireContext().packageName),
             )
         }
+        binding.switchAppLock.setOnCheckedChangeListener { button, checked ->
+            if (checked == prefs.appLockEnabled) return@setOnCheckedChangeListener
+            button.isChecked = !checked // Only flips once the change is confirmed.
+            changeAppLock(checked)
+        }
         binding.rowLogin.setOnClickListener { startActivity(LoginActivity.intent(requireContext())) }
         binding.rowLogout.setOnClickListener { logout() }
         binding.rowWebsite.setOnClickListener { Links.openExternal(requireContext(), android.net.Uri.parse(Config.BASE_URL)) }
@@ -99,6 +106,7 @@ class SettingsFragment : Fragment() {
     private fun render() {
         val b = _binding ?: return
         b.switchMeal.isChecked = prefs.mealNotifyEnabled
+        b.switchAppLock.isChecked = prefs.appLockEnabled
         val minute = prefs.mealNotifyMinuteOfDay
         b.timeValue.text = String.format(Locale.ROOT, "%02d:%02d", minute / 60, minute % 60)
         b.kindValue.text = MealKind.label(prefs.mealNotifyKinds)
@@ -106,6 +114,22 @@ class SettingsFragment : Fragment() {
         b.rowKind.isEnabled = prefs.mealNotifyEnabled
         b.permissionWarning.visibility =
             if (prefs.mealNotifyEnabled && !MealNotifier.canPost(requireContext())) View.VISIBLE else View.GONE
+    }
+
+    /** Turning it on or off both need the device lock, so nobody else can switch it off. */
+    private fun changeAppLock(enable: Boolean) {
+        val activity = activity ?: return
+        if (!Biometric.isAvailable(activity)) {
+            Toast.makeText(activity, R.string.settings_app_lock_unavailable, Toast.LENGTH_LONG).show()
+            return
+        }
+        val title = getString(if (enable) R.string.settings_app_lock_on_title else R.string.settings_app_lock_off_title)
+        Biometric.authenticate(activity, title, null) {
+            prefs.appLockEnabled = enable
+            AppLock.markUnlocked()
+            Toast.makeText(activity, if (enable) R.string.settings_app_lock_on else R.string.settings_app_lock_off, Toast.LENGTH_SHORT).show()
+            render()
+        }
     }
 
     private fun ensurePermission() {

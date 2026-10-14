@@ -198,6 +198,15 @@
         <item name="startIconDrawable">@drawable/ic_search</item>
     </style>
 
+    <!-- .krds-select: one dropdown instead of a row of buttons -->
+    <style name="Widget.Krds.Dropdown" parent="Widget.Material3.TextInputLayout.OutlinedBox.Dense.ExposedDropdownMenu">
+        <item name="boxStrokeColor">@color/krds_primary_text</item>
+        <item name="boxCornerRadiusTopStart">8dp</item>
+        <item name="boxCornerRadiusTopEnd">8dp</item>
+        <item name="boxCornerRadiusBottomStart">8dp</item>
+        <item name="boxCornerRadiusBottomEnd">8dp</item>
+    </style>
+
     <!-- Detail sheet (KRDS modal → bottom sheet on phones) -->
     <style name="ThemeOverlay.Krds.BottomSheet" parent="ThemeOverlay.Material3.BottomSheetDialog">
         <item name="bottomSheetStyle">@style/Widget.Krds.BottomSheet</item>

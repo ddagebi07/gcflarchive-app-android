@@ -15,7 +15,7 @@ import kr.co.gcflarchive.app.ui.DriveFragment
 import kr.co.gcflarchive.app.ui.HomeFragment
 import kr.co.gcflarchive.app.ui.MealFragment
 import kr.co.gcflarchive.app.ui.SearchFragment
-import kr.co.gcflarchive.app.ui.SettingsFragment
+import kr.co.gcflarchive.app.ui.MoreFragment
 import kr.co.gcflarchive.app.util.Links
 
 class MainActivity : AppCompatActivity() {
@@ -89,7 +89,7 @@ class MainActivity : AppCompatActivity() {
         R.id.tab_search -> SearchFragment()
         R.id.tab_meal -> MealFragment()
         R.id.tab_drive -> DriveFragment()
-        R.id.tab_settings -> SettingsFragment()
+        R.id.tab_more -> MoreFragment()
         else -> HomeFragment()
     }
 
@@ -102,7 +102,7 @@ class MainActivity : AppCompatActivity() {
         TAB_SEARCH -> R.id.tab_search
         TAB_MEAL -> R.id.tab_meal
         TAB_DRIVE -> R.id.tab_drive
-        TAB_SETTINGS -> R.id.tab_settings
+        TAB_MORE, TAB_SETTINGS -> R.id.tab_more
         else -> null
     }
 
@@ -118,6 +118,8 @@ class MainActivity : AppCompatActivity() {
         const val TAB_SEARCH = "search"
         const val TAB_MEAL = "meal"
         const val TAB_DRIVE = "drive"
+        const val TAB_MORE = "more"
+        /** Older shortcuts / links: 설정 now lives under 더보기. */
         const val TAB_SETTINGS = "settings"
 
         fun intent(context: Context, tab: String): Intent =

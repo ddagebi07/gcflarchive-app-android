@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 공통 -->
+    <string name="close">닫기</string>
+    <string name="network_error">인터넷 연결이 불안정해요. 잠시 후 다시 시도해주세요.</string>
+    <string name="login_action">로그인하기</string>
+
+    <!-- 더보기 -->
+    <string name="tab_more">더보기</string>
+    <string name="more_section_community">소통</string>
+    <string name="more_community">커뮤니티</string>
+    <string name="more_section_study">공부</string>
+    <string name="more_my_scores">내 점수 기록</string>
+    <string name="more_section_school">학교생활</string>
+    <string name="more_section_app">앱</string>
+    <string name="more_website">웹사이트에서 보기</string>
+    <string name="more_version">앱 버전</string>
+
+    <!-- 설정 -->
+    <string name="settings_title">설정</string>
+    <string name="settings_security_section">보안</string>
+    <string name="settings_app_lock">앱을 열 때 생체 인증</string>
+    <string name="settings_app_lock_desc">앱을 열거나 1분 넘게 다른 앱을 쓰다 돌아오면 지문·얼굴이나 화면 잠금으로 확인해요.</string>
+    <string name="settings_app_lock_unavailable">기기에 지문이나 화면 잠금을 먼저 설정해주세요.</string>
+    <string name="settings_app_lock_on_title">앱 잠금을 켤까요?</string>
+    <string name="settings_app_lock_off_title">앱 잠금을 끌까요?</string>
+    <string name="settings_app_lock_on">앱 잠금을 켰어요.</string>
+    <string name="settings_app_lock_off">앱 잠금을 껐어요.</string>
+
+    <!-- 앱 잠금 -->
+    <string name="lock_title">앱이 잠겨 있어요</string>
+    <string name="lock_desc">지문·얼굴이나 화면 잠금으로 확인해주세요.</string>
+    <string name="lock_unlock">잠금 풀기</string>
+    <string name="lock_prompt_title">극플 아카이브 잠금 풀기</string>
+    <string name="lock_cancelled">잠금을 풀려면 다시 확인해주세요.</string>
+    <string name="biometric_unavailable">기기에 지문이나 화면 잠금을 먼저 설정해주세요.</string>
+
+    <!-- 내 점수 기록 -->
+    <string name="my_scores_title">내 점수 기록</string>
+    <string name="my_scores_desc">등급컷 계산기에 입력한 점수예요.</string>
+    <string name="my_scores_auth_title">내 점수 기록 보기</string>
+    <string name="my_scores_locked">본인인지 확인하면 점수를 볼 수 있어요.</string>
+    <string name="my_scores_unlock">확인하고 보기</string>
+    <string name="my_scores_no_device_lock">기기에 지문이나 화면 잠금을 설정하면 점수를 볼 수 있어요.</string>
+    <string name="my_scores_who_verified">학번 %1$s로 입력한 점수예요.</string>
+    <string name="my_scores_who_guest">익명(%1$s)으로 입력한 점수예요.</string>
+    <string name="my_scores_no_access">등급컷 계산기에서 로그인하거나 익명으로 시작하면 기록이 쌓여요.</string>
+    <string name="my_scores_empty">아직 입력한 점수가 없어요.</string>
+    <string name="my_scores_open_calculator">등급컷 계산기 열기</string>
+
+    <!-- 통합검색 첨부파일 -->
+    <string name="attachment_preview">미리보기</string>
+    <string name="attachment_preview_named">%1$s 미리보기</string>
+    <string name="attachment_download">내려받기</string>
+    <string name="preview_error">미리보기를 열지 못했어요. 내려받아서 확인해주세요.</string>
+</resources>
