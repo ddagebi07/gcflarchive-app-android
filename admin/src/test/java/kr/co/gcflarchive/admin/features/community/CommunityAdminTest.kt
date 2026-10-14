@@ -14,7 +14,7 @@ class CommunityAdminTest {
             "view_post", "create_post", "edit_post", "delete_post", "create_comment", "edit_comment", "delete_comment",
             "like_post", "unlike_post", "report", "auto_blind", "filter_blocked", "moderate_restore", "moderate_delete",
             "moderate_blind", "board_create", "board_update", "board_delete", "settings_update", "filter_add",
-            "filter_replace", "filter_remove",
+            "filter_replace", "filter_remove", "nickname_set", "nickname_change",
         )
         server.forEach { assertTrue(it, CommunityAdmin.actionLabel(it) != it) }
         assertEquals("unknown_action", CommunityAdmin.actionLabel("unknown_action"))
@@ -27,6 +27,7 @@ class CommunityAdminTest {
         assertFalse(CommunityAdmin.inGroup("write", "like_post"))
         assertTrue(CommunityAdmin.inGroup("safety", "auto_blind"))
         assertTrue(CommunityAdmin.inGroup("admin", "board_update"))
+        assertTrue(CommunityAdmin.inGroup("nickname", "nickname_change"))
     }
 
     @Test
@@ -37,6 +38,7 @@ class CommunityAdminTest {
             "제목: 안녕 · 금칙어: 바보, 멍청이",
             CommunityAdmin.detailLine(mapOf("title" to "안녕", "words" to "바보, 멍청이")),
         )
+        assertEquals("별빛 → 달빛", CommunityAdmin.detailLine(mapOf("before" to "별빛", "after" to "달빛")))
     }
 
     @Test

@@ -27,6 +27,14 @@
     <string name="settings_app_lock_on">앱 잠금을 켰어요.</string>
     <string name="settings_app_lock_off">앱 잠금을 껐어요.</string>
 
+    <!-- 닉네임 (지도 후기·커뮤니티 공통) -->
+    <string name="settings_nickname">닉네임</string>
+    <string name="settings_nickname_none">정하지 않음</string>
+    <string name="settings_nickname_change">닉네임 바꾸기</string>
+    <string name="settings_nickname_desc">지도 후기와 커뮤니티에 함께 보여요. 바꾸면 예전에 쓴 후기·글·댓글에도 새 닉네임이 보여요. %1$d일에 한 번 바꿀 수 있어요.</string>
+    <string name="settings_nickname_wait">닉네임은 %1$d일에 한 번 바꿀 수 있어요. %2$s부터 바꿀 수 있어요.</string>
+    <string name="settings_nickname_saved">닉네임을 \'%1$s\'(으)로 정했어요.</string>
+
     <!-- 앱 잠금 -->
     <string name="lock_title">앱이 잠겨 있어요</string>
     <string name="lock_desc">지문·얼굴이나 화면 잠금으로 확인해주세요.</string>

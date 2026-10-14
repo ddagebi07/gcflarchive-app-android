@@ -43,6 +43,8 @@ object CommunityAdmin {
         "filter_add" to "금칙어 추가",
         "filter_replace" to "금칙어 목록 바꿈",
         "filter_remove" to "금칙어 뺌",
+        "nickname_set" to "닉네임 정함",
+        "nickname_change" to "닉네임 바꿈",
     )
 
     fun actionLabel(action: String): String = ACTIONS[action] ?: action
@@ -53,6 +55,7 @@ object CommunityAdmin {
         Triple("write", "글·댓글", setOf("create_post", "edit_post", "delete_post", "create_comment", "edit_comment", "delete_comment")),
         Triple("react", "조회·추천", setOf("view_post", "like_post", "unlike_post")),
         Triple("safety", "신고·금칙어", setOf("report", "auto_blind", "filter_blocked")),
+        Triple("nickname", "닉네임", setOf("nickname_set", "nickname_change")),
         Triple("admin", "관리", setOf(
             "moderate_restore", "moderate_delete", "moderate_blind", "board_create", "board_update", "board_delete",
             "settings_update", "filter_add", "filter_replace", "filter_remove",
@@ -76,6 +79,9 @@ object CommunityAdmin {
         detail["words"]?.takeIf { it.isNotBlank() }?.let { parts += "금칙어: $it" }
         detail["reason"]?.takeIf { it.isNotBlank() }?.let { parts += "사유: $it" }
         detail["reportCount"]?.takeIf { it.isNotBlank() }?.let { parts += "신고 ${it}번" }
+        detail["after"]?.takeIf { it.isNotBlank() && !it.startsWith("{") }?.let { after ->
+            parts += detail["before"]?.takeIf { it.isNotBlank() }?.let { "$it → $after" } ?: after
+        }
         return parts.joinToString(" · ")
     }
 

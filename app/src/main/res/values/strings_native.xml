@@ -206,7 +206,7 @@
     <string name="map_review_posted">후기를 올렸어요.</string>
     <string name="map_login_needed">로그인하면 %1$s 기능을 쓸 수 있어요.</string>
     <string name="map_nickname_title">닉네임을 정해주세요</string>
-    <string name="map_nickname_desc">후기에 보일 닉네임이에요. 한글·영문·숫자·밑줄로 2~15자예요. 익명으로 올릴 때도 닉네임은 정해야 해요.</string>
+    <string name="map_nickname_desc">후기에 보일 닉네임이에요. 커뮤니티에서도 같은 닉네임을 쓰고, 나중에 더보기 › 설정에서 바꿀 수 있어요. 한글·영문·숫자·밑줄로 2~15자예요.</string>
     <string name="map_nickname_hint">닉네임</string>
     <string name="map_nickname_set">닉네임을 \'%1$s\'(으)로 정했어요.</string>
     <string name="map_nickname_submit">정하기</string>

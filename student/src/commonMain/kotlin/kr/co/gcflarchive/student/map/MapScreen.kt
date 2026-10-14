@@ -478,7 +478,7 @@ private fun NicknameDialog(app: AppState, onDismiss: () -> Unit, onDone: (String
         title = { Text("최초 사용 닉네임 설정") },
         text = {
             Column {
-                Text("후기 등록 시 사용할 닉네임을 설정해주세요. 한글·영문·숫자·밑줄, 2~15자.", style = KrdsText.meta)
+                Text("후기에 보일 닉네임이에요. 커뮤니티에서도 같은 닉네임을 쓰고, 나중에 더보기 › 설정에서 바꿀 수 있어요. 한글·영문·숫자·밑줄로 2~15자예요.", style = KrdsText.meta)
                 OutlinedTextField(name, { name = it; error = null }, Modifier.padding(top = 10.dp), singleLine = true, label = { Text("닉네임") },
                     isError = error != null, supportingText = { error?.let { Text(it) } })
             }

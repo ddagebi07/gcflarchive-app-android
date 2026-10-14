@@ -44,7 +44,7 @@
     </string-array>
 
     <string name="community_nickname_title">닉네임을 정해주세요</string>
-    <string name="community_nickname_desc">글과 댓글에는 닉네임이 보여요. 지도 후기와 같은 닉네임을 써요. 한글·영문·숫자·밑줄로 2~15자예요.</string>
+    <string name="community_nickname_desc">글과 댓글에는 닉네임이 보여요. 지도 후기와 같은 닉네임을 쓰고, 나중에 더보기 › 설정에서 바꿀 수 있어요. 한글·영문·숫자·밑줄로 2~15자예요.</string>
     <string name="community_nickname_submit">정하기</string>
     <string name="community_nickname_set">닉네임을 정했어요.</string>
 

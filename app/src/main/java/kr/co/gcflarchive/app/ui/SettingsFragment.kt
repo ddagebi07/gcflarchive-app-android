@@ -28,7 +28,13 @@ import kr.co.gcflarchive.app.data.AppPrefs
 import kr.co.gcflarchive.app.data.Http
 import kr.co.gcflarchive.app.data.LoginState
 import kr.co.gcflarchive.app.data.SiteSession
+import kr.co.gcflarchive.app.databinding.DialogInputBinding
 import kr.co.gcflarchive.app.databinding.FragmentSettingsBinding
+import kr.co.gcflarchive.app.map.MapLogic
+import kr.co.gcflarchive.app.map.MapRepository
+import kr.co.gcflarchive.app.map.NicknameStatus
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import android.text.InputType
 import kr.co.gcflarchive.app.meal.MealKind
 import kr.co.gcflarchive.app.meal.MealNotifier
 import kr.co.gcflarchive.app.meal.MealRepository
@@ -43,6 +49,7 @@ class SettingsFragment : Fragment() {
     private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
     private lateinit var prefs: AppPrefs
+    private var nickname: NicknameStatus? = null
 
     private val notificationPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (!granted) {
@@ -80,6 +87,7 @@ class SettingsFragment : Fragment() {
             button.isChecked = !checked // Only flips once the change is confirmed.
             changeAppLock(checked)
         }
+        binding.rowNickname.setOnClickListener { editNickname() }
         binding.rowLogin.setOnClickListener { startActivity(LoginActivity.intent(requireContext())) }
         binding.rowLogout.setOnClickListener { logout() }
         binding.rowWebsite.setOnClickListener { Links.openExternal(requireContext(), android.net.Uri.parse(Config.BASE_URL)) }
@@ -100,6 +108,11 @@ class SettingsFragment : Fragment() {
             val b = _binding ?: return@launch
             b.rowLogin.isVisible = state !is LoginState.LoggedIn
             b.rowLogout.isVisible = state != LoginState.LoggedOut
+            b.rowNickname.isVisible = state is LoginState.LoggedIn
+            if (state is LoginState.LoggedIn) {
+                nickname = runCatching { MapRepository.nickname() }.getOrNull()
+                _binding?.nicknameValue?.text = nickname?.nickname?.ifBlank { null } ?: getString(R.string.settings_nickname_none)
+            }
         }
     }
 
@@ -131,6 +144,53 @@ class SettingsFragment : Fragment() {
             render()
         }
     }
+
+    /** 지도 후기와 커뮤니티에 함께 쓰는 닉네임. 바꾸면 예전 후기·글·댓글에도 새 이름이 보여요. */
+    private fun editNickname() {
+        val ctx = context ?: return
+        val status = nickname
+        val field = DialogInputBinding.inflate(layoutInflater)
+        field.inputLayout.hint = getString(R.string.map_nickname_hint)
+        field.input.inputType = InputType.TYPE_CLASS_TEXT
+        field.input.setText(status?.nickname.orEmpty())
+        field.input.setSelection(field.input.text?.length ?: 0)
+        val locked = status != null && status.nickname.isNotBlank() && !status.canChange
+        val message = when {
+            locked -> getString(R.string.settings_nickname_wait, status!!.changeDays, nextChangeLabel(status.nextChangeAt))
+            else -> getString(R.string.settings_nickname_desc, status?.changeDays ?: 7)
+        }
+        field.input.isEnabled = !locked
+        val dialog = MaterialAlertDialogBuilder(ctx)
+            .setTitle(if (status?.nickname.isNullOrBlank()) R.string.community_nickname_title else R.string.settings_nickname_change)
+            .setMessage(message)
+            .setView(field.root)
+            .setNegativeButton(R.string.close, null)
+            .apply { if (!locked) setPositiveButton(R.string.community_save, null) }
+            .show()
+        if (locked) return
+        dialog.getButton(android.content.DialogInterface.BUTTON_POSITIVE).setOnClickListener {
+            val name = field.input.text?.toString().orEmpty().trim()
+            MapLogic.nicknameError(name)?.let {
+                field.inputLayout.error = it
+                return@setOnClickListener
+            }
+            viewLifecycleOwner.lifecycleScope.launch {
+                runCatching { MapRepository.setNickname(name) }
+                    .onSuccess {
+                        dialog.dismiss()
+                        Toast.makeText(ctx, getString(R.string.settings_nickname_saved, name), Toast.LENGTH_SHORT).show()
+                        renderAccount()
+                    }
+                    .onFailure { e -> if (e is kotlinx.coroutines.CancellationException) throw e else field.inputLayout.error = e.message }
+            }
+        }
+    }
+
+    /** "10월 21일 17:05" in Korean time, or the raw value. */
+    private fun nextChangeLabel(iso: String): String = runCatching {
+        java.time.Instant.parse(iso).atZone(java.time.ZoneId.of("Asia/Seoul"))
+            .format(java.time.format.DateTimeFormatter.ofPattern("M월 d일 HH:mm"))
+    }.getOrDefault(iso)
 
     private fun ensurePermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !MealNotifier.canPost(requireContext())) {

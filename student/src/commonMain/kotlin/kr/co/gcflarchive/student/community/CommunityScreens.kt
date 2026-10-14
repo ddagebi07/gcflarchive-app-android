@@ -472,7 +472,7 @@ private fun NicknameDialog(app: AppState, onDismiss: () -> Unit, onDone: () -> U
         title = { Text("닉네임을 정해주세요") },
         text = {
             Column {
-                Text("글과 댓글에는 닉네임이 보여요. 지도 후기와 같은 닉네임을 써요. 한글·영문·숫자·밑줄로 2~15자예요.", style = KrdsText.meta)
+                Text("글과 댓글에는 닉네임이 보여요. 지도 후기와 같은 닉네임을 쓰고, 나중에 더보기 › 설정에서 바꿀 수 있어요. 한글·영문·숫자·밑줄로 2~15자예요.", style = KrdsText.meta)
                 OutlinedTextField(name, { name = it; error = null }, singleLine = true, isError = error != null, modifier = Modifier.padding(top = 12.dp))
                 error?.let { Text(it, style = KrdsText.meta.copy(color = Krds.colors.danger), modifier = Modifier.padding(top = 4.dp)) }
             }

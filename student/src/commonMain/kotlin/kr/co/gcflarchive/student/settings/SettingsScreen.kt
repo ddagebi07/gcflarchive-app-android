@@ -21,6 +21,11 @@ import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import kotlinx.datetime.toLocalDateTime
+import kr.co.gcflarchive.core.map.NicknameStatus
+import kr.co.gcflarchive.core.map.MapLogic
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberTimePickerState
@@ -70,6 +75,11 @@ fun SettingsScreen() {
     var pickTime by remember { mutableStateOf(false) }
     var pickKind by remember { mutableStateOf(false) }
     var lockMessage by remember { mutableStateOf<String?>(null) }
+    var nickname by remember { mutableStateOf<NicknameStatus?>(null) }
+    var editNickname by remember { mutableStateOf(false) }
+    LaunchedEffect(app.login) {
+        nickname = if (app.login is LoginState.LoggedIn) runCatching { app.services.map.nickname() }.getOrNull() else null
+    }
 
     fun changed() {
         version++
@@ -87,6 +97,9 @@ fun SettingsScreen() {
                 when (val s = app.login) {
                     is LoginState.LoggedIn -> {
                         SettingRow("로그인됨", s.userId)
+                        Hairline()
+                        // 지도 후기와 커뮤니티가 함께 쓰는 닉네임.
+                        SettingRow("닉네임", nickname?.nickname?.ifBlank { null } ?: "정하지 않음", onClick = { editNickname = true })
                         Hairline()
                         SettingRow("로그아웃하기", danger = true, onClick = { app.logout() })
                     }
@@ -166,6 +179,13 @@ fun SettingsScreen() {
         }
     }
 
+    if (editNickname) {
+        NicknameEditor(nickname, onDismiss = { editNickname = false }) { saved ->
+            editNickname = false
+            nickname = nickname?.copy(nickname = saved, canChange = false) ?: NicknameStatus(saved, false, "", 7)
+            app.toast("닉네임을 '$saved'(으)로 정했어요.")
+        }
+    }
     if (pickTime) {
         val state = rememberTimePickerState(prefs.mealNotifyMinuteOfDay / 60, prefs.mealNotifyMinuteOfDay % 60, is24Hour = true)
         AlertDialog(
@@ -240,3 +260,59 @@ private fun SettingRow(title: String, value: String? = null, enabled: Boolean = 
         if (value != null) Text(value, style = KrdsText.meta.copy(color = if (enabled) Krds.colors.textSecondary else Krds.colors.textDisabled))
     }
 }
+
+/** 닉네임 정하기·바꾸기: 지도 후기와 커뮤니티에 함께 보이고, 바꾸면 예전 후기·글·댓글에도 새 이름이 보여요. */
+@Composable
+private fun NicknameEditor(status: NicknameStatus?, onDismiss: () -> Unit, onSaved: (String) -> Unit) {
+    val app = LocalApp.current
+    val scope = rememberCoroutineScope()
+    var name by remember { mutableStateOf(status?.nickname.orEmpty()) }
+    var error by remember { mutableStateOf<String?>(null) }
+    var saving by remember { mutableStateOf(false) }
+    val days = status?.changeDays ?: 7
+    val locked = status != null && status.nickname.isNotBlank() && !status.canChange
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(if (status?.nickname.isNullOrBlank()) "닉네임을 정해주세요" else "닉네임 바꾸기") },
+        text = {
+            Column {
+                Text(
+                    if (locked) "닉네임은 ${days}일에 한 번 바꿀 수 있어요. ${nextChangeLabel(status!!.nextChangeAt)}부터 바꿀 수 있어요."
+                    else "지도 후기와 커뮤니티에 함께 보여요. 바꾸면 예전에 쓴 후기·글·댓글에도 새 닉네임이 보여요. ${days}일에 한 번 바꿀 수 있어요.",
+                    style = KrdsText.meta,
+                )
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it; error = null },
+                    enabled = !locked,
+                    singleLine = true,
+                    isError = error != null,
+                    label = { Text("닉네임") },
+                    modifier = Modifier.padding(top = 12.dp),
+                )
+                error?.let { Text(it, style = KrdsText.meta.copy(color = Krds.colors.danger), modifier = Modifier.padding(top = 4.dp)) }
+            }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("닫기") } },
+        confirmButton = {
+            if (!locked) TextButton(enabled = !saving, onClick = {
+                val n = name.trim()
+                error = MapLogic.nicknameError(n)
+                if (error != null) return@TextButton
+                saving = true
+                scope.launch {
+                    runCatching { app.services.map.setNickname(n) }
+                        .onSuccess { onSaved(n) }
+                        .onFailure { error = it.message ?: "닉네임을 저장하지 못했어요. 잠시 후 다시 시도해주세요." }
+                    saving = false
+                }
+            }) { Text("저장하기") }
+        },
+    )
+}
+
+/** "10월 21일 17:05" in Korean time, or the raw value. */
+private fun nextChangeLabel(iso: String): String = runCatching {
+    val t = kotlinx.datetime.Instant.parse(iso).toLocalDateTime(kotlinx.datetime.TimeZone.of("Asia/Seoul"))
+    "${t.monthNumber}월 ${t.dayOfMonth}일 ${t.hour.toString().padStart(2, '0')}:${t.minute.toString().padStart(2, '0')}"
+}.getOrDefault(iso)
