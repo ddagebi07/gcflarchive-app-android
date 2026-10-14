@@ -49,7 +49,7 @@ enum class ArchiveLink(val path: String, val titleRes: Int, val iconRes: Int) {
  */
 object NativePages {
     fun intentFor(context: android.content.Context, pathWithQuery: String): android.content.Intent? {
-        val uri = Uri.parse(BASE_URL + pathWithQuery)
+        val uri = Uri.parse(Config.BASE_URL + pathWithQuery)
         val path = (uri.path ?: "/").removeSuffix(".html").trimEnd('/').ifEmpty { "/" }
         fun tab(name: String) = kr.co.gcflarchive.app.MainActivity.intent(context, name)
         val cls = when (path) {

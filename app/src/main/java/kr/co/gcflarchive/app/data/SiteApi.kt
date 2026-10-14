@@ -80,7 +80,7 @@ object SiteApi {
         }
     }
 
-    private fun syncCookies(res: Response) {
+    private fun syncCookies(res: okhttp3.Response) {
         if (!Config.isOwnHost(android.net.Uri.parse(res.request.url.toString()))) return
         val headers = res.headers("Set-Cookie")
         if (headers.isEmpty()) return

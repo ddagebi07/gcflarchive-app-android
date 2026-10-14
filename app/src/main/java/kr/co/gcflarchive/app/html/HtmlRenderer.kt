@@ -55,6 +55,7 @@ object HtmlRenderer {
         setTextColor(ctx.getColor(R.color.krds_text_primary))
         setLinkTextColor(ctx.getColor(R.color.krds_primary_text))
         movementMethod = LinkMovementMethod.getInstance()
+        @Suppress("WrongConstant")
         breakStrategy = android.text.Layout.BREAK_STRATEGY_HIGH_QUALITY
     }
 
