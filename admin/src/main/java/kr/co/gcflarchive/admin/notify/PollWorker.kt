@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit
 /**
  * Admin alerts without a push server: every 15 minutes (WorkManager's minimum) the
  * worker compares the current state with the last snapshot and notifies on changes:
- * 자동 IP 차단, 지도 요청·리뷰 접수, 점검 모드 변경, 관리자 계정 변경. The first run only
+ * 자동 IP 차단, 지도 요청·리뷰 접수, 커뮤니티 신고 블라인드, 점검 모드 변경, 관리자 계정 변경. The first run only
  * records a baseline. (Real FCM push needs a Firebase project + server endpoints.)
  */
 class PollWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
@@ -77,6 +77,20 @@ class PollWorker(context: Context, params: WorkerParameters) : CoroutineWorker(c
                 diff("map_reviews", reviews.map { it.str("reviewId") }.toSet()) { new ->
                     if (prefs.notifyEnabled(NotifyKind.MAP_REQUEST)) {
                         AdminNotifier.post(ctx, NotifyKind.MAP_REQUEST, 103, ctx.getString(R.string.notify_review_title, new.size), ctx.getString(R.string.notify_review_text), Route.MAP_REVIEWS.key)
+                    }
+                }
+            }
+        }
+
+        // 커뮤니티: 신고 누적으로 숨겨진 글·댓글
+        if (g.has(Permission.COMMUNITY)) {
+            json("/api/community/admin/reports")?.let { j ->
+                val blinded = j.optJSONArray("items").objects()
+                    .filter { it.str("status") == "blinded" }
+                    .map { it.str("targetType") + ":" + it.optInt("targetId") }
+                diff("community_blinded", blinded.toSet()) { new ->
+                    if (prefs.notifyEnabled(NotifyKind.COMMUNITY_REPORT)) {
+                        AdminNotifier.post(ctx, NotifyKind.COMMUNITY_REPORT, 106, ctx.getString(R.string.notify_community_title, new.size), ctx.getString(R.string.notify_community_text), Route.COMMUNITY_REPORTS.key)
                     }
                 }
             }

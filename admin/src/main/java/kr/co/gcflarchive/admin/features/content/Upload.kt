@@ -85,7 +85,7 @@ object Upload {
     private fun uriBody(context: Context, uri: Uri): RequestBody = object : RequestBody() {
         override fun contentType() = "application/pdf".toMediaType()
         override fun writeTo(sink: BufferedSink) {
-            val input = context.contentResolver.openInputStream(uri) ?: throw IOException("파일을 열 수 없습니다.")
+            val input = context.contentResolver.openInputStream(uri) ?: throw IOException("파일을 열지 못했어요. 다른 파일을 골라주세요.")
             input.source().use { sink.writeAll(it) }
         }
     }

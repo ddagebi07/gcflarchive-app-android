@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 신고 검토 -->
+    <string name="community_reports_search">제목·내용·글쓴이로 찾기</string>
+    <string name="community_reports_empty">검토할 신고가 없어요.</string>
+    <string name="community_reports_summary">검토할 글·댓글 %1$d개 · 숨겨진 것 %2$d개</string>
+    <string name="community_no_title">(내용 없음)</string>
+    <string name="community_comment_on">\'%1$s\'에 단 댓글</string>
+    <string name="community_report_count">신고 %1$d번</string>
+    <string name="community_kind_post">글</string>
+    <string name="community_kind_comment">댓글</string>
+    <string name="community_status_blinded">숨겨짐</string>
+    <string name="community_status_visible">보이는 중</string>
+    <string name="community_reason_none">사유 없음</string>
+    <string name="community_reason_manual">관리자가 직접 숨겼어요.</string>
+    <string name="community_review_desc">글쓴이 %1$s (%2$s)</string>
+    <string name="community_reasons">신고 사유\n%1$s</string>
+    <string name="community_action">처리 방법</string>
+    <string name="community_action_restore">다시 보이기 (신고 정리)</string>
+    <string name="community_action_blind">숨기기</string>
+    <string name="community_action_delete">지우기</string>
+    <string name="community_moderate_note">메모 (선택)</string>
+    <string name="community_moderate_note_hint">활동 기록에 함께 남아요.</string>
+    <string name="community_moderate_submit">처리하기</string>
+
+    <!-- 게시판 -->
+    <string name="community_boards_empty">게시판이 없어요. 아래 버튼으로 만들어주세요.</string>
+    <string name="community_boards_summary">게시판 %1$d개</string>
+    <string name="community_board_meta">읽기 %1$s · 쓰기 %2$s · 글 %3$d개</string>
+    <string name="community_board_paused">운영 중지</string>
+    <string name="community_board_anonymous">익명 허용</string>
+    <string name="community_board_add">게시판 만들기</string>
+    <string name="community_board_add_desc">주소는 만든 뒤에 바꿀 수 없어요.</string>
+    <string name="community_board_edit">게시판 고치기</string>
+    <string name="community_board_id">주소</string>
+    <string name="community_board_id_hint">영문 소문자·숫자·-·_로 2~40자 (예: club)</string>
+    <string name="community_board_name">이름</string>
+    <string name="community_board_desc">설명</string>
+    <string name="community_board_read">읽을 수 있는 사람</string>
+    <string name="community_board_write">글을 쓸 수 있는 사람</string>
+    <string name="community_board_order">순서 (작을수록 위)</string>
+    <string name="community_board_allow_anonymous">익명 글쓰기 허용</string>
+    <string name="community_board_allow_anonymous_desc">운영 설정에서 익명 글쓰기를 켜야 실제로 보여요.</string>
+    <string name="community_board_active">운영 중</string>
+    <string name="community_board_active_desc">끄면 목록에서 숨기고 글을 쓸 수 없어요. 글은 지우지 않아요.</string>
+    <string name="community_board_create">만들기</string>
+    <string name="community_board_delete_title">\'%1$s\' 게시판을 지울까요?</string>
+    <string name="community_board_delete_desc">게시판을 지우면 글 %1$d개가 더 이상 보이지 않아요. 글과 활동 기록은 서버에 남아요. 잠시 멈추려면 \'운영 중\'을 꺼주세요.</string>
+
+    <!-- 금칙어 -->
+    <string name="community_filter_search">금칙어 찾기</string>
+    <string name="community_filter_empty">등록한 금칙어가 없어요.</string>
+    <string name="community_filter_summary">금칙어 %1$d개 · 띄어쓰기와 기호는 무시하고 찾아요</string>
+    <string name="community_filter_add">금칙어 추가하기</string>
+    <string name="community_filter_add_desc">쉼표나 줄바꿈으로 여러 개를 한 번에 넣을 수 있어요.</string>
+    <string name="community_filter_words">금칙어</string>
+    <string name="community_filter_add_submit">추가하기</string>
+    <string name="community_filter_delete_title">금칙어 %1$d개를 지울까요?</string>
+
+    <!-- 운영 설정 -->
+    <string name="community_setting_threshold">신고 몇 번이면 숨길까요</string>
+    <string name="community_setting_threshold_desc">이만큼 신고가 쌓인 글·댓글은 관리자가 검토할 때까지 숨겨요. 0이면 자동으로 숨기지 않아요.</string>
+    <string name="community_setting_threshold_unit">신고 횟수</string>
+    <string name="community_setting_anonymous">익명 글쓰기</string>
+    <string name="community_setting_anonymous_desc">켜면 \'익명 허용\'인 게시판에서 익명으로 올릴 수 있어요. 활동 기록에는 실제 글쓴이가 남아요.</string>
+    <string name="community_setting_interval">연달아 글쓰기 간격</string>
+    <string name="community_setting_interval_desc">같은 사람이 이 시간 안에 글을 또 올릴 수 없어요. 도배를 막아요.</string>
+    <string name="community_setting_interval_unit">초</string>
+    <string name="community_setting_off">사용 안 함</string>
+    <string name="community_setting_times">%1$d번</string>
+    <string name="community_setting_seconds">%1$d초</string>
+    <string name="community_setting_saved">설정을 저장했어요.</string>
+
+    <!-- 활동 기록 -->
+    <string name="community_logs_search">이름·학번·내용으로 찾기</string>
+    <string name="community_logs_empty">기록이 없어요.</string>
+    <string name="community_logs_summary">최근 기록 %1$d건</string>
+    <string name="community_logs_system">자동 처리</string>
+    <string name="community_logs_post">글 %1$s</string>
+    <string name="community_logs_comment">댓글 %1$s</string>
+    <string name="community_logs_badge_moderation">관리</string>
+    <string name="community_logs_badge_safety">신고·금칙어</string>
+
+    <!-- 알림 -->
+    <string name="notify_community_title">숨겨진 글·댓글 %1$d개</string>
+    <string name="notify_community_text">신고가 쌓여 숨겨졌어요. 검토해주세요.</string>
+</resources>

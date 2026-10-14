@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit
 
 class AuthException(message: String) : IOException(message)
 class ApiError(val code: Int, message: String) : IOException(message)
-class OfflineException : IOException("오프라인 상태에서는 변경할 수 없습니다.")
+class OfflineException : IOException("오프라인이라 바꿀 수 없어요. 연결되면 다시 시도해주세요.")
 
 /** A GET result, possibly served from the offline cache. */
 data class Fetched(val body: String, val fromCache: Boolean, val cachedAt: Long = 0) {
@@ -141,7 +141,7 @@ class AdminApi private constructor(private val context: Context) {
     suspend fun bytes(path: String, body: JSONObject? = null): ByteArray = withContext(Dispatchers.IO) {
         val req = request(path).apply { if (body != null) post(body.toString().toRequestBody(JSON)) }.build()
         client.newCall(req).execute().use { res ->
-            if (res.code == 401 || res.code == 403) throw AuthException(errorOf(res.body?.string().orEmpty()) ?: "권한이 없습니다.")
+            if (res.code == 401 || res.code == 403) throw AuthException(errorOf(res.body?.string().orEmpty()) ?: "권한이 없어요. 권한이 있는 계정으로 로그인해주세요.")
             if (!res.isSuccessful) throw ApiError(res.code, errorOf(res.body?.string().orEmpty()) ?: "HTTP ${res.code}")
             res.body?.bytes() ?: ByteArray(0)
         }
@@ -159,7 +159,7 @@ class AdminApi private constructor(private val context: Context) {
     private fun execute(req: Request): String = client.newCall(req).execute().use { res ->
         val text = res.body?.string().orEmpty()
         when {
-            res.code == 401 || res.code == 403 -> throw AuthException(errorOf(text) ?: "권한이 없습니다.")
+            res.code == 401 || res.code == 403 -> throw AuthException(errorOf(text) ?: "권한이 없어요. 권한이 있는 계정으로 로그인해주세요.")
             !res.isSuccessful -> throw ApiError(res.code, errorOf(text) ?: "HTTP ${res.code}")
         }
         text

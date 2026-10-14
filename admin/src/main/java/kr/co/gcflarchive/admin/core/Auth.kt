@@ -13,7 +13,7 @@ object Auth {
             AdminApi.get(context).get("/api/admins", cache = false)
         } catch (e: Exception) {
             session.signOut()
-            throw if (e is AuthException) AuthException("마스터 키가 올바르지 않습니다.") else e
+            throw if (e is AuthException) AuthException("마스터 키가 맞지 않아요. 다시 확인해주세요.") else e
         }
     }
 
@@ -27,7 +27,7 @@ object Auth {
         )
         val scopes = fetchScopes(context) ?: run {
             logoutServer(context)
-            throw AuthException("관리자 권한이 없는 계정입니다.")
+            throw AuthException("관리자 권한이 없는 계정이에요.")
         }
         AdminSession.get(context).signInHakbun(hakbun, scopes)
     }

@@ -92,12 +92,12 @@ object ExamPolicyCodec {
 
     /** null when the rule is acceptable, else the reason. */
     fun validateRule(r: SubjectRule): String? {
-        if (r.subjects.isEmpty()) return "과목을 하나 이상 입력해 주세요."
+        if (r.subjects.isEmpty()) return "과목을 하나 이상 입력해주세요."
         val start = r.classStart.ifBlank { null }?.toIntOrNull()
         val end = r.classEnd.ifBlank { null }?.toIntOrNull()
-        if (r.classStart.isNotBlank() && (start == null || start !in 1..30)) return "시작 반은 1~30 사이 숫자여야 합니다."
-        if (r.classEnd.isNotBlank() && (end == null || end !in 1..30)) return "끝 반은 1~30 사이 숫자여야 합니다."
-        if (start != null && end != null && start > end) return "시작 반이 끝 반보다 클 수 없습니다."
+        if (r.classStart.isNotBlank() && (start == null || start !in 1..30)) return "시작 반은 1부터 30까지 숫자로 입력해주세요."
+        if (r.classEnd.isNotBlank() && (end == null || end !in 1..30)) return "끝 반은 1부터 30까지 숫자로 입력해주세요."
+        if (start != null && end != null && start > end) return "시작 반을 끝 반보다 작거나 같게 입력해주세요."
         return null
     }
 
@@ -106,15 +106,15 @@ object ExamPolicyCodec {
      * (the server silently drops duplicates, which would lose the admin's edit).
      */
     fun validateGroup(groups: List<SelectionGroup>, index: Int?, g: SelectionGroup): String? {
-        if (g.subjects.size < 2) return "선택과목 묶음에는 과목이 2개 이상 필요합니다."
+        if (g.subjects.size < 2) return "선택과목 묶음에는 과목을 2개 이상 넣어주세요."
         val others = groups.filterIndexed { i, _ -> i != index }.flatMap { it.subjects }.toSet()
         val dup = g.subjects.filter { it in others }
-        if (dup.isNotEmpty()) return "다른 묶음에 이미 있는 과목입니다: ${dup.joinToString(", ")}"
+        if (dup.isNotEmpty()) return "다른 묶음에 이미 있는 과목이에요: ${dup.joinToString(", ")}"
         return null
     }
 
     fun validateCounts(questions: Int, descriptive: Int): String? =
-        if (descriptive > questions) "서술형 문항 수는 전체 문항 수보다 많을 수 없습니다." else null
+        if (descriptive > questions) "서술형 문항 수는 전체 문항 수보다 적게 입력해주세요." else null
 
     /** Moves the rule at [from] to [to] (rules are matched top to bottom). */
     fun <T> move(list: List<T>, from: Int, to: Int): List<T> {
@@ -152,16 +152,16 @@ object ManualCutoffs {
         scores.forEachIndexed { i, raw ->
             val grade = i + 1
             val score = if (raw.isEmpty()) null else raw.toDoubleOrNull()
-                ?: return Result.failure(IllegalArgumentException("${grade}등급 점수를 숫자로 입력해 주세요."))
+                ?: return Result.failure(IllegalArgumentException("${grade}등급 점수를 숫자로 입력해주세요."))
             if (score != null) {
-                if (score < 0 || score > 100) return Result.failure(IllegalArgumentException("${grade}등급 점수는 0~100 사이여야 합니다."))
-                if (prev != null && score > prev!!) return Result.failure(IllegalArgumentException("${grade}등급 컷이 위 등급보다 높습니다."))
+                if (score < 0 || score > 100) return Result.failure(IllegalArgumentException("${grade}등급 점수는 0부터 100까지 입력해주세요."))
+                if (prev != null && score > prev!!) return Result.failure(IllegalArgumentException("${grade}등급 컷을 위 등급보다 같거나 낮게 입력해주세요."))
                 prev = score
             }
             rows.put(JSONObject().put("grade", grade.toString()).put("grade_level", level).put("cutoff_score", score ?: JSONObject.NULL))
         }
         if ((0 until rows.length()).all { rows.getJSONObject(it).isNull("cutoff_score") }) {
-            return Result.failure(IllegalArgumentException("적어도 한 등급의 컷 점수를 입력해 주세요."))
+            return Result.failure(IllegalArgumentException("한 등급 이상 컷 점수를 입력해주세요."))
         }
         return Result.success(rows)
     }

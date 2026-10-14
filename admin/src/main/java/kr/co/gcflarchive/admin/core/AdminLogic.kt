@@ -22,11 +22,11 @@ object AnswerGrid {
                 ch in "123456789?" -> { out += ch.toString(); i++ }
                 ch == '(' -> {
                     val end = src.indexOf(')', i + 1)
-                    require(end > 0) { "괄호가 닫히지 않았습니다." }
+                    require(end > 0) { "괄호를 닫아주세요." }
                     out += src.substring(i + 1, end).filter { it in "123456789" }.toSet().sorted().joinToString("")
                     i = end + 1
                 }
-                else -> throw IllegalArgumentException("사용할 수 없는 문자입니다: '$ch'")
+                else -> throw IllegalArgumentException("쓸 수 없는 문자예요: '$ch'")
             }
         }
         return (out + List((QUESTIONS - out.size).coerceAtLeast(0)) { "" }).take(QUESTIONS)

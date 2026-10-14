@@ -74,7 +74,7 @@ class GradePolicyModelTest {
         assertEquals(90.5, ok.getJSONObject(1).getDouble("cutoff_score"), 0.0)
         assertTrue(ok.getJSONObject(2).isNull("cutoff_score"))
         assertEquals("3", ok.getJSONObject(0).getString("grade_level"))
-        assertEquals("2등급 컷이 위 등급보다 높습니다.", ManualCutoffs.build("1", listOf("80", "90")).exceptionOrNull()?.message)
+        assertEquals("2등급 컷을 위 등급보다 같거나 낮게 입력해주세요.", ManualCutoffs.build("1", listOf("80", "90")).exceptionOrNull()?.message)
         assertNotNull(ManualCutoffs.build("1", listOf("101")).exceptionOrNull())
         assertNotNull(ManualCutoffs.build("1", listOf("", "")).exceptionOrNull())
 

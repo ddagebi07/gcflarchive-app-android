@@ -7,6 +7,11 @@ import kr.co.gcflarchive.admin.core.Permission
 import kr.co.gcflarchive.admin.features.accounts.AdminsFragment
 import kr.co.gcflarchive.admin.features.accounts.CustomAccountsFragment
 import kr.co.gcflarchive.admin.features.accounts.TeachersFragment
+import kr.co.gcflarchive.admin.features.community.CommunityBoardsFragment
+import kr.co.gcflarchive.admin.features.community.CommunityFilterFragment
+import kr.co.gcflarchive.admin.features.community.CommunityLogsFragment
+import kr.co.gcflarchive.admin.features.community.CommunityReportsFragment
+import kr.co.gcflarchive.admin.features.community.CommunitySettingsFragment
 import kr.co.gcflarchive.admin.features.content.AnswerSheetsFragment
 import kr.co.gcflarchive.admin.features.content.DocumentsAdminFragment
 import kr.co.gcflarchive.admin.features.content.MapRequestsFragment
@@ -57,6 +62,11 @@ enum class Route(
     PHOTO_ROLES("사진첩 역할 배정", "역할별 학번 배정", R.drawable.ic_person, Tab.CONTENT, "사진첩", { it.has(Permission.PHOTOS) }, { PhotoRolesFragment() }),
     MAP_REQUESTS("지도 요청 처리", "신규 장소·영업시간 제안 승인/반려", R.drawable.ic_map, Tab.CONTENT, "지도", { it.canModerateMap() }, { MapRequestsFragment() }),
     MAP_REVIEWS("지도 리뷰", "리뷰 확인·삭제", R.drawable.ic_notice, Tab.CONTENT, "지도", { it.canModerateMap() }, { MapReviewsFragment() }),
+    COMMUNITY_REPORTS("신고 검토", "숨겨진 글·댓글 다시 보이기·지우기", R.drawable.ic_flag, Tab.CONTENT, "커뮤니티", { it.has(Permission.COMMUNITY) }, { CommunityReportsFragment() }),
+    COMMUNITY_BOARDS("게시판", "추가·이름·설명·읽기/쓰기 권한", R.drawable.ic_forum, Tab.CONTENT, "커뮤니티", { it.has(Permission.COMMUNITY) }, { CommunityBoardsFragment() }),
+    COMMUNITY_FILTER("금칙어", "올릴 수 없는 표현 목록", R.drawable.ic_block, Tab.CONTENT, "커뮤니티", { it.has(Permission.COMMUNITY) }, { CommunityFilterFragment() }),
+    COMMUNITY_SETTINGS("커뮤니티 운영 설정", "신고 기준·익명 글쓰기·글쓰기 간격", R.drawable.ic_settings, Tab.CONTENT, "커뮤니티", { it.has(Permission.COMMUNITY) }, { CommunitySettingsFragment() }),
+    COMMUNITY_LOGS("커뮤니티 활동 기록", "조회·글·댓글·추천·신고·관리 기록", R.drawable.ic_history, Tab.CONTENT, "커뮤니티", { it.has(Permission.COMMUNITY) }, { CommunityLogsFragment() }),
 
     // ④ 로그·계정
     ACCESS_LOG("접근·활동 로그", "열람·다운로드 기록 (기간·IP/학번 검색)", R.drawable.ic_history, Tab.LOGS, "감사 로그", { it.has(Permission.AUDITS) }, { AuditLogFragment.of(AuditKind.ACCESS) }),

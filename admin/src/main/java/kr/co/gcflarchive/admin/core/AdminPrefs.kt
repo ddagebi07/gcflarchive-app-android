@@ -38,8 +38,9 @@ class AdminPrefs(context: Context) {
 }
 
 enum class NotifyKind(val label: String, val description: String) {
-    AUTO_BLOCK("자동 IP 차단", "금지어 접근으로 IP 대역이 자동 차단되면 알립니다."),
-    MAP_REQUEST("지도 요청·리뷰", "신규 장소·영업시간 제안·리뷰가 접수되면 알립니다."),
-    MAINTENANCE("점검 모드 변경", "다른 관리자가 점검 모드를 바꾸면 알립니다."),
-    ADMIN_CHANGE("관리자 계정 변경", "관리자 계정이 추가·삭제·변경되면 알립니다."),
+    AUTO_BLOCK("자동 IP 차단", "금지어 접근으로 IP 대역이 자동 차단되면 알려드려요."),
+    MAP_REQUEST("지도 요청·리뷰", "새 장소·영업시간 제안·리뷰가 들어오면 알려드려요."),
+    MAINTENANCE("점검 모드 변경", "다른 관리자가 점검 모드를 바꾸면 알려드려요."),
+    ADMIN_CHANGE("관리자 계정 변경", "관리자 계정이 추가·삭제·변경되면 알려드려요."),
+    COMMUNITY_REPORT("커뮤니티 신고", "신고가 쌓여 숨겨진 글·댓글이 생기면 알려드려요."),
 }
