@@ -13,6 +13,7 @@ import kr.co.gcflarchive.admin.features.community.CommunityLogsFragment
 import kr.co.gcflarchive.admin.features.community.CommunityReportsFragment
 import kr.co.gcflarchive.admin.features.community.CommunityRolesFragment
 import kr.co.gcflarchive.admin.features.community.CommunitySettingsFragment
+import kr.co.gcflarchive.admin.features.community.SurveysFragment
 import kr.co.gcflarchive.admin.features.content.AnswerSheetsFragment
 import kr.co.gcflarchive.admin.features.content.DocumentsAdminFragment
 import kr.co.gcflarchive.admin.features.content.MapRequestsFragment
@@ -70,6 +71,7 @@ enum class Route(
     COMMUNITY_ROLES("게시판 역할", "학년·반·번호·학번 패턴으로 권한 묶기", R.drawable.ic_person, Tab.CONTENT, "커뮤니티", { it.has(Permission.COMMUNITY) }, { CommunityRolesFragment() }),
     COMMUNITY_FILTER("금칙어", "올릴 수 없는 표현 목록", R.drawable.ic_block, Tab.CONTENT, "커뮤니티", { it.has(Permission.COMMUNITY) }, { CommunityFilterFragment() }),
     COMMUNITY_SETTINGS("커뮤니티 운영 설정", "신고 기준·익명 글쓰기·글쓰기 간격", R.drawable.ic_settings, Tab.CONTENT, "커뮤니티", { it.has(Permission.COMMUNITY) }, { CommunitySettingsFragment() }),
+    SURVEYS("설문조사", "만들 수 있는 사람, 모든 설문 마감·삭제", R.drawable.ic_notice, Tab.CONTENT, "커뮤니티", { true }, { SurveysFragment() }),
     COMMUNITY_LOGS("커뮤니티 활동 기록", "조회·글·댓글·추천·신고·관리 기록", R.drawable.ic_history, Tab.CONTENT, "커뮤니티", { it.has(Permission.COMMUNITY) }, { CommunityLogsFragment() }),
 
     // ④ 로그·계정

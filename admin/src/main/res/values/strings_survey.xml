@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 설문조사 관리 -->
+    <string name="survey_admin_empty">아직 만든 설문이 없어요. 설문은 학생 앱의 더보기 › 설문조사에서 만들어요.</string>
+    <string name="survey_admin_summary">설문 %1$d개</string>
+    <string name="survey_admin_creators">설문을 만들 수 있는 사람</string>
+    <string name="survey_admin_creators_desc">관리자는 항상 만들 수 있어요. 학년·반으로 나누려면 \'게시판 역할\'에서 먼저 역할을 만들어주세요.</string>
+    <string name="survey_admin_responses">응답 %1$d개</string>
+    <string name="survey_admin_identity">학번 수집</string>
+    <string name="survey_admin_close">마감하기</string>
+    <string name="survey_admin_open">다시 열기</string>
+    <string name="survey_admin_close_desc">마감하면 더 이상 응답을 받지 않아요. 결과는 그대로 남아요.</string>
+    <string name="survey_admin_open_desc">다시 열면 마감 시각 전까지 응답을 받아요.</string>
+    <string name="survey_admin_delete_title">\'%1$s\' 설문을 삭제할까요?</string>
+    <string name="survey_admin_delete_desc">응답 %1$d개도 함께 삭제되고 되살릴 수 없어요.</string>
+</resources>
