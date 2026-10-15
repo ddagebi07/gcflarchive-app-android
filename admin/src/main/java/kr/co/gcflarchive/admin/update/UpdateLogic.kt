@@ -22,9 +22,11 @@ object UpdateLogic {
     /** "1.10.2" -> [1, 10, 2]; anything that isn't a number is ignored. */
     fun numbers(version: String): List<Int> = Regex("\\d+").findAll(version).map { it.value.toInt() }.toList()
 
-    /** Newer by versionCode when the build has one, otherwise by the numbers in the version name. */
+    /**
+     * Newer by the numbers in the version name (1.0.5 → 1.0.6); versionCode only breaks a tie.
+     * The name comes first because it's what the site lists and what gets bumped each release.
+     */
     fun isNewer(latest: LatestBuild, currentName: String, currentCode: Int): Boolean {
-        latest.versionCode?.let { return it > currentCode }
         val a = numbers(latest.versionName)
         val b = numbers(currentName)
         for (i in 0 until maxOf(a.size, b.size)) {
@@ -32,7 +34,7 @@ object UpdateLogic {
             val y = b.getOrElse(i) { 0 }
             if (x != y) return x > y
         }
-        return false
+        return latest.versionCode?.let { it > currentCode } ?: false
     }
 
     /** Ask unless the user already chose 나중에 for exactly this version. */

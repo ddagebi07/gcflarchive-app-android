@@ -3,6 +3,9 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
+val gcflVersion = providers.gradleProperty("gcflVersion").get()
+val gcflVersionCode = gcflVersion.split(".").map(String::toInt).let { (major, minor, patch) -> major * 10000 + minor * 100 + patch }
+
 android {
     namespace = "kr.co.gcflarchive.admin"
     compileSdk = 35
@@ -11,8 +14,9 @@ android {
         applicationId = "kr.co.gcflarchive.admin"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        // gradle.properties의 gcflVersion 하나만 바꾸면 돼요.
+        versionName = gcflVersion
+        versionCode = gcflVersionCode
     }
 
     buildTypes {

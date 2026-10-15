@@ -24,8 +24,12 @@ class UpdateLogicTest {
         assertTrue(UpdateLogic.isNewer(build("1.10.0"), "1.9.3", 1))
         assertFalse(UpdateLogic.isNewer(build("1.0.0"), "1.0.0", 1))
         assertFalse(UpdateLogic.isNewer(build("1.0"), "1.0.0", 1))
-        assertTrue(UpdateLogic.isNewer(build("1.0.0", code = 2), "1.0.0", 1)) // code wins
-        assertFalse(UpdateLogic.isNewer(build("2.0.0", code = 1), "1.0.0", 1))
+        assertTrue(UpdateLogic.isNewer(build("1.0.0", code = 2), "1.0.0", 1)) // same name: code breaks the tie
+        assertTrue(UpdateLogic.isNewer(build("2.0.0", code = 1), "1.0.0", 1))
+        // The site's build 1.0.4 (any versionCode) is not newer than this app's 1.0.5 / 10005.
+        assertFalse(UpdateLogic.isNewer(build("1.0.4", code = 4), "1.0.5", 10005))
+        assertFalse(UpdateLogic.isNewer(build("1.0.5", code = 5), "1.0.5", 10005))
+        assertTrue(UpdateLogic.isNewer(build("1.0.6"), "1.0.5", 10005))
     }
 
     @Test

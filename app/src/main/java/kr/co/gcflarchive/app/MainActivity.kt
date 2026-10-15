@@ -8,7 +8,7 @@ import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.commit
+import androidx.fragment.app.commitNow
 import kr.co.gcflarchive.app.data.AppPrefs
 import kr.co.gcflarchive.app.databinding.ActivityMainBinding
 import kr.co.gcflarchive.app.ui.DriveFragment
@@ -89,7 +89,9 @@ class MainActivity : AppCompatActivity() {
     private fun showTab(itemId: Int) {
         val fm = supportFragmentManager
         val tag = tagFor(itemId)
-        fm.commit {
+        // commitNow: at launch 홈 is "selected" twice (reselect listener + the check in onCreate);
+        // an async commit isn't visible to findFragmentByTag yet, which stacked two 홈 screens.
+        fm.commitNow {
             setReorderingAllowed(true)
             fm.fragments.filter { it.tag != tag && !it.isHidden }.forEach { hide(it) }
             val existing = fm.findFragmentByTag(tag)

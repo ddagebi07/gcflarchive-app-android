@@ -59,7 +59,7 @@ import kr.co.gcflarchive.student.ui.Krds
 import kr.co.gcflarchive.student.ui.KrdsCard
 import kr.co.gcflarchive.student.ui.KrdsText
 
-const val APP_VERSION = "2.0.0"
+const val APP_VERSION = "1.0.5"  // gradle.properties의 gcflVersion과 같게
 
 /** 설정 (더보기 › 설정): account, 급식 알림, 앱 잠금, links and version. */
 @OptIn(ExperimentalMaterial3Api::class)
