@@ -78,7 +78,7 @@ internal fun TodayTimetableContent(w: TtWeek, hm: String, fullNames: Boolean, mo
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Filled.CalendarMonth, null, tint = Krds.colors.purple.fg, modifier = Modifier.size(20.dp))
+            Icon(Icons.Filled.CalendarMonth, null, tint = Krds.colors.primaryText, modifier = Modifier.size(20.dp))
             Spacer(Modifier.width(8.dp))
             Text(title, style = KrdsText.cardTitle, modifier = Modifier.weight(1f))
             Text(w.days[day].date.takeLast(5).replace('-', '/').trimStart('0'), style = KrdsText.meta)
@@ -90,10 +90,9 @@ internal fun TodayTimetableContent(w: TtWeek, hm: String, fullNames: Boolean, mo
                 val current = isToday && p.start <= hm && hm < p.end
                 val name = if (c.empty) "" else c.shortOrFull(fullNames)
                 val small = if (c.empty) "" else c.place.ifBlank { c.teachers.firstOrNull()?.let(::teacherLabel).orEmpty() }
-                val hue = Krds.colors.hueFor(if (c.empty) "" else c.subject)
                 Column(
                     Modifier.weight(1f).heightIn(min = 64.dp).clip(RoundedCornerShape(12.dp))
-                        .background(if (c.empty) Krds.colors.surfaceRaised.copy(alpha = 0.5f) else hue.bg)
+                        .background(if (current) Krds.colors.primaryTint else Krds.colors.surfaceRaised)
                         .then(if (current) Modifier.border(2.dp, Krds.colors.primary, RoundedCornerShape(12.dp)) else Modifier)
                         .then(if (c.changed && !current) Modifier.border(1.dp, Krds.colors.danger, RoundedCornerShape(12.dp)) else Modifier)
                         .semantics { contentDescription = "${p.label} " + (if (c.empty) "수업 없음" else c.title) + (if (current) ", 지금" else "") }

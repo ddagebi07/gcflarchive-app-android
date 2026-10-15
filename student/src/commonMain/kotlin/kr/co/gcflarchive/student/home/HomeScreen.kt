@@ -44,7 +44,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import kr.co.gcflarchive.student.ui.Hue
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.SpanStyle
@@ -79,8 +78,7 @@ import kr.co.gcflarchive.student.ui.KrdsCard
 import kr.co.gcflarchive.student.ui.KrdsText
 import kr.co.gcflarchive.student.ui.contentWidth
 
-/** [hue]: the menu's TDS color (same as the Android app: 기출 파랑, PDF 빨강, 사진 초록 …). */
-internal data class Tile(val label: String, val icon: ImageVector, val hue: Hue, val open: () -> Unit)
+private data class Tile(val label: String, val icon: ImageVector, val open: () -> Unit)
 
 @Composable
 fun HomeScreen() {
@@ -124,7 +122,7 @@ fun HomeScreen() {
             // 오늘의 급식
             KrdsCard(onClick = { app.tab = Tab.MEAL }) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Filled.Restaurant, null, tint = Krds.colors.orange.fg, modifier = Modifier.size(20.dp))
+                    Icon(Icons.Filled.Restaurant, null, tint = Krds.colors.primaryText, modifier = Modifier.size(20.dp))
                     Spacer(Modifier.width(8.dp))
                     Text("오늘의 급식", style = KrdsText.cardTitle, modifier = Modifier.weight(1f))
                     meal?.getOrNull()?.let { Badge(it.kind) }
@@ -152,7 +150,7 @@ fun HomeScreen() {
             // 학교생활: 시간표 · 연락 · 질문
             KrdsCard(onClick = { app.push(Route.School()) }) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Filled.Event, null, tint = Krds.colors.blue.fg, modifier = Modifier.size(20.dp))
+                    Icon(Icons.Filled.Event, null, tint = Krds.colors.primaryText, modifier = Modifier.size(20.dp))
                     Spacer(Modifier.width(8.dp))
                     Column(Modifier.weight(1f)) {
                         Text("학교생활", style = KrdsText.cardTitle)
@@ -179,14 +177,14 @@ fun HomeScreen() {
 
             Text("아카이브", style = KrdsText.sectionTitle, modifier = Modifier.padding(top = 8.dp))
             val tiles = listOf(
-                Tile("기출", Icons.Filled.Description, Krds.colors.blue) { app.push(Route.PastExams) },
-                Tile("PDF", Icons.Filled.PictureAsPdf, Krds.colors.red) { app.push(Route.Documents) },
-                Tile("사진", Icons.Filled.Photo, Krds.colors.green) { app.push(Route.Photos) },
-                Tile("영상", Icons.Filled.PlayCircle, Krds.colors.purple) { app.push(Route.Videos) },
-                Tile("통합 검색", Icons.Filled.Search, Krds.colors.teal) { app.tab = Tab.SEARCH },
-                Tile("등급컷", Icons.Filled.BarChart, Krds.colors.orange) { app.push(Route.Grade) },
-                Tile("맛집 지도", Icons.Filled.Place, Krds.colors.red) { app.push(Route.Map()) },
-                Tile("공지", Icons.Filled.Campaign, Krds.colors.orange) { app.push(Route.Notices) },
+                Tile("기출", Icons.Filled.Description) { app.push(Route.PastExams) },
+                Tile("PDF", Icons.Filled.PictureAsPdf) { app.push(Route.Documents) },
+                Tile("사진", Icons.Filled.Photo) { app.push(Route.Photos) },
+                Tile("영상", Icons.Filled.PlayCircle) { app.push(Route.Videos) },
+                Tile("통합 검색", Icons.Filled.Search) { app.tab = Tab.SEARCH },
+                Tile("등급컷", Icons.Filled.BarChart) { app.push(Route.Grade) },
+                Tile("맛집 지도", Icons.Filled.Place) { app.push(Route.Map()) },
+                Tile("공지", Icons.Filled.Campaign) { app.push(Route.Notices) },
             )
             // Rows of four equal tiles with fixed gaps.
             tiles.chunked(4).forEach { row ->
@@ -208,7 +206,7 @@ fun HomeScreen() {
 private fun CommunityCard(recent: Result<CommunityRecent>?, onOpen: () -> Unit, onPost: (Int) -> Unit) {
     KrdsCard(onClick = onOpen) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Filled.Forum, null, tint = Krds.colors.teal.fg, modifier = Modifier.size(20.dp))
+            Icon(Icons.Filled.Forum, null, tint = Krds.colors.primaryText, modifier = Modifier.size(20.dp))
             Spacer(Modifier.width(8.dp))
             Text("커뮤니티", style = KrdsText.cardTitle, modifier = Modifier.weight(1f))
             Text("전체 보기 ›", style = KrdsText.label.copy(color = Krds.colors.primaryText))
@@ -239,7 +237,7 @@ private fun CommunityCard(recent: Result<CommunityRecent>?, onOpen: () -> Unit, 
 }
 
 @Composable
-internal fun ArchiveTile(t: Tile, modifier: Modifier) {
+private fun ArchiveTile(t: Tile, modifier: Modifier) {
     Column(
         modifier
             .heightIn(min = 84.dp)
@@ -249,9 +247,9 @@ internal fun ArchiveTile(t: Tile, modifier: Modifier) {
             .padding(horizontal = 4.dp, vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        // TDS: colored icon on its tinted rounded square
-        Box(Modifier.size(44.dp).background(t.hue.bg, RoundedCornerShape(14.dp)), contentAlignment = Alignment.Center) {
-            Icon(t.icon, null, tint = t.hue.fg, modifier = Modifier.size(26.dp))
+        // TDS: the icon on a soft blue rounded square (one accent color for every menu)
+        Box(Modifier.size(44.dp).background(Krds.colors.primaryTint, RoundedCornerShape(14.dp)), contentAlignment = Alignment.Center) {
+            Icon(t.icon, null, tint = Krds.colors.primary, modifier = Modifier.size(24.dp))
         }
         Spacer(Modifier.height(8.dp))
         Text(t.label, style = KrdsText.label.copy(color = Krds.colors.text), maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)

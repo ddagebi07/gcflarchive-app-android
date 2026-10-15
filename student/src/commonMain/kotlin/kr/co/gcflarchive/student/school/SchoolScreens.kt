@@ -288,8 +288,8 @@ private fun TimetableTab(me: SchoolMe) {
 }
 
 /**
- * 월~금 × 1~7교시 in one table, TDS style: rounded tiles with small gaps on a white card, each
- * 과목 in its own color (same 과목 → same color). Tapping a cell picks (day, period index).
+ * 월~금 × 1~7교시 in one table, TDS style: grey rounded tiles with small gaps on a white card; blue only
+ * marks 오늘 and the picked cell, red a changed class. Tapping a cell picks (day, period index).
  */
 @Composable
 private fun WeekGrid(week: TtWeek, picked: Pair<Int, Int>?, onPick: (Pair<Int, Int>) -> Unit) =
@@ -326,13 +326,11 @@ internal fun WeekGridContent(week: TtWeek, picked: Pair<Int, Int>?, fullNames: B
                 week.days.forEachIndexed { di, d ->
                     val c = week.cell(di, p)
                     val isPicked = picked == (di to pi)
-                    val hue = k.hueFor(if (c.empty) "" else c.subject)
                     val bg = when {
                         isPicked -> k.primary
                         c.empty -> k.surfaceRaised.copy(alpha = 0.5f)
-                        else -> hue.bg
+                        else -> k.surfaceRaised
                     }
-                    // The tint carries the 과목 color; the name stays textStrong so it reads on every tint.
                     val fg = if (isPicked) k.onPrimary else k.textStrong
                     val sub = if (isPicked) k.onPrimary else k.textSecondary
                     val shape = RoundedCornerShape(10.dp)
@@ -358,7 +356,7 @@ internal fun WeekGridContent(week: TtWeek, picked: Pair<Int, Int>?, fullNames: B
                                     style = KrdsText.label.copy(fontSize = 11.sp, color = sub))
                             }
                         }
-                        // 이동수업: a small dot in the corner (the color now means the 과목).
+                        // 이동수업: a small blue dot in the corner.
                         if (c.moving && !c.empty) Box(
                             Modifier.align(Alignment.TopEnd).padding(5.dp).size(6.dp)
                                 .background(if (isPicked) k.onPrimary else k.primary, RoundedCornerShape(50)),

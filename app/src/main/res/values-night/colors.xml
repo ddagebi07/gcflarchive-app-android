@@ -5,7 +5,7 @@
     <color name="on_brand_primary_container">#90C2FF</color>
     <color name="text_secondary">#9E9EA4</color>
     <color name="error">#F04251</color>
-    <color name="success">#16BB76</color>
+    <color name="success">#449BFF</color>
     <color name="tile_background">#202027</color>
     <color name="search_highlight">#5C4D00</color>
 </resources>

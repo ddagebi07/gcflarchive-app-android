@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Rounded square behind a menu icon; TdsHue sets its tint. -->
+<!-- Rounded square behind a menu icon: soft blue (the app's one accent color). -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-    <solid android:color="@android:color/white" />
+    <solid android:color="@color/krds_primary_tint" />
     <corners android:radius="14dp" />
 </shape>

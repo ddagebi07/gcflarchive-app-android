@@ -94,7 +94,6 @@ class MoreFragment : Fragment() {
         for (e in entries) {
             val row = ItemMoreRowBinding.inflate(layoutInflater, card, false)
             row.icon.setImageResource(e.iconRes)
-            TdsHue.forIcon(e.iconRes).apply(row.icon, row.iconChip)
             row.label.setText(e.labelRes)
             row.value.isVisible = e.value != null
             row.value.text = e.value

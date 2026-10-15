@@ -6,7 +6,7 @@
     <color name="on_brand_primary_container">#1B64DA</color>
     <color name="text_secondary">#6B7684</color>
     <color name="error">#F04452</color>
-    <color name="success">#03B26C</color>
+    <color name="success">#2272EB</color>
     <color name="tile_background">#FFFFFF</color>
     <color name="search_highlight">#FFF1A8</color>
 </resources>

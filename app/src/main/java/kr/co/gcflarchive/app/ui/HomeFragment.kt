@@ -87,7 +87,6 @@ class HomeFragment : Fragment() {
                 }
                 val tile = ItemArchiveTileBinding.inflate(layoutInflater, row, false)
                 tile.icon.setImageResource(link.iconRes)
-                TdsHue.forIcon(link.iconRes).apply(tile.icon, tile.iconChip)
                 tile.label.setText(link.titleRes)
                 tile.root.contentDescription = getString(link.titleRes)
                 tile.root.setOnClickListener {

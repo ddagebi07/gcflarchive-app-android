@@ -22,7 +22,7 @@
             android:layout_height="22dp"
             android:layout_gravity="center"
             android:importantForAccessibility="no"
-            app:tint="@color/krds_primary_text" />
+            app:tint="@color/krds_primary" />
     </FrameLayout>
 
     <TextView

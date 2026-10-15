@@ -172,7 +172,7 @@ private fun ExamRow(doc: LibraryDocument, starred: Boolean?, onStar: () -> Unit,
                 Icon(
                     if (starred) Icons.Filled.Star else Icons.Filled.StarBorder,
                     if (starred) "즐겨찾기 해제" else "즐겨찾기",
-                    tint = if (starred) Krds.colors.star else Krds.colors.textSecondary,
+                    tint = if (starred) Krds.colors.primary else Krds.colors.textSecondary,
                 )
             }
         }

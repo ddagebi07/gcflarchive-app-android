@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- 사용자 앱: TDS(Toss Design System) 색 (@toss/tds-colors, light). 이름은 KRDS 때 그대로 둬서 화면 코드는 그대로예요.
-     관리자 앱은 admin/src/main/res의 KRDS 색을 써요. -->
+     관리자 앱은 admin/src/main/res의 KRDS 색을 써요.
+     포인트 색은 파랑 하나 (빨강은 경고·오류만): success·purple 배지도 파랑·회색이에요. -->
 <resources>
     <color name="krds_primary">#3182F6</color>          <!-- blue500 -->
     <color name="krds_primary_text">#2272EB</color>     <!-- blue600 -->
@@ -23,23 +24,13 @@
     <color name="krds_badge_info_bg">#E8F3FF</color>
     <color name="krds_badge_info_fg">#1B64DA</color>
     <color name="krds_badge_info_border">#C9E2FF</color>
-    <color name="krds_badge_success_bg">#F0FAF6</color>
-    <color name="krds_badge_success_fg">#029359</color>
-    <color name="krds_badge_success_border">#AEEFD5</color>
-    <color name="krds_badge_purple_bg">#F9F0FC</color>
-    <color name="krds_badge_purple_fg">#8222A2</color>
-    <color name="krds_badge_purple_border">#EDCCF8</color>
+    <color name="krds_badge_success_bg">#E8F3FF</color>
+    <color name="krds_badge_success_fg">#1B64DA</color>
+    <color name="krds_badge_success_border">#C9E2FF</color>
+    <color name="krds_badge_purple_bg">#F2F4F6</color>
+    <color name="krds_badge_purple_fg">#4E5968</color>
+    <color name="krds_badge_purple_border">#E5E8EB</color>
     <color name="krds_badge_neutral_bg">#F2F4F6</color>
     <color name="krds_badge_neutral_fg">#4E5968</color>
     <color name="krds_badge_neutral_border">#E5E8EB</color>
-
-    <!-- 메뉴 아이콘 색 (TDS 500 / 50; 초록·청록·주황·노랑은 옅은 바탕에서 잘 보이게 700/800) -->
-    <color name="tds_blue">#3182F6</color>    <color name="tds_blue_bg">#E8F3FF</color>
-    <color name="tds_green">#029359</color>   <color name="tds_green_bg">#F0FAF6</color>
-    <color name="tds_orange">#ED6700</color>  <color name="tds_orange_bg">#FFF3E0</color>
-    <color name="tds_purple">#A234C7</color>  <color name="tds_purple_bg">#F9F0FC</color>
-    <color name="tds_teal">#0C8585</color>    <color name="tds_teal_bg">#EDF8F8</color>
-    <color name="tds_red">#F04452</color>     <color name="tds_red_bg">#FFEEEE</color>
-    <color name="tds_yellow">#EE8F11</color>  <color name="tds_yellow_bg">#FFF9E7</color>
-    <color name="tds_grey">#6B7684</color>    <color name="tds_grey_bg">#F2F4F6</color>
 </resources>

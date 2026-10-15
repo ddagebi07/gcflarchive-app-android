@@ -417,7 +417,7 @@ private fun PlaceDetail(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(rv.author, style = KrdsText.cardTitle.copy(fontSize = 14.sp))
                                 Spacer(Modifier.width(8.dp))
-                                if (rv.rating > 0) Text("★".repeat(rv.rating) + "☆".repeat(5 - rv.rating), color = Krds.colors.star, fontSize = 13.sp)
+                                if (rv.rating > 0) Text("★".repeat(rv.rating) + "☆".repeat(5 - rv.rating), color = Krds.colors.primary, fontSize = 13.sp)
                                 Spacer(Modifier.weight(1f))
                                 GradeLogic.parseInstant(rv.timestamp)?.toLocalDateTime(MealRepository.SEOUL)?.let {
                                     Text("${it.year}. ${it.monthNumber}. ${it.dayOfMonth}.", style = KrdsText.meta)
@@ -443,7 +443,7 @@ private fun PlaceDetail(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 (1..5).forEach { n ->
                     IconButton(onClick = { rating = if (rating == n) 0 else n }) {
-                        Icon(if (n <= rating) Icons.Filled.Star else Icons.Filled.StarBorder, "${n}점", tint = Krds.colors.star)
+                        Icon(if (n <= rating) Icons.Filled.Star else Icons.Filled.StarBorder, "${n}점", tint = Krds.colors.primary)
                     }
                 }
             }

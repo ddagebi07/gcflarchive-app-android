@@ -22,22 +22,13 @@
     <color name="krds_badge_info_bg">#202C4D</color>
     <color name="krds_badge_info_fg">#449BFF</color>
     <color name="krds_badge_info_border">#23386A</color>
-    <color name="krds_badge_success_bg">#153729</color>
-    <color name="krds_badge_success_fg">#16BB76</color>
-    <color name="krds_badge_success_border">#1C4A37</color>
-    <color name="krds_badge_purple_bg">#3F2447</color>
-    <color name="krds_badge_purple_fg">#D18BEA</color>
-    <color name="krds_badge_purple_border">#57305F</color>
+    <color name="krds_badge_success_bg">#202C4D</color>
+    <color name="krds_badge_success_fg">#449BFF</color>
+    <color name="krds_badge_success_border">#23386A</color>
+    <color name="krds_badge_purple_bg">#2C2C35</color>
+    <color name="krds_badge_purple_fg">#C3C3C6</color>
+    <color name="krds_badge_purple_border">#3C3C47</color>
     <color name="krds_badge_neutral_bg">#2C2C35</color>
     <color name="krds_badge_neutral_fg">#C3C3C6</color>
     <color name="krds_badge_neutral_border">#3C3C47</color>
-
-    <color name="tds_blue">#449BFF</color>    <color name="tds_blue_bg">#202C4D</color>
-    <color name="tds_green">#16BB76</color>   <color name="tds_green_bg">#153729</color>
-    <color name="tds_orange">#F18600</color>  <color name="tds_orange_bg">#3D2500</color>
-    <color name="tds_purple">#C770E4</color>  <color name="tds_purple_bg">#3F2447</color>
-    <color name="tds_teal">#2EAAB2</color>    <color name="tds_teal_bg">#203537</color>
-    <color name="tds_red">#F04251</color>     <color name="tds_red_bg">#3C2020</color>
-    <color name="tds_yellow">#FFB134</color>  <color name="tds_yellow_bg">#3D2D1A</color>
-    <color name="tds_grey">#9E9EA4</color>    <color name="tds_grey_bg">#2C2C35</color>
 </resources>
