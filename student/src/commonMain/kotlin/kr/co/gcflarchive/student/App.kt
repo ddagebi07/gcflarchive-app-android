@@ -15,7 +15,6 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -62,6 +61,7 @@ import kr.co.gcflarchive.student.survey.SurveyBuilderScreen
 import kr.co.gcflarchive.student.survey.SurveyListScreen
 import kr.co.gcflarchive.student.survey.SurveyResultsScreen
 import kr.co.gcflarchive.student.survey.SurveyScreen
+import kr.co.gcflarchive.student.ui.AppSnackbarHost
 import kr.co.gcflarchive.student.ui.Krds
 import kr.co.gcflarchive.student.ui.KrdsTheme
 
@@ -134,7 +134,7 @@ fun StudentApp(services: Services = sharedServices, startLink: String? = null) {
 private fun MainTabs(app: AppState) {
     Scaffold(
         containerColor = Krds.colors.bg,
-        snackbarHost = { SnackbarHost(app.snackbar) },
+        snackbarHost = { AppSnackbarHost(app.snackbar) },
         bottomBar = {
             NavigationBar(containerColor = Krds.colors.surface) {
                 Tab.entries.forEach { t ->

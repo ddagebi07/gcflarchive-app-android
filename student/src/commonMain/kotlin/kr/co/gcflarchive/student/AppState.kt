@@ -10,6 +10,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.Job
+import androidx.compose.material3.SnackbarDuration
 import kr.co.gcflarchive.core.Config
 import kr.co.gcflarchive.core.Services
 import kr.co.gcflarchive.core.auth.LoginState
@@ -138,12 +141,21 @@ class AppState(val services: Services, private val scope: CoroutineScope) {
             services.prefs.signedIn = false
             login = LoginState.LoggedOut
             sessionVersion++
-            toast("로그아웃했어요.")
+            // No toast: the full-screen login appears right away, and a toast over it hid the 로그인 button.
         }
     }
 
+    private var toastJob: Job? = null
+
+    /** A short message (2s). A new one replaces the one on screen instead of queuing behind it. */
     fun toast(message: String) {
-        scope.launch { snackbar.showSnackbar(message) }
+        toastJob?.cancel()
+        snackbar.currentSnackbarData?.dismiss()
+        toastJob = scope.launch {
+            launch { snackbar.showSnackbar(message, duration = SnackbarDuration.Indefinite) }
+            delay(2_000)
+            snackbar.currentSnackbarData?.dismiss()
+        }
     }
 
     /**

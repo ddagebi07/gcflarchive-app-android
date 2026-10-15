@@ -39,6 +39,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.Snackbar
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -275,5 +278,17 @@ fun MetaTile(label: String, value: String, modifier: Modifier = Modifier) {
     Column(modifier.background(Krds.colors.surfaceRaised, RoundedCornerShape(8.dp)).padding(horizontal = 10.dp, vertical = 8.dp)) {
         Text(label, style = KrdsText.meta)
         Text(value, style = MaterialTheme.typography.labelLarge.copy(color = Krds.colors.textStrong), maxLines = 1)
+    }
+}
+
+/** The app's message bar: tapping it closes it at once (so it never sits on top of a button). */
+@Composable
+fun AppSnackbarHost(state: SnackbarHostState) {
+    SnackbarHost(state) { data ->
+        Snackbar(
+            data,
+            modifier = Modifier.clickable(onClickLabel = "닫기") { data.dismiss() },
+            shape = RoundedCornerShape(14.dp),
+        )
     }
 }

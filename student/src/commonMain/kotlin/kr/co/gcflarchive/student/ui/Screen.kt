@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,7 +34,7 @@ fun ScreenScaffold(
         containerColor = Krds.colors.bg,
         topBar = { KrdsTopBar(title, onBack, actions) },
         bottomBar = bottomBar,
-        snackbarHost = { SnackbarHost(app.snackbar) },
+        snackbarHost = { AppSnackbarHost(app.snackbar) },
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.TopCenter) {
             Box(Modifier.contentWidth().fillMaxSize()) { content(PaddingValues(0.dp)) }
