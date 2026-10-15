@@ -9,8 +9,8 @@ options:
   createIntermediateGroups: true
 settings:
   base:
-    MARKETING_VERSION: "1.0.5"
-    CURRENT_PROJECT_VERSION: "10005"
+    MARKETING_VERSION: "1.0.9"
+    CURRENT_PROJECT_VERSION: "10009"
     # Your Apple ID team (Xcode ▸ Settings ▸ Accounts). A free Apple ID works for your own iPhone.
     DEVELOPMENT_TEAM: ""
     CODE_SIGN_STYLE: Automatic
@@ -27,12 +27,17 @@ targets:
     sources:
       - path: Student
     dependencies:
+      # StudentApp.swift imports both, so both products must be linked (otherwise "No such module 'FirebaseCore'").
+      - package: Firebase
+        product: FirebaseCore
       - package: Firebase
         product: FirebaseMessaging
-    entitlements:
-      path: Student/Student.entitlements
-      properties:
-        aps-environment: development
+    # 푸시 알림 권한(aps-environment)은 유료 Apple Developer Program 계정에서만 서명돼요. 무료 Apple ID로는
+    # 이 권한이 있으면 빌드가 실패하므로 기본으로 꺼 뒀어요. 가입한 뒤 아래 네 줄의 '#'를 지우고 xcodegen을 다시 실행하세요.
+    # entitlements:
+    #   path: Student/Student.entitlements
+    #   properties:
+    #     aps-environment: development
     settings:
       base:
         PRODUCT_NAME: GCFLArchive

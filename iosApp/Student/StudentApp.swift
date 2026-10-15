@@ -2,8 +2,10 @@ import SwiftUI
 import UserNotifications
 import BackgroundTasks
 import StudentKit
+#if canImport(FirebaseMessaging)
 import FirebaseCore
 import FirebaseMessaging
+#endif
 
 /// iPhone / iPad entry point. Everything on screen is the shared Compose UI
 /// (`StudentApp` in the Kotlin :student module); this file only hosts it.
@@ -48,7 +50,7 @@ enum AppLinks {
 
 /// Shows 급식·공지 알림 as a banner even while the app is open, and checks for 새 공지
 /// in the background (iOS decides how often; usually every few hours at most).
-final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate, MessagingDelegate {
+final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
     static let noticeTaskID = "kr.co.gcflarchive.student.notice-refresh"
 
     func application(_ application: UIApplication,
@@ -60,22 +62,22 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: .main) { _ in
             Self.scheduleNoticeRefresh()
         }
-        // 학교생활 푸시: only when the Firebase config file is in the app (PUSH_SETUP.md).
+        // 학교생활 푸시: only when Firebase is linked and its config file is in the app (PUSH_SETUP.md).
         // Without it the app checks the 학교생활 inbox when it opens and in background refresh.
+        #if canImport(FirebaseMessaging)
         if Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist") != nil {
             FirebaseApp.configure()
             Messaging.messaging().delegate = self
             application.registerForRemoteNotifications()
         }
+        #endif
         return true
     }
 
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        #if canImport(FirebaseMessaging)
         Messaging.messaging().apnsToken = deviceToken
-    }
-
-    func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
-        if let token = fcmToken { MainViewControllerKt.registerPushToken(token: token) }
+        #endif
     }
 
     static func scheduleNoticeRefresh() {
@@ -114,3 +116,12 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         completionHandler()
     }
 }
+
+#if canImport(FirebaseMessaging)
+/// FCM: hands the FCM token to the server (학교생활 푸시).
+extension AppDelegate: MessagingDelegate {
+    func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
+        if let token = fcmToken { MainViewControllerKt.registerPushToken(token: token) }
+    }
+}
+#endif

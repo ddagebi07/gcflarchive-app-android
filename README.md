@@ -98,6 +98,16 @@ iPad에서는 글 폭을 760dp로 맞추고, 사진은 3열·영상은 2열, 지
    아이폰에서 설정 ▸ 일반 ▸ VPN 및 기기 관리 ▸ 개발자 앱 신뢰, 그리고 설정 ▸ 개인정보 보호 및 보안 ▸ 개발자 모드 켜기.
 5. 시뮬레이터(iPhone/iPad)는 Apple ID 없이도 바로 실행됩니다.
 
+빌드 오류가 날 때:
+
+- `No such module 'FirebaseCore'` 같은 패키지 오류: `project.yml`이 바뀌었으면 `cd iosApp && xcodegen`을 다시 실행하고
+  Xcode에서 File ▸ Packages ▸ Reset Package Caches → Product ▸ Clean Build Folder 후 다시 빌드하세요.
+  첫 빌드 때 Firebase 패키지를 내려받느라 몇 분 걸릴 수 있어요.
+- `Personal development teams … do not support the Push Notifications capability`: 무료 Apple ID로는 푸시 권한을
+  서명할 수 없어요. 기본 `project.yml`은 푸시 권한이 꺼져 있으니 `xcodegen`을 다시 실행하면 돼요. 학교생활 알림은
+  앱을 열 때와 백그라운드 새로 고침 때 알림함을 확인해서 보여줘요. Apple Developer Program에 가입한 뒤
+  `project.yml`의 `entitlements` 네 줄 주석을 풀면 FCM 즉시 푸시를 쓸 수 있어요(PUSH_SETUP.md).
+
 무료 Apple ID로 설치한 앱은 **7일마다** Xcode에서 다시 실행해야 합니다. Apple Developer Program(연 129,000원)에 가입하면
 TestFlight로 다른 학생들에게 배포하고 App Store에 올릴 수 있습니다. 그때 `project.yml`의 `DEVELOPMENT_TEAM`에 팀 ID를 넣으면 됩니다.
 
