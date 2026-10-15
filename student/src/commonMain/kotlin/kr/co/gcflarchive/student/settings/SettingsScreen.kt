@@ -107,6 +107,24 @@ fun SettingsScreen() {
                 }
             }
 
+            Section("공지 알림")
+            KrdsCard(padding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
+                Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text("새 공지 알림 받기", style = KrdsText.body)
+                        Text("관리자가 알림을 보낸 공지가 올라오면 알려 드려요. 조금 늦게 올 수 있어요.", style = KrdsText.meta)
+                    }
+                    Switch(
+                        checked = prefs.noticeNotifyEnabled,
+                        onCheckedChange = { on ->
+                            prefs.noticeNotifyEnabled = on
+                            if (on) scope.launch { permissionDenied = !Notifications.requestPermission(); changed() } else changed()
+                        },
+                        colors = SwitchDefaults.colors(checkedTrackColor = Krds.colors.primary),
+                    )
+                }
+            }
+
             Section("급식 알림")
             KrdsCard(padding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {

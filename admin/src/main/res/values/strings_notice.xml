@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 공지: 학생 앱 '공지'와 웹 공지사항 -->
+    <string name="notice_add">공지 작성</string>
+    <string name="notice_edit">공지 수정</string>
+    <string name="notice_empty">공지가 없어요. 아래 버튼으로 작성해주세요.</string>
+    <string name="notice_search_hint">제목으로 찾기</string>
+    <string name="notice_summary">공지 %1$d개</string>
+    <string name="notice_meta">%1$s · 조회 %2$d</string>
+    <string name="notice_critical_badge">중요</string>
+    <string name="notice_pushed_badge">알림 보냄</string>
+    <string name="notice_web_badge">웹에서 작성</string>
+    <string name="notice_web_only">웹 편집기로 쓴 공지예요. 웹의 공지 수정 화면에서 수정해주세요. 밀어서 삭제는 할 수 있어요.</string>
+    <string name="notice_form_desc">학생 앱의 \'공지\'와 웹 공지사항에 올라가요.</string>
+    <string name="notice_title">제목</string>
+    <string name="notice_text">내용</string>
+    <string name="notice_text_hint">빈 줄로 문단을 나눠요.</string>
+    <string name="notice_critical">중요 공지</string>
+    <string name="notice_critical_desc">목록에서 중요 표시가 붙어요.</string>
+    <string name="notice_push">푸시 알림 보내기</string>
+    <string name="notice_push_again">저장하면서 푸시 알림 다시 보내기</string>
+    <string name="notice_push_desc">학생 앱에 \'새 공지\' 알림이 가요. 알림을 끈 학생에게는 가지 않아요.</string>
+    <string name="notice_submit">작성</string>
+    <string name="notice_saved">공지를 저장했어요.</string>
+    <string name="notice_saved_pushed">공지를 저장하고 푸시 알림을 보냈어요.</string>
+    <string name="notice_delete_title">\'%1$s\' 공지를 삭제할까요?</string>
+    <string name="notice_delete_desc">학생 앱과 웹에서 바로 사라지고, 붙인 사진도 함께 삭제돼요.</string>
+    <string name="notice_photo_label">사진 %1$d/%2$d</string>
+    <string name="notice_photo_add">사진 붙이기</string>
+    <string name="notice_photo_full">사진은 %1$d장까지 붙일 수 있어요</string>
+    <string name="notice_photo_uploading">사진을 올리는 중이에요…</string>
+    <string name="notice_photo_wait">사진을 올리는 중이에요. 잠시만 기다려주세요.</string>
+    <string name="notice_photo_failed">사진을 올리지 못했어요. 다른 사진을 골라주세요.</string>
+    <string name="notice_photo_desc">사진 %1$d</string>
+    <string name="notice_photo_remove">사진 빼기</string>
+</resources>

@@ -28,6 +28,16 @@ class AppPrefs(context: Context) {
         get() = prefs.getString(KEY_LAST, null)
         set(value) = prefs.edit { putString(KEY_LAST, value) }
 
+    /** 새 공지 푸시 알림 (기본 켜짐). */
+    var noticeNotifyEnabled: Boolean
+        get() = prefs.getBoolean(KEY_NOTICE, true)
+        set(value) = prefs.edit { putBoolean(KEY_NOTICE, value) }
+
+    /** Server time of the last /api/notices/pushes check; null until the first one. */
+    var noticePushSince: String?
+        get() = prefs.getString(KEY_NOTICE_SINCE, null)
+        set(value) = prefs.edit { putString(KEY_NOTICE_SINCE, value) }
+
     /** 앱을 열 때 생체 인증 (기본 꺼짐). */
     var appLockEnabled: Boolean
         get() = prefs.getBoolean(KEY_APP_LOCK, false)
@@ -45,5 +55,7 @@ class AppPrefs(context: Context) {
         const val KEY_LAST = "meal_last_notified"
         const val KEY_ONBOARDING = "onboarding_shown"
         const val KEY_APP_LOCK = "app_lock_enabled"
+        const val KEY_NOTICE = "notice_notify_enabled"
+        const val KEY_NOTICE_SINCE = "notice_push_since"
     }
 }

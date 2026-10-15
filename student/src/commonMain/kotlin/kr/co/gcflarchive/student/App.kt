@@ -29,6 +29,7 @@ import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
 import coil3.network.ktor3.KtorNetworkFetcherFactory
 import coil3.request.crossfade
+import kotlinx.coroutines.launch
 import kr.co.gcflarchive.core.Services
 import kr.co.gcflarchive.student.meal.MealAlarms
 import kr.co.gcflarchive.student.auth.LoginScreen
@@ -44,7 +45,9 @@ import kr.co.gcflarchive.student.library.ViewerScreen
 import kr.co.gcflarchive.student.map.MapScreen
 import kr.co.gcflarchive.student.meal.MealScreen
 import kr.co.gcflarchive.student.notice.NoticeDetailScreen
+import kr.co.gcflarchive.student.notice.NoticeAlerts
 import kr.co.gcflarchive.student.notice.NoticeListScreen
+import kr.co.gcflarchive.student.platform.AppForegroundEffect
 import kr.co.gcflarchive.student.platform.PlatformBackHandler
 import kr.co.gcflarchive.student.search.PostDetailScreen
 import kr.co.gcflarchive.student.search.SearchScreen
@@ -87,7 +90,10 @@ fun StudentApp(services: Services = sharedServices, startLink: String? = null) {
             LaunchedEffect(Unit) {
                 app.refreshLogin()
                 MealAlarms.reschedule(services)
+                NoticeAlerts.check(services)
             }
+            // 새 공지 알림: also check whenever the app comes back to the front.
+            AppForegroundEffect(onForeground = { scope.launch { NoticeAlerts.check(services) } }, onBackground = {})
             val uri = androidx.compose.ui.platform.LocalUriHandler.current
             LaunchedEffect(startLink) { startLink?.let { link -> app.openLink(link) { uri.openUri(it) } } }
             // Links handed over later by the platform (universal links, 공유 → 앱).

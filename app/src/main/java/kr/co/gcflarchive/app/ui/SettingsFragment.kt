@@ -37,6 +37,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import android.text.InputType
 import kr.co.gcflarchive.app.meal.MealKind
 import kr.co.gcflarchive.app.meal.MealNotifier
+import kr.co.gcflarchive.app.notice.NoticeNotifier
 import kr.co.gcflarchive.app.meal.MealRepository
 import kr.co.gcflarchive.app.util.AppLock
 import kr.co.gcflarchive.app.util.Biometric
@@ -72,6 +73,13 @@ class SettingsFragment : Fragment() {
             MealNotifier.schedule(requireContext(), replace = true)
             if (checked) ensurePermission()
             render()
+        }
+        binding.switchNotice.isChecked = prefs.noticeNotifyEnabled
+        binding.switchNotice.setOnCheckedChangeListener { _, checked ->
+            if (checked == prefs.noticeNotifyEnabled) return@setOnCheckedChangeListener
+            prefs.noticeNotifyEnabled = checked
+            NoticeNotifier.schedule(requireContext(), replace = true)
+            if (checked) ensurePermission()
         }
         binding.rowTime.setOnClickListener { pickTime() }
         binding.rowKind.setOnClickListener { pickKind() }

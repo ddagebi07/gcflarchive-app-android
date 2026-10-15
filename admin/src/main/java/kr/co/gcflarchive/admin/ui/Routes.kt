@@ -17,6 +17,7 @@ import kr.co.gcflarchive.admin.features.content.AnswerSheetsFragment
 import kr.co.gcflarchive.admin.features.content.DocumentsAdminFragment
 import kr.co.gcflarchive.admin.features.content.MapRequestsFragment
 import kr.co.gcflarchive.admin.features.content.MapReviewsFragment
+import kr.co.gcflarchive.admin.features.content.NoticesFragment
 import kr.co.gcflarchive.admin.features.content.PhotoAlbumsFragment
 import kr.co.gcflarchive.admin.features.content.PhotoRolesFragment
 import kr.co.gcflarchive.admin.features.content.PopupFragment
@@ -56,6 +57,7 @@ enum class Route(
     BLOCK_LOG("차단 시도 로그", "차단된 학번의 로그인 시도", R.drawable.ic_history, Tab.SECURITY, "보안", { it.has(Permission.AUDITS) }, { AuditLogFragment.of(AuditKind.AUTH_BLOCK) }),
 
     // ③ 콘텐츠
+    NOTICES("공지", "공지 작성·수정·삭제, 학생 앱 푸시 알림", R.drawable.ic_notice, Tab.CONTENT, "공지", { true }, { NoticesFragment() }),
     POPUP("팝업 공지", "메인 팝업 노출·기간·본문", R.drawable.ic_campaign, Tab.CONTENT, "공지", { it.has(Permission.POPUP) }, { PopupFragment() }),
     DOCUMENTS("자료", "PDF·영상·호스팅 파일 관리, 간편 업로드", R.drawable.ic_pdf, Tab.CONTENT, "자료", { it.hasAny(Permission.PDFS, Permission.VIDEOS) }, { DocumentsAdminFragment() }),
     ANSWER_SHEETS("정답지", "기출 정답지 입력 (객관식 40문항·서술형)", R.drawable.ic_file, Tab.CONTENT, "자료", { it.has(Permission.PDFS) }, { AnswerSheetsFragment() }),

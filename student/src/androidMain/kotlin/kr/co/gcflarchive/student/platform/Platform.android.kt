@@ -170,6 +170,8 @@ actual object Notifications {
     actual suspend fun requestPermission(): Boolean = true
     actual fun replaceMealNotices(items: List<ScheduledNotice>) = Unit
     actual fun cancelMealNotices() = Unit
+    // The Android app posts 공지 알림 from its own WorkManager job (app/notice/NoticeNotifier).
+    actual fun showNow(id: String, title: String, body: String) = Unit
 }
 
 actual val platformName: String get() = "Android ${Build.VERSION.RELEASE}"

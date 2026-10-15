@@ -277,6 +277,16 @@ actual object Notifications {
         }
     }
 
+    /** Delivered at once (no trigger); AppDelegate shows it as a banner even in the app. */
+    actual fun showNow(id: String, title: String, body: String) {
+        val content = UNMutableNotificationContent().apply {
+            setTitle(title)
+            setBody(body)
+            setSound(UNNotificationSound.defaultSound())
+        }
+        center.addNotificationRequest(UNNotificationRequest.requestWithIdentifier(id, content, null), withCompletionHandler = null)
+    }
+
     actual fun cancelMealNotices() {
         center.getPendingNotificationRequestsWithCompletionHandler { pending ->
             center.removePendingNotificationRequestsWithIdentifiers(

@@ -1,5 +1,6 @@
 import SwiftUI
 import UserNotifications
+import BackgroundTasks
 import StudentKit
 
 /// iPhone / iPad entry point. Everything on screen is the shared Compose UI
@@ -43,12 +44,35 @@ enum AppLinks {
     }
 }
 
-/// Shows 급식 알림 as a banner even while the app is open.
+/// Shows 급식·공지 알림 as a banner even while the app is open, and checks for 새 공지
+/// in the background (iOS decides how often; usually every few hours at most).
 final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
+    static let noticeTaskID = "kr.co.gcflarchive.student.notice-refresh"
+
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         UNUserNotificationCenter.current().delegate = self
+        BGTaskScheduler.shared.register(forTaskWithIdentifier: Self.noticeTaskID, using: nil) { task in
+            self.handleNoticeRefresh(task as! BGAppRefreshTask)
+        }
+        NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: .main) { _ in
+            Self.scheduleNoticeRefresh()
+        }
         return true
+    }
+
+    static func scheduleNoticeRefresh() {
+        let request = BGAppRefreshTaskRequest(identifier: noticeTaskID)
+        request.earliestBeginDate = Date(timeIntervalSinceNow: 15 * 60)
+        try? BGTaskScheduler.shared.submit(request)
+    }
+
+    private func handleNoticeRefresh(_ task: BGAppRefreshTask) {
+        Self.scheduleNoticeRefresh() // keep the chain going
+        task.expirationHandler = { task.setTaskCompleted(success: false) }
+        MainViewControllerKt.checkNoticePushes { ok in
+            task.setTaskCompleted(success: ok.boolValue)
+        }
     }
 
     func userNotificationCenter(_ center: UNUserNotificationCenter,
@@ -60,8 +84,11 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
     func userNotificationCenter(_ center: UNUserNotificationCenter,
                                 didReceive response: UNNotificationResponse,
                                 withCompletionHandler completionHandler: @escaping () -> Void) {
-        if response.notification.request.identifier.hasPrefix("meal-") {
+        let id = response.notification.request.identifier
+        if id.hasPrefix("meal-") {
             MainViewControllerKt.openIncomingLink(url: "https://gcflarchive.co.kr/meal")
+        } else if id.hasPrefix("notice-") {
+            MainViewControllerKt.openIncomingLink(url: "https://gcflarchive.co.kr/notice-view?id=" + id.dropFirst("notice-".count))
         }
         completionHandler()
     }

@@ -15,6 +15,32 @@
             android:paddingHorizontal="20dp"
             android:paddingTop="16dp"
             android:paddingBottom="4dp"
+            android:text="@string/settings_notice_section"
+            android:textAppearance="@style/TextAppearance.Gcfl.Section" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switchNotice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="56dp"
+            android:paddingHorizontal="20dp"
+            android:text="@string/settings_notice_switch"
+            android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="20dp"
+            android:paddingBottom="8dp"
+            android:text="@string/settings_notice_desc"
+            android:textAppearance="@style/TextAppearance.Krds.Meta" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="20dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="4dp"
             android:text="@string/settings_meal_section"
             android:textAppearance="@style/TextAppearance.Gcfl.Section" />
 

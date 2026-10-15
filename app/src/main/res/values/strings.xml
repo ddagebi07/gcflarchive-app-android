@@ -50,6 +50,13 @@
 
     <!-- Settings -->
     <string name="settings_meal_section">급식 알림</string>
+    <string name="settings_notice_section">공지 알림</string>
+    <string name="settings_notice_switch">새 공지 알림 받기</string>
+    <string name="settings_notice_desc">관리자가 알림을 보낸 공지가 올라오면 알려 드려요. 15분 안팎으로 늦게 올 수 있어요.</string>
+    <string name="notice_channel_name">새 공지</string>
+    <string name="notice_channel_desc">관리자가 올린 공지 알림</string>
+    <string name="notice_push_title">새 공지가 올라왔어요</string>
+    <string name="notice_push_title_critical">중요 공지가 올라왔어요</string>
     <string name="settings_account_section">계정</string>
     <string name="settings_etc_section">그 밖의 설정</string>
     <string name="notify_enable">매일 급식 알림 받기</string>

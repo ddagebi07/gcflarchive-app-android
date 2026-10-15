@@ -31,6 +31,16 @@ class AppPrefs(private val settings: Settings = Settings()) {
         get() = settings.getStringOrNull(KEY_GRADE_MODE)
         set(value) = if (value == null) settings.remove(KEY_GRADE_MODE) else settings.putString(KEY_GRADE_MODE, value)
 
+    /** 새 공지 푸시 알림 (기본 켜짐). */
+    var noticeNotifyEnabled: Boolean
+        get() = settings.getBoolean(KEY_NOTICE, true)
+        set(value) = settings.putBoolean(KEY_NOTICE, value)
+
+    /** Server time of the last /api/notices/pushes check; null until the first one. */
+    var noticePushSince: String?
+        get() = settings.getStringOrNull(KEY_NOTICE_SINCE)
+        set(value) = if (value == null) settings.remove(KEY_NOTICE_SINCE) else settings.putString(KEY_NOTICE_SINCE, value)
+
     /** 앱을 열 때 생체 인증 (기본 꺼짐). */
     var appLockEnabled: Boolean
         get() = settings.getBoolean(KEY_APP_LOCK, false)
@@ -47,5 +57,7 @@ class AppPrefs(private val settings: Settings = Settings()) {
         const val KEY_GUEST_CODE = "grade_guest_code"
         const val KEY_GRADE_MODE = "grade_access_mode"
         const val KEY_APP_LOCK = "app_lock_enabled"
+        const val KEY_NOTICE = "notice_notify_enabled"
+        const val KEY_NOTICE_SINCE = "notice_push_since"
     }
 }

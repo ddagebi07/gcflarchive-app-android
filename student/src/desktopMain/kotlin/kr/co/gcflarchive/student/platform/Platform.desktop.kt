@@ -54,6 +54,7 @@ actual object Notifications {
     actual suspend fun requestPermission(): Boolean = false
     actual fun replaceMealNotices(items: List<ScheduledNotice>) = Unit
     actual fun cancelMealNotices() = Unit
+    actual fun showNow(id: String, title: String, body: String) = Unit
 }
 
 actual val platformName: String get() = "Desktop ${System.getProperty("os.name")}"

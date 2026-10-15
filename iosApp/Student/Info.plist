@@ -42,6 +42,15 @@
 	<dict/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<!-- 새 공지 알림: background refresh checks /api/notices/pushes. -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+	</array>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>kr.co.gcflarchive.student.notice-refresh</string>
+	</array>
 	<key>NSFaceIDUsageDescription</key>
 	<string>등급컷 계산기의 익명 접근 코드를 확인할 때 본인 확인에 사용합니다.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>

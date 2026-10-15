@@ -55,6 +55,8 @@ expect object Notifications {
     /** Replaces every pending meal notification with [items]. */
     fun replaceMealNotices(items: List<ScheduledNotice>)
     fun cancelMealNotices()
+    /** Shows a notification right away (새 공지). [id] keeps repeats from stacking. */
+    fun showNow(id: String, title: String, body: String)
 }
 
 /** "iOS 18.1" / "Android 15" — shown in 설정. */
