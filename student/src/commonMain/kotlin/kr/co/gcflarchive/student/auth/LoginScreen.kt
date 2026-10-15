@@ -22,6 +22,7 @@ import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,9 +52,12 @@ import kr.co.gcflarchive.student.ui.SecondaryButton
 private const val TERMS_STUDENT = "1. 개인정보의 수집·이용 목적\n내신 시험의 예상 등급컷 산출 및 각종 자료 제공, 본인인증\n\n2. 수집하려는 개인정보의 항목\n· 사용자의 학번\n· 응시한 시험의 과목별 원점수(등급컷 서비스)\n\n3. 개인정보의 보유 및 이용 기간\n· 사용자의 학번: 당해 학년도 종료일까지\n· 시험 원점수: 당해 평가 종료일로부터 30일\n\n4. 동의를 거부할 권리 및 불이익\n동의를 거부하실 수 있으며, 학번 제공을 거부하실 경우 서비스를 이용할 수 없어요. 수집한 원점수는 등급컷과 백분위 산출을 위한 자료로만 활용되며, 서버에 암호화되어 저장되므로 관리자는 개인의 학번과 점수 등을 열람할 수 없어요. 제공을 거부하실 경우 등급컷 관련 서비스를 이용할 수 없어요."
 private const val TERMS_TEACHER = "1. 개인정보의 수집·이용 목적\n교사 계정 식별, 서비스 이용 확인, 연관 업무 연락\n\n2. 수집하려는 개인정보의 항목\n· 성명\n· 이메일 주소\n· STUCARE 아이디\n\n3. 개인정보의 보유 및 이용 기간\n계정이 유지되는 동안\n\n4. 동의를 거부할 권리 및 불이익\n동의를 거부하실 수 있어요. 거부하실 시 서비스 이용이 불가해요."
 
-/** Native login + first-login 개인정보 동의 (same APIs as verify.html). */
+/**
+ * Native login + first-login 개인정보 동의 (same APIs as verify.html).
+ * [gate]: the full-screen login that covers the app until it's logged in (no back).
+ */
 @Composable
-fun LoginScreen() {
+fun LoginScreen(gate: Boolean = false) {
     val app = LocalApp.current
     val auth = app.services.auth
     val scope = rememberCoroutineScope()
@@ -71,6 +75,7 @@ fun LoginScreen() {
     var agreeScore by remember { mutableStateOf(false) }
     var teacherName by remember { mutableStateOf("") }
     var teacherEmail by remember { mutableStateOf("") }
+    var forgot by remember { mutableStateOf(false) }
 
     fun message(e: Throwable) = when (e) {
         is LoginRequiredException, is ApiException -> e.message ?: "로그인하지 못했어요."
@@ -111,17 +116,36 @@ fun LoginScreen() {
         scope.launch { auth.logout() }
     }
 
+    if (forgot) {
+        FirstPasswordScreen(id, onBack = { forgot = false }) { h, p ->
+            mode = AuthApi.Mode.STUDENT
+            id = h
+            password = p
+            error = null
+            forgot = false
+        }
+        return
+    }
+
     val teacher = mode == AuthApi.Mode.TEACHER || consent?.userType == "teacher"
     ScreenScaffold(
         title = if (consent == null) "로그인" else "개인정보 수집·이용 동의",
-        onBack = { if (consent != null) cancelConsent(); app.pop() },
+        onBack = when {
+            consent != null -> ({ cancelConsent(); if (!gate) app.pop() })
+            gate -> null
+            else -> ({ app.pop() })
+        },
     ) {
         Column(
             Modifier.fillMaxSize().verticalScroll(rememberScrollState()).imePadding().padding(horizontal = 24.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             if (consent == null) {
-                PageHeader("로그인", "STUCARE 계정으로 재학생인지 확인한 뒤 이용할 수 있어요. 계정은 다른 사람과 함께 쓰지 말아주세요.")
+                PageHeader(
+                    "로그인",
+                    if (gate) "과천외고 학생·선생님만 쓸 수 있어요. STUCARE 계정으로 로그인해주세요."
+                    else "STUCARE 계정으로 재학생인지 확인한 뒤 이용할 수 있어요. 계정은 다른 사람과 함께 쓰지 말아주세요.",
+                )
                 SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(top = 8.dp)) {
                     listOf(AuthApi.Mode.STUDENT to "학생 로그인", AuthApi.Mode.TEACHER to "교사 로그인").forEachIndexed { i, (m, label) ->
                         SegmentedButton(
@@ -160,6 +184,11 @@ fun LoginScreen() {
                 CheckRow("로그인 유지", rememberMe) { rememberMe = it }
                 error?.let { Text(it, color = Krds.colors.danger, style = KrdsText.body) }
                 PrimaryButton(if (busy) "확인하고 있어요" else "권한 인증", ::submit, Modifier.fillMaxWidth(), enabled = !busy)
+                if (mode == AuthApi.Mode.STUDENT) {
+                    TextButton(onClick = { forgot = true }, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+                        Text("비밀번호를 잊었어요", color = Krds.colors.primaryText)
+                    }
+                }
                 Text("비밀번호는 학교 STUCARE 인증에만 사용되며 앱에 저장되지 않아요.", style = KrdsText.meta)
             } else {
                 Text("개인정보 보호법 제15조에 따라 아래 내용에 동의하셔야 서비스를 계속 이용하실 수 있어요.", style = KrdsText.pageDesc)

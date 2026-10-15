@@ -46,6 +46,11 @@ class AppPrefs(private val settings: Settings = Settings()) {
         get() = settings.getBoolean(KEY_APP_LOCK, false)
         set(value) = settings.putBoolean(KEY_APP_LOCK, value)
 
+    /** 로그인을 마친 적이 있고 아직 로그아웃되지 않았어요. 앱을 열 때 로그인 화면을 먼저 띄울지 정해요. */
+    var signedIn: Boolean
+        get() = settings.getBoolean(KEY_SIGNED_IN, false)
+        set(value) = settings.putBoolean(KEY_SIGNED_IN, value)
+
     /** 학교생활 알림함(/api/notifications)에서 마지막으로 본 시각 (서버 UTC ISO). */
     var schoolAlertSince: String?
         get() = settings.getStringOrNull(KEY_SCHOOL_SINCE)
@@ -65,6 +70,7 @@ class AppPrefs(private val settings: Settings = Settings()) {
         get() = "${(mealNotifyMinuteOfDay / 60).toString().padStart(2, '0')}:${(mealNotifyMinuteOfDay % 60).toString().padStart(2, '0')}"
 
     private companion object {
+        const val KEY_SIGNED_IN = "signed_in"
         const val KEY_ENABLED = "meal_notify_enabled"
         const val KEY_TIME = "meal_notify_minute"
         const val KEY_KIND = "meal_notify_kind" // legacy single choice

@@ -1,5 +1,6 @@
 package kr.co.gcflarchive.core.auth
 
+import kr.co.gcflarchive.core.net.ApiException
 import kr.co.gcflarchive.core.net.SiteClient
 import kr.co.gcflarchive.core.net.jsonOf
 
@@ -67,6 +68,17 @@ class AuthApi(private val site: SiteClient) {
                 "accountType" to "teacher", "userType" to "teacher", "teacherConsentGranted" to true,
             ),
         )
+    }
+
+    /**
+     * 학생 초기·리셋 비밀번호 (학교 STUCARE의 My First Password): the server asks STUCARE
+     * (/api/first-password) and limits how often. Throws [ApiException] with the message to show.
+     */
+    suspend fun firstPassword(hakbun: String, name: String): String {
+        val res = site.exchange("/api/first-password", "POST", jsonOf("hakbun" to hakbun, "name" to name))
+        val password = res.json.optString("password")
+        if (res.isSuccessful && password.isNotBlank()) return password
+        throw ApiException(res.code, res.error ?: "학번과 이름을 다시 확인해주세요.")
     }
 
     /** Server logout, then forget the cookie locally even if the server is unreachable. */

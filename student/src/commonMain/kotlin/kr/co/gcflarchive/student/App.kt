@@ -99,6 +99,7 @@ fun StudentApp(services: Services = sharedServices, startLink: String? = null) {
             }
             // 새 공지 알림: also check whenever the app comes back to the front.
             AppForegroundEffect(onForeground = {
+                app.refreshLogin()  // the session may have expired while away
                 scope.launch {
                     NoticeAlerts.check(services)
                     kr.co.gcflarchive.student.school.SchoolAlerts.check(services)
@@ -118,6 +119,10 @@ fun StudentApp(services: Services = sharedServices, startLink: String? = null) {
                     key(route, i) {
                         Box(Modifier.fillMaxSize().background(Krds.colors.bg)) { RouteScreen(route) }
                     }
+                }
+                // 로그인 관문: covers the tabs and every pushed screen until logged in.
+                if (app.needsLogin) {
+                    Box(Modifier.fillMaxSize().background(Krds.colors.bg)) { LoginScreen(gate = true) }
                 }
                 AppLockGate(services.prefs)
             }

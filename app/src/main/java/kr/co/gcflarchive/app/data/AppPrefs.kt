@@ -52,7 +52,13 @@ class AppPrefs(context: Context) {
         get() = prefs.getBoolean(KEY_ONBOARDING, false)
         set(value) = prefs.edit { putBoolean(KEY_ONBOARDING, value) }
 
+    /** 로그인을 마친 적이 있고 아직 로그아웃되지 않았어요. 앱을 열 때 로그인 화면을 먼저 띄울지 정해요. */
+    var signedIn: Boolean
+        get() = prefs.getBoolean(KEY_SIGNED_IN, false)
+        set(value) = prefs.edit { putBoolean(KEY_SIGNED_IN, value) }
+
     private companion object {
+        const val KEY_SIGNED_IN = "signed_in"
         const val KEY_ENABLED = "meal_notify_enabled"
         const val KEY_TIME = "meal_notify_minute"
         const val KEY_KIND = "meal_notify_kind" // legacy single choice

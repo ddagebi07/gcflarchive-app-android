@@ -64,6 +64,11 @@
             android:windowSoftInputMode="adjustResize" />
 
         <activity
+            android:name=".auth.FirstPasswordActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
             android:name=".archive.PostDetailActivity"
             android:exported="false" />
 

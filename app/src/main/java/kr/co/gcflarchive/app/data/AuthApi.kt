@@ -62,6 +62,17 @@ object AuthApi {
         )
     }
 
+    /**
+     * 학생 초기·리셋 비밀번호 (학교 STUCARE의 My First Password). The server asks STUCARE
+     * (/api/first-password) and limits how often; errors carry the message to show.
+     */
+    suspend fun firstPassword(hakbun: String, name: String): String {
+        val res = SiteApi.exchange("/api/first-password", "POST", JSONObject().put("hakbun", hakbun).put("name", name))
+        val password = res.json.optString("password")
+        if (res.isSuccessful && password.isNotBlank()) return password
+        throw ApiException(res.code, res.error ?: "학번과 이름을 다시 확인해주세요.")
+    }
+
     suspend fun logout() {
         runCatching { SiteApi.postJson("/api/verify-logout", JSONObject()) }
     }

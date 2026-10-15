@@ -10,7 +10,10 @@ import android.util.Patterns
 import android.view.inputmethod.EditorInfo
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.CancellationException
@@ -27,6 +30,9 @@ import kr.co.gcflarchive.app.databinding.ActivityLoginBinding
  * Native login screen (replaces the /verify WebView). Talks to the same JSON APIs as
  * verify.html, including the first-login 개인정보 동의 step. Finishes with RESULT_OK once
  * the session is fully usable; the cookie lives in the app's shared cookie store.
+ *
+ * Gate mode ([intent] with gate = true): the full-screen login that opens before anything else
+ * when the app isn't logged in. No close button; back leaves the app (RESULT_CANCELED).
  */
 class LoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
@@ -34,12 +40,32 @@ class LoginActivity : AppCompatActivity() {
     private var loggedInId = ""
     private var consentMode: AuthApi.Mode? = null
     private var busy = false
+    private val gate get() = intent.getBooleanExtra(EXTRA_GATE, false)
+
+    /** "비밀번호를 잊었어요" → back with the 학번 and the found password filled in. */
+    private val firstPassword = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { r ->
+        val data = r.data ?: return@registerForActivityResult
+        if (r.resultCode != Activity.RESULT_OK) return@registerForActivityResult
+        binding.modeGroup.check(R.id.modeStudent)
+        binding.loginId.setText(data.getStringExtra(FirstPasswordActivity.EXTRA_HAKBUN))
+        binding.password.setText(data.getStringExtra(FirstPasswordActivity.EXTRA_PASSWORD))
+        binding.loginError.isVisible = false
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
         binding.toolbar.setNavigationOnClickListener { cancel() }
+        if (gate) {
+            binding.toolbar.navigationIcon = null
+            binding.subheading.setText(R.string.auth_gate_desc)
+            // Full screen: hide the status bar (a swipe from the top shows it for a moment).
+            WindowInsetsControllerCompat(window, binding.root).apply {
+                hide(WindowInsetsCompat.Type.statusBars())
+                systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            }
+        }
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() = if (consentMode != null) backToLogin() else cancel()
         })
@@ -52,6 +78,10 @@ class LoginActivity : AppCompatActivity() {
             if (action == EditorInfo.IME_ACTION_DONE) { submitLogin(); true } else false
         }
         binding.btnLogin.setOnClickListener { submitLogin() }
+        binding.btnForgot.setOnClickListener {
+            val id = binding.loginId.text?.toString()?.trim()?.takeIf { it.length == 5 }
+            firstPassword.launch(FirstPasswordActivity.intent(this, id))
+        }
 
         binding.consentRequired.setOnCheckedChangeListener { _, checked -> binding.btnConsent.isEnabled = checked && !busy }
         binding.btnConsent.setOnClickListener { submitConsent() }
@@ -67,6 +97,7 @@ class LoginActivity : AppCompatActivity() {
         binding.loginId.filters = if (teacher) emptyArray<InputFilter>() else arrayOf<InputFilter>(InputFilter.LengthFilter(5))
         binding.loginId.text = null
         binding.loginError.isVisible = false
+        binding.btnForgot.isVisible = !teacher  // STUCARE의 초기 비밀번호 확인은 학생만
     }
 
     private fun submitLogin() {
@@ -145,7 +176,7 @@ class LoginActivity : AppCompatActivity() {
         binding.consentPanel.isVisible = false
         binding.loginPanel.isVisible = true
         binding.heading.setText(R.string.auth_title)
-        binding.subheading.setText(R.string.auth_desc)
+        binding.subheading.setText(if (gate) R.string.auth_gate_desc else R.string.auth_desc)
     }
 
     private fun cancel() {
@@ -187,6 +218,9 @@ class LoginActivity : AppCompatActivity() {
     }
 
     companion object {
-        fun intent(context: Context): Intent = Intent(context, LoginActivity::class.java)
+        private const val EXTRA_GATE = "gate"
+
+        fun intent(context: Context, gate: Boolean = false): Intent =
+            Intent(context, LoginActivity::class.java).putExtra(EXTRA_GATE, gate)
     }
 }

@@ -1,14 +1,21 @@
 package kr.co.gcflarchive.app
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.webkit.CookieManager
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commitNow
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import kr.co.gcflarchive.app.auth.LoginActivity
+import kr.co.gcflarchive.app.data.LoginState
+import kr.co.gcflarchive.app.data.SiteSession
 import kr.co.gcflarchive.app.data.AppPrefs
 import kr.co.gcflarchive.app.databinding.ActivityMainBinding
 import kr.co.gcflarchive.app.ui.DriveFragment
@@ -23,6 +30,52 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
     private val notificationPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
+
+    /**
+     * 로그인 관문: the app can't be used logged out. The full-screen login opens first;
+     * backing out of it closes the app.
+     */
+    private var gateOpen = false
+    private val loginGate = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { r ->
+        gateOpen = false
+        if (r.resultCode == Activity.RESULT_OK) {
+            AppPrefs(this).signedIn = true
+            // Tabs that loaded while logged out (홈 인사, 드라이브) refresh on resume.
+        } else {
+            finish()
+        }
+    }
+
+    private fun openLoginGate() {
+        if (gateOpen || isFinishing) return
+        gateOpen = true
+        loginGate.launch(LoginActivity.intent(this, gate = true))
+    }
+
+    /** Re-checks on every return: the session can expire, or the user logged out in 설정. */
+    private fun checkLogin() {
+        if (gateOpen) return
+        lifecycleScope.launch {
+            when (SiteSession.state()) {
+                is LoginState.LoggedIn -> AppPrefs(this@MainActivity).signedIn = true
+                LoginState.LoggedOut -> {
+                    AppPrefs(this@MainActivity).signedIn = false
+                    openLoginGate()
+                }
+                // Offline: someone who logged in before keeps using the app (meals, saved data).
+                LoginState.Unknown -> if (!mayBeSignedIn()) openLoginGate()
+            }
+        }
+    }
+
+    /** Logged in before (or a session cookie from before this check existed, e.g. after an update). */
+    private fun mayBeSignedIn(): Boolean = AppPrefs(this).signedIn ||
+        runCatching { CookieManager.getInstance().getCookie(Config.BASE_URL)?.contains("gcfl_session=") == true }.getOrDefault(false)
+
+    override fun onResume() {
+        super.onResume()
+        checkLogin()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,6 +93,10 @@ class MainActivity : AppCompatActivity() {
             if (existing == null) showTab(item.itemId) else (existing as? Reselectable)?.onReselected()
         }
 
+        gateOpen = savedInstanceState?.getBoolean(STATE_GATE) == true
+        // Never logged in on this device: the login comes first, before the tabs load anything.
+        if (!mayBeSignedIn()) openLoginGate()
+
         if (savedInstanceState == null) {
             val start = tabFromIntent(intent) ?: R.id.tab_home
             binding.bottomNav.selectedItemId = start
@@ -56,6 +113,11 @@ class MainActivity : AppCompatActivity() {
                 notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(STATE_GATE, gateOpen)
     }
 
     /** A 학교생활 push tapped in the tray (app in the background) arrives here with its data as extras. */
@@ -136,6 +198,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     companion object {
+        private const val STATE_GATE = "login_gate_open"
         const val EXTRA_TAB = "tab"
         const val EXTRA_PATH = "path"
         const val TAB_HOME = "home"

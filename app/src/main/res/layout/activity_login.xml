@@ -140,6 +140,17 @@
                     android:layout_marginTop="16dp"
                     android:text="@string/auth_submit" />
 
+                <!-- 학생만: 학번 + 이름으로 STUCARE 초기 비밀번호 확인 -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnForgot"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/auth_forgot"
+                    android:textColor="@color/krds_primary_text" />
+
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

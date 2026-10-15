@@ -102,12 +102,32 @@ class AppState(val services: Services, private val scope: CoroutineScope) {
     fun requireLogin() = push(Route.Login)
 
     fun refreshLogin() {
-        scope.launch { login = services.auth.state() }
+        scope.launch {
+            val state = services.auth.state()
+            when (state) {
+                is LoginState.LoggedIn -> services.prefs.signedIn = true
+                LoginState.LoggedOut -> services.prefs.signedIn = false
+                LoginState.Unknown -> {}
+            }
+            login = state
+        }
+    }
+
+    /**
+     * 로그인 관문: the app can't be used logged out, so the full-screen login covers everything.
+     * Offline (Unknown), someone who logged in before keeps using the app.
+     */
+    val needsLogin: Boolean get() = when (login) {
+        is LoginState.LoggedIn -> false
+        LoginState.LoggedOut -> true
+        LoginState.Unknown -> !services.prefs.signedIn
     }
 
     /** Called by the login screen when the session is ready. */
     fun onLoggedIn() {
         if (stack.lastOrNull() == Route.Login) pop()
+        services.prefs.signedIn = true
+        login = LoginState.Unknown  // hides the gate at once; refreshLogin fills in who
         sessionVersion++
         refreshLogin()
     }
@@ -115,6 +135,7 @@ class AppState(val services: Services, private val scope: CoroutineScope) {
     fun logout() {
         scope.launch {
             services.auth.logout()
+            services.prefs.signedIn = false
             login = LoginState.LoggedOut
             sessionVersion++
             toast("로그아웃했어요.")
