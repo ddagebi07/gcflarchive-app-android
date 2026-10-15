@@ -1,30 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 오늘의 급식 위젯 (MealWidget). RemoteViews: only framework views. -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- 급식 위젯 (MealWidget): one meal as running text, ‹ › at the bottom right. RemoteViews: framework views only. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widgetMealRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/bg_widget"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="14dp">
 
-    <TextView
-        android:id="@+id/widgetMealTitle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:maxLines="1"
-        android:textColor="@color/krds_text_strong"
-        android:textSize="15sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/widgetMealBody"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="8dp"
-        android:ellipsize="end"
-        android:lineSpacingMultiplier="1.2"
-        android:text="@string/widget_meal_loading"
-        android:textColor="@color/krds_text_primary"
-        android:textSize="13sp" />
-</LinearLayout>
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/widgetMealTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:textColor="@color/krds_text_strong"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/widgetMealBody"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:lineSpacingMultiplier="1.2"
+            android:text="@string/widget_meal_loading"
+            android:textColor="@color/krds_text_primary"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/widgetMealPrev"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:background="@drawable/bg_widget_arrow"
+            android:contentDescription="@string/widget_meal_prev"
+            android:padding="6dp"
+            android:src="@drawable/ic_widget_prev" />
+
+        <ImageView
+            android:id="@+id/widgetMealNext"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_marginStart="4dp"
+            android:background="@drawable/bg_widget_arrow"
+            android:contentDescription="@string/widget_meal_next"
+            android:padding="6dp"
+            android:src="@drawable/ic_widget_next" />
+    </LinearLayout>
+</FrameLayout>

@@ -6,11 +6,6 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.graphics.Typeface
-import android.text.SpannableStringBuilder
-import android.text.Spanned
-import android.text.style.ForegroundColorSpan
-import android.text.style.StyleSpan
 import android.widget.RemoteViews
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,12 +15,16 @@ import kr.co.gcflarchive.app.MainActivity
 import kr.co.gcflarchive.app.R
 import kr.co.gcflarchive.app.meal.Meal
 import kr.co.gcflarchive.app.meal.MealRepository
+import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneId
 
 /**
- * 홈 화면 위젯: 오늘의 급식 (중식·석식 …). Fetches the menu itself (NEIS, no login needed),
- * refreshes about every hour and whenever the app starts, and keeps the last menu so it
- * still shows something offline. Tapping it opens the 급식 tab.
+ * 홈 화면 위젯: 급식, 한 번에 한 끼 (메뉴가 잘리지 않게, 가운뎃점으로 이어 쓴 줄글).
+ * 기본은 중식, 13:30(점심시간 뒤)부터 석식; 주말이면 다음 월요일 중식. ‹ › 로 끼니와 날짜를
+ * 넘기고, 한 시간 동안 안 누르면 기본으로 돌아가요. Fetches NEIS itself (no login).
+ * Tapping the menu opens the 급식 tab.
  */
 class MealWidget : AppWidgetProvider() {
     override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) {
@@ -39,9 +38,31 @@ class MealWidget : AppWidgetProvider() {
         }
     }
 
+    override fun onReceive(context: Context, intent: Intent) {
+        val forward = when (intent.action) {
+            ACTION_NEXT -> true
+            ACTION_PREV -> false
+            else -> return super.onReceive(context, intent)
+        }
+        val pending = goAsync()
+        scope.launch {
+            try {
+                step(context.applicationContext, forward)
+                update(context.applicationContext)
+            } finally {
+                pending.finish()
+            }
+        }
+    }
+
     companion object {
         private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        private val SEOUL: ZoneId = ZoneId.of("Asia/Seoul")
         private const val PREFS = "meal_widget"
+        private const val ACTION_NEXT = "kr.co.gcflarchive.app.widget.MEAL_NEXT"
+        private const val ACTION_PREV = "kr.co.gcflarchive.app.widget.MEAL_PREV"
+        private const val TTL_MS = 60 * 60 * 1000L  // back to the default an hour after the last tap
+        private val AFTER_LUNCH: LocalTime = LocalTime.of(13, 30)
 
         /** Re-draws every placed widget (e.g. at app start). No-op when none is on the home screen. */
         fun refresh(context: Context) {
@@ -52,41 +73,92 @@ class MealWidget : AppWidgetProvider() {
         private fun ids(context: Context): IntArray =
             AppWidgetManager.getInstance(context).getAppWidgetIds(ComponentName(context, MealWidget::class.java))
 
-        private suspend fun update(context: Context) {
+        private fun isSchoolDay(d: LocalDate) = d.dayOfWeek != DayOfWeek.SATURDAY && d.dayOfWeek != DayOfWeek.SUNDAY
+
+        private fun shiftSchoolDay(d: LocalDate, step: Long): LocalDate {
+            var day = d.plusDays(step)
+            while (!isSchoolDay(day)) day = day.plusDays(step)
+            return day
+        }
+
+        /** 오늘 (주말이면 다음 월요일) 중식, or 석식 from 13:30 on a school day. */
+        private fun defaultSlot(): Pair<LocalDate, String> {
             val today = MealRepository.today()
-            val meals = runCatching { MealRepository.fetch(today) }.getOrNull()
+            if (!isSchoolDay(today)) return shiftSchoolDay(today, 1) to "중식"
+            return today to if (LocalTime.now(SEOUL) >= AFTER_LUNCH) "석식" else "중식"
+        }
+
+        private data class Shown(val day: LocalDate, val meals: List<Meal>, val index: Int)
+
+        /** The meal on screen now: a fresh stored slot (index -1 = that day's last meal) or the default. null = offline. */
+        private suspend fun resolve(context: Context): Shown? {
             val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            val body: CharSequence = when {
-                meals == null -> prefs.getString("text_$today", null) ?: context.getString(R.string.widget_meal_offline)
-                meals.isEmpty() -> context.getString(R.string.widget_meal_none)
-                else -> menu(context, meals).also { prefs.edit().clear().putString("text_$today", it.toString()).apply() }
+            val fresh = System.currentTimeMillis() - prefs.getLong("navAt", 0) < TTL_MS
+            val stored = prefs.getString("navDay", null)?.takeIf { fresh }?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+            if (stored != null) {
+                val meals = runCatching { MealRepository.fetch(stored) }.getOrNull() ?: return null
+                val i = prefs.getInt("navIndex", 0)
+                return Shown(stored, meals, if (meals.isEmpty()) 0 else if (i < 0) meals.lastIndex else i.coerceAtMost(meals.lastIndex))
+            }
+            val (day, preferred) = defaultSlot()
+            val meals = runCatching { MealRepository.fetch(day) }.getOrNull() ?: return null
+            val i = meals.indexOfFirst { it.kind == preferred }.takeIf { it >= 0 } ?: if (preferred == "석식") maxOf(meals.lastIndex, 0) else 0
+            return Shown(day, meals, i)
+        }
+
+        /** ‹ › : the next / previous meal, crossing into the next / previous school day. */
+        private suspend fun step(context: Context, forward: Boolean) {
+            val now = resolve(context)
+            val day = now?.day ?: defaultSlot().first
+            val count = now?.meals?.size ?: 0
+            val index = now?.index ?: 0
+            val (newDay, newIndex) = when {
+                forward && index + 1 < count -> day to index + 1
+                forward -> shiftSchoolDay(day, 1) to 0
+                index > 0 && count > 0 -> day to index - 1
+                else -> shiftSchoolDay(day, -1) to -1
+            }
+            context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+                .putString("navDay", newDay.toString()).putInt("navIndex", newIndex)
+                .putLong("navAt", System.currentTimeMillis()).apply()
+        }
+
+        private suspend fun update(context: Context) {
+            val shown = resolve(context)
+            val day = shown?.day ?: defaultSlot().first
+            val meal = shown?.meals?.getOrNull(shown.index)
+            val title = listOfNotNull(dayLabel(day), meal?.kind).joinToString(" ")
+            val body = when {
+                shown == null -> context.getString(R.string.widget_meal_offline)
+                meal == null -> context.getString(R.string.widget_meal_none)
+                else -> meal.dishes.joinToString(" · ") { it.name }
             }
             val views = RemoteViews(context.packageName, R.layout.widget_meal).apply {
-                setTextViewText(R.id.widgetMealTitle, context.getString(R.string.widget_meal_title, dateLabel(today)))
+                setTextViewText(R.id.widgetMealTitle, title)
                 setTextViewText(R.id.widgetMealBody, body)
                 setOnClickPendingIntent(R.id.widgetMealRoot, open(context))
+                setOnClickPendingIntent(R.id.widgetMealPrev, stepIntent(context, ACTION_PREV, 7002))
+                setOnClickPendingIntent(R.id.widgetMealNext, stepIntent(context, ACTION_NEXT, 7003))
             }
             val manager = AppWidgetManager.getInstance(context)
             ids(context).forEach { manager.updateAppWidget(it, views) }
         }
 
-        /** '중식' (bold, blue) then its dishes, one meal per paragraph. */
-        private fun menu(context: Context, meals: List<Meal>): CharSequence {
-            val accent = context.getColor(R.color.krds_primary_text)
-            val out = SpannableStringBuilder()
-            meals.forEachIndexed { i, m ->
-                if (i > 0) out.append("\n\n")
-                val start = out.length
-                out.append(m.kind)
-                out.setSpan(StyleSpan(Typeface.BOLD), start, out.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                out.setSpan(ForegroundColorSpan(accent), start, out.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                out.append("\n").append(m.dishes.joinToString(" · ") { it.name })
+        /** '오늘' / '내일' / '10/20(월)' */
+        private fun dayLabel(d: LocalDate): String {
+            val today = MealRepository.today()
+            return when (d) {
+                today -> "오늘"
+                today.plusDays(1) -> "내일"
+                else -> "${d.monthValue}/${d.dayOfMonth}(${"월화수목금토일"[d.dayOfWeek.value - 1]})"
             }
-            return out
         }
 
-        private fun dateLabel(d: LocalDate): String =
-            "${d.monthValue}/${d.dayOfMonth}(${"월화수목금토일"[d.dayOfWeek.value - 1]})"
+        private fun stepIntent(context: Context, action: String, code: Int): PendingIntent = PendingIntent.getBroadcast(
+            context, code,
+            Intent(context, MealWidget::class.java).setAction(action),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
 
         private fun open(context: Context): PendingIntent = PendingIntent.getActivity(
             context, 7001,

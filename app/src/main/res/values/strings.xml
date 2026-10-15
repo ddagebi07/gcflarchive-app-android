@@ -147,9 +147,10 @@
     <string name="settings_timetable_full_desc">끄면 줄임말(예: 심F), 켜면 전체 이름(예: 심화영어 Ⅱ)으로 보여요.</string>
     <string name="home_alerts">알림</string>
     <string name="home_alerts_count">알림, 안 읽은 알림 %1$d개</string>
-    <string name="widget_meal_description">오늘의 급식 메뉴를 홈 화면에서 바로 봐요.</string>
-    <string name="widget_meal_title">오늘의 급식 · %1$s</string>
+    <string name="widget_meal_description">한 끼씩 급식 메뉴를 보고, ‹ ›로 다른 끼니와 날짜로 넘겨요.</string>
+    <string name="widget_meal_prev">이전 끼니</string>
+    <string name="widget_meal_next">다음 끼니</string>
     <string name="widget_meal_loading">불러오고 있어요</string>
-    <string name="widget_meal_none">오늘은 급식이 없어요.</string>
+    <string name="widget_meal_none">이날은 급식이 없어요.</string>
     <string name="widget_meal_offline">급식 정보를 불러오지 못했어요. 인터넷에 연결되면 다시 보여요.</string>
 </resources>
