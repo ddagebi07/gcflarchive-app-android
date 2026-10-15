@@ -33,6 +33,12 @@ class SchoolParseTest {
         assertTrue(c.changed)
         assertEquals("이외고(영)", c.detail)
         assertTrue(w.cell(1, w.classPeriods[0]).empty)
+        val named = SchoolParse.week(parseObject("""{"days":[{"date":"2026-10-19","weekday":"월"}],"periods":[{"key":"1","isClass":true}],
+            "cells":[[{"subject":"심F","fullName":"심화영어 Ⅱ","track":"영어과","empty":false}]]}"""))
+        val n = named.cell(0, named.classPeriods[0])
+        assertEquals("심화영어 Ⅱ (심F)", n.title)
+        assertEquals("영어과", n.trackLabel)
+        assertEquals("", c.copy(track = "전체과").trackLabel)
         assertTrue(w.cell(4, w.classPeriods[0]).empty) // missing day → empty
     }
 

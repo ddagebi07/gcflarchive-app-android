@@ -43,7 +43,15 @@ data class TtCell(
     val note: String,
     /** Teacher view: this class was handed to another teacher (보강). */
     val handedOver: Boolean,
+    /** 교과목명 파일의 정식 이름 (예: 심F → 심화영어 Ⅱ); "" when none. */
+    val fullName: String = "",
+    /** 수업 교과 (예: 영어과); "" or 전체과 when it's for everyone. */
+    val track: String = "",
 ) {
+    /** "심화영어 Ⅱ (심F)" or just "문학". */
+    val title: String get() = if (fullName.isNotBlank()) "$fullName ($subject)" else subject
+    val trackLabel: String get() = track.takeIf { it.isNotBlank() && it != "전체과" }.orEmpty()
+
     /** "2-3 · 물리실 · 최과학" */
     val detail: String get() = listOf(place, room, teachers.joinToString(", ")).filter { it.isNotBlank() }.joinToString(" · ")
 }
@@ -246,6 +254,7 @@ object SchoolParse {
                     room = j.optString("room"), place = j.optString("place"), moving = j.optBoolean("moving"),
                     changed = j.optBoolean("changed"), empty = j.optBoolean("empty", true), note = j.optString("note"),
                     handedOver = j.optBoolean("handedOver"),
+                    fullName = j.optString("fullName"), track = j.optString("track"),
                 )
             }
         }

@@ -294,7 +294,8 @@ private fun PeriodRow(label: String, time: String, c: TtCell, onSub: (() -> Unit
             Column(Modifier.weight(1f).padding(start = 12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 if (c.empty) Text("—", style = KrdsText.meta)
                 else {
-                    Text(c.subject, style = KrdsText.cardTitle.copy(textDecoration = if (c.handedOver) TextDecoration.LineThrough else null))
+                    Text(c.title, style = KrdsText.cardTitle.copy(textDecoration = if (c.handedOver) TextDecoration.LineThrough else null))
+                    if (c.trackLabel.isNotBlank()) Text(c.trackLabel, style = KrdsText.meta)
                     if (c.detail.isNotBlank()) Text(c.detail, style = KrdsText.meta)
                     Row2 {
                         if (c.moving) Badge("이동", BadgeTone.PURPLE)
