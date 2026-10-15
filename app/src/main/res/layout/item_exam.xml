@@ -46,7 +46,7 @@
             android:layout_height="wrap_content"
             android:contentDescription="@string/exam_favorite_add"
             app:icon="@drawable/ic_star_outline"
-            app:iconTint="@color/krds_primary" />
+            app:iconTint="@color/krds_star" />
     </LinearLayout>
 
     <TextView

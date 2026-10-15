@@ -236,7 +236,7 @@ private fun FileCard(file: DriveFile, onDownload: () -> Unit, onShare: () -> Uni
                             Text("  ${s.minutesLeft}분 뒤 삭제", style = KrdsText.meta.copy(color = Krds.colors.danger))
                         }
                         is DriveFileStatus.Stored -> {
-                            Badge(if (file.quotaExempt) "기출" else "보관 중", if (file.quotaExempt) BadgeTone.PURPLE else BadgeTone.SUCCESS)
+                            Badge(if (file.quotaExempt) "기출" else "보관 중", if (file.quotaExempt) BadgeTone.WARNING else BadgeTone.SUCCESS)
                             Text("  ${s.daysLeft}일 남음", style = KrdsText.meta)
                         }
                     }

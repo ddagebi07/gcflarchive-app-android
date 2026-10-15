@@ -21,8 +21,8 @@ import org.jetbrains.compose.resources.Font
 
 /**
  * App colors, light and dark. Values are TDS (Toss Design System, @toss/tds-colors); the names are
- * the KRDS ones the screens were written with. One accent only: blue (TDS blue500); red only for 경고·오류.
- * success/purple badges therefore use blue / grey too. Same values as the Android app's res/values(-night)/krds_colors.xml.
+ * the KRDS ones the screens were written with. Accent color: blue (TDS blue500). Other colors only for
+ * status: badges 빨강·초록·노랑·파랑, red for 오류, yellow for stars (별점·즐겨찾기). Same values as the Android app's res/values(-night)/krds_colors.xml.
  */
 @Immutable
 data class KrdsColors(
@@ -41,10 +41,12 @@ data class KrdsColors(
     val textDisabled: Color,
     val danger: Color,
     val dangerTint: Color,
+    /** Red text on [dangerTint] (badges): TDS red700 in light mode so it reads at 12sp. */
+    val dangerText: Color,
     val star: Color,
     val infoBg: Color, val infoFg: Color,
     val successBg: Color, val successFg: Color,
-    val purpleBg: Color, val purpleFg: Color,
+    val warningBg: Color, val warningFg: Color,
     val neutralBg: Color, val neutralFg: Color,
     val highlight: Color,
 )
@@ -54,10 +56,10 @@ val LightKrds = KrdsColors(
     bg = Color(0xFFF2F4F6), surface = Color.White, surfaceRaised = Color(0xFFF2F4F6),
     border = Color(0xFFE5E8EB), borderStrong = Color(0xFFD1D6DB),
     textStrong = Color(0xFF191F28), text = Color(0xFF333D4B), textSecondary = Color(0xFF6B7684), textDisabled = Color(0xFFB0B8C1),
-    danger = Color(0xFFF04452), dangerTint = Color(0xFFFFEEEE), star = Color(0xFFFFC342),
+    danger = Color(0xFFD22030), dangerTint = Color(0xFFFFEEEE), dangerText = Color(0xFFD22030), star = Color(0xFFFFC342),
     infoBg = Color(0xFFE8F3FF), infoFg = Color(0xFF1B64DA),
-    successBg = Color(0xFFE8F3FF), successFg = Color(0xFF1B64DA),
-    purpleBg = Color(0xFFF2F4F6), purpleFg = Color(0xFF4E5968),
+    successBg = Color(0xFFF0FAF6), successFg = Color(0xFF027648),
+    warningBg = Color(0xFFFFF9E7), warningFg = Color(0xFFA66300),
     neutralBg = Color(0xFFF2F4F6), neutralFg = Color(0xFF4E5968),
     highlight = Color(0xFFFFF1A8),
 )
@@ -67,10 +69,10 @@ val DarkKrds = KrdsColors(
     bg = Color(0xFF17171C), surface = Color(0xFF202027), surfaceRaised = Color(0xFF2C2C35),
     border = Color(0xFF2C2C35), borderStrong = Color(0xFF3C3C47),
     textStrong = Color.White, text = Color(0xFFE4E4E5), textSecondary = Color(0xFF9E9EA4), textDisabled = Color(0xFF62626D),
-    danger = Color(0xFFF04251), dangerTint = Color(0xFF3C2020), star = Color(0xFFFFB134),
+    danger = Color(0xFFF04251), dangerTint = Color(0xFF3C2020), dangerText = Color(0xFFF66570), star = Color(0xFFFFB134),
     infoBg = Color(0xFF202C4D), infoFg = Color(0xFF449BFF),
-    successBg = Color(0xFF202C4D), successFg = Color(0xFF449BFF),
-    purpleBg = Color(0xFF2C2C35), purpleFg = Color(0xFFC3C3C6),
+    successBg = Color(0xFF153729), successFg = Color(0xFF16BB76),
+    warningBg = Color(0xFF3D2D1A), warningFg = Color(0xFFFFB134),
     neutralBg = Color(0xFF2C2C35), neutralFg = Color(0xFFC3C3C6),
     highlight = Color(0x66B8860B),
 )

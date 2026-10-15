@@ -390,7 +390,7 @@ private fun PeriodRow(label: String, time: String, c: TtCell, onSub: (() -> Unit
                     if (c.trackLabel.isNotBlank()) Text(c.trackLabel, style = KrdsText.meta)
                     if (c.detail.isNotBlank()) Text(c.detail, style = KrdsText.meta)
                     Row2 {
-                        if (c.moving) Badge("이동", BadgeTone.PURPLE)
+                        if (c.moving) Badge("이동", BadgeTone.WARNING)
                         if (c.changed) Badge("변경", BadgeTone.DANGER)
                     }
                     if (c.note.isNotBlank()) Text(c.note, style = KrdsText.meta)
@@ -745,7 +745,7 @@ fun SchoolThreadScreen(id: Int) {
 private fun VisitRow(v: Visit, teacher: Boolean, onClick: () -> Unit) {
     KrdsCard(onClick = onClick) {
         Row2 {
-            Badge(v.statusLabel, when (v.status) { "pending" -> BadgeTone.INFO; "accepted" -> BadgeTone.SUCCESS; "answered" -> BadgeTone.PURPLE; else -> BadgeTone.NEUTRAL })
+            Badge(v.statusLabel, when (v.status) { "pending" -> BadgeTone.INFO; "accepted" -> BadgeTone.SUCCESS; "answered" -> BadgeTone.WARNING; else -> BadgeTone.NEUTRAL })
             Text(v.purpose, style = KrdsText.cardTitle, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         val who = if (teacher) "${v.studentKey}${if (v.studentName.isNotBlank()) " ${v.studentName}" else ""} 학생" else teacherLabel(v.teacherName)

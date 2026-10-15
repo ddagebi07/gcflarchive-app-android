@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- 사용자 앱: TDS(Toss Design System) 색 (@toss/tds-colors, light). 이름은 KRDS 때 그대로 둬서 화면 코드는 그대로예요.
      관리자 앱은 admin/src/main/res의 KRDS 색을 써요.
-     포인트 색은 파랑 하나 (빨강은 경고·오류만): success·purple 배지도 파랑·회색이에요. -->
+     포인트 색은 파랑. 배지는 빨강·초록·노랑·파랑 (purple 이름의 배지 색은 노랑 = 경고), 별은 노랑. -->
 <resources>
     <color name="krds_primary">#3182F6</color>          <!-- blue500 -->
     <color name="krds_primary_text">#2272EB</color>     <!-- blue600 -->
@@ -17,19 +17,19 @@
     <color name="krds_text_primary">#333D4B</color>     <!-- grey800 -->
     <color name="krds_text_secondary">#6B7684</color>   <!-- grey600 -->
     <color name="krds_text_disabled">#B0B8C1</color>
-    <color name="krds_danger">#F04452</color>           <!-- red500 -->
+    <color name="krds_danger">#D22030</color>           <!-- red700: 흰 바탕·옅은 빨강 위 글자도 잘 읽히게 -->
     <color name="krds_danger_tint">#FFEEEE</color>      <!-- red50 -->
     <color name="krds_star">#FFC342</color>             <!-- yellow500 -->
 
     <color name="krds_badge_info_bg">#E8F3FF</color>
     <color name="krds_badge_info_fg">#1B64DA</color>
     <color name="krds_badge_info_border">#C9E2FF</color>
-    <color name="krds_badge_success_bg">#E8F3FF</color>
-    <color name="krds_badge_success_fg">#1B64DA</color>
-    <color name="krds_badge_success_border">#C9E2FF</color>
-    <color name="krds_badge_purple_bg">#F2F4F6</color>
-    <color name="krds_badge_purple_fg">#4E5968</color>
-    <color name="krds_badge_purple_border">#E5E8EB</color>
+    <color name="krds_badge_success_bg">#F0FAF6</color>
+    <color name="krds_badge_success_fg">#027648</color>
+    <color name="krds_badge_success_border">#AEEFD5</color>
+    <color name="krds_badge_purple_bg">#FFF9E7</color>
+    <color name="krds_badge_purple_fg">#A66300</color>
+    <color name="krds_badge_purple_border">#FFE7A3</color>
     <color name="krds_badge_neutral_bg">#F2F4F6</color>
     <color name="krds_badge_neutral_fg">#4E5968</color>
     <color name="krds_badge_neutral_border">#E5E8EB</color>

@@ -161,7 +161,7 @@ private fun ExamRow(doc: LibraryDocument, starred: Boolean?, onStar: () -> Unit,
                     if (m.period.isNotBlank()) Badge(m.period, BadgeTone.NEUTRAL)
                     if (m.department.isNotBlank()) Badge(m.department, BadgeTone.SUCCESS)
                     if (doc.hasAnswerSheet) Badge("답지", BadgeTone.INFO)
-                    if (m.cutoffs.isNotBlank() || m.average.isNotBlank()) Badge("등급컷", BadgeTone.PURPLE)
+                    if (m.cutoffs.isNotBlank() || m.average.isNotBlank()) Badge("등급컷", BadgeTone.WARNING)
                 }
             }
             Text(doc.title, style = KrdsText.cardTitle, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 4.dp))
@@ -172,7 +172,7 @@ private fun ExamRow(doc: LibraryDocument, starred: Boolean?, onStar: () -> Unit,
                 Icon(
                     if (starred) Icons.Filled.Star else Icons.Filled.StarBorder,
                     if (starred) "즐겨찾기 해제" else "즐겨찾기",
-                    tint = if (starred) Krds.colors.primary else Krds.colors.textSecondary,
+                    tint = if (starred) Krds.colors.star else Krds.colors.textSecondary,
                 )
             }
         }
@@ -241,7 +241,7 @@ private fun ExamDetail(app: AppState, doc: LibraryDocument, onDismiss: () -> Uni
             "시험", m.period,
         )
         DetailPair("과목 / 학과", listOf(m.subject, m.department).filter { it.isNotBlank() }.joinToString(" / "), "파일 크기", formatBytes(doc.size))
-        DetailRow("등급컷", m.cutoffs, Krds.colors.purpleFg)
+        DetailRow("등급컷", m.cutoffs, Krds.colors.warningFg)
         DetailRow("평균", m.average.takeIf { it.isNotBlank() }?.let { "${it}점" }, Krds.colors.primaryText)
         DetailInfo("설명", listOf(doc.notes, doc.tags.joinToString(", ") { "#$it" }).filter { it.isNotBlank() }.joinToString("\n"))
 

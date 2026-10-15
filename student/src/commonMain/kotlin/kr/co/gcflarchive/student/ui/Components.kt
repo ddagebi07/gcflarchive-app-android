@@ -80,7 +80,8 @@ fun PageHeader(title: String, desc: String? = null, modifier: Modifier = Modifie
     }
 }
 
-enum class BadgeTone { INFO, SUCCESS, PURPLE, NEUTRAL, DANGER }
+/** Badge colors: 파랑 INFO · 초록 SUCCESS · 노랑 WARNING · 빨강 DANGER, plus grey NEUTRAL. */
+enum class BadgeTone { INFO, SUCCESS, WARNING, NEUTRAL, DANGER }
 
 /** .tag-badge */
 @Composable
@@ -89,9 +90,9 @@ fun Badge(text: String, tone: BadgeTone = BadgeTone.INFO, modifier: Modifier = M
     val (bg, fg) = when (tone) {
         BadgeTone.INFO -> k.infoBg to k.infoFg
         BadgeTone.SUCCESS -> k.successBg to k.successFg
-        BadgeTone.PURPLE -> k.purpleBg to k.purpleFg
+        BadgeTone.WARNING -> k.warningBg to k.warningFg
         BadgeTone.NEUTRAL -> k.neutralBg to k.neutralFg
-        BadgeTone.DANGER -> k.dangerTint to k.danger
+        BadgeTone.DANGER -> k.dangerTint to k.dangerText
     }
     Text(
         text,
