@@ -20,7 +20,7 @@
     <string name="survey_not_published">아직 게시되지 않은 설문이에요.</string>
     <string name="survey_closed">마감된 설문이에요.</string>
     <string name="survey_already">이미 응답한 설문이에요. 아래는 내 응답이에요.</string>
-    <string name="survey_thanks">응답을 제출했어요. 참여해 주셔서 고마워요.</string>
+    <string name="survey_thanks">응답을 제출했어요. 참여해주셔서 감사합니다.</string>
     <string name="survey_edit_answer">응답 수정</string>
     <string name="survey_see_summary">결과 요약 보기</string>
     <string name="survey_submit">제출</string>

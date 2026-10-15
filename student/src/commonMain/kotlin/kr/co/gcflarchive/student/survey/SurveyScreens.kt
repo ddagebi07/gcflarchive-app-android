@@ -268,7 +268,7 @@ fun SurveyScreen(id: Int) {
                         if (f.summary.collectIdentity) InfoBox("이 설문은 응답한 사람의 학번을 설문을 만든 사람에게 보여줘요.", icon = Icons.Filled.Info)
                         if (!f.accepting && !f.summary.canManage) InfoBox(if (f.rawStatus == "draft") "아직 게시되지 않은 설문이에요." else "마감된 설문이에요.")
                         if (answered && !editing) {
-                            InfoBox(if (submitted) "응답을 제출했어요. 참여해 주셔서 고마워요." else "이미 응답한 설문이에요. 아래는 내 응답이에요.")
+                            InfoBox(if (submitted) "응답을 제출했어요. 참여해주셔서 감사합니다." else "이미 응답한 설문이에요. 아래는 내 응답이에요.")
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 if (f.canRespond) SecondaryButton("응답 수정", { editing = true }, Modifier.weight(1f), icon = Icons.Filled.Edit)
                                 if (f.canSeeSummary) SecondaryButton("결과 요약 보기", { app.push(Route.SurveyResults(id)) }, Modifier.weight(1f))
