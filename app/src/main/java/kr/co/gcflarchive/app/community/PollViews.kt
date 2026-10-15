@@ -152,7 +152,7 @@ class PollEditor(private val ctx: Context, initial: CommunityPoll?, val locked: 
 
 /** 투표 카드 (글 보기): 고르기 → 투표하기, 결과는 막대로. 다시 고르거나 취소할 수 있어요. */
 object PollCard {
-    fun render(container: LinearLayout, poll: CommunityPoll, busy: Boolean, onVote: (Set<Int>) -> Unit, changing: Boolean = false) {
+    fun render(container: LinearLayout, poll: CommunityPoll, busy: Boolean, changing: Boolean = false, onVote: (Set<Int>) -> Unit) {
         val ctx = container.context
         container.removeAllViews()
         container.isVisible = true
@@ -216,7 +216,7 @@ object PollCard {
             val actions = LinearLayout(ctx)
             if (changing) actions.addView(MaterialButton(ctx, null, com.google.android.material.R.attr.materialButtonOutlinedStyle).apply {
                 setText(R.string.poll_cancel_change)
-                setOnClickListener { render(container, poll, busy, onVote, changing = false) }
+                setOnClickListener { render(container, poll, busy, changing = false, onVote = onVote) }
             }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginEnd = ctx.dp(8) })
             actions.addView(voteButton, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
             container.addView(actions, lp(12, ctx))
@@ -235,7 +235,7 @@ object PollCard {
                 actions.addView(MaterialButton(ctx, null, com.google.android.material.R.attr.materialButtonOutlinedStyle).apply {
                     setText(R.string.poll_change)
                     isEnabled = !busy
-                    setOnClickListener { render(container, poll, busy, onVote, changing = true) }
+                    setOnClickListener { render(container, poll, busy, changing = true, onVote = onVote) }
                 }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
                 container.addView(actions, lp(12, ctx))
             }

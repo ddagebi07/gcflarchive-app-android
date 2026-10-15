@@ -39,7 +39,7 @@
     <string name="community_board_read">읽을 수 있는 사람</string>
     <string name="community_board_write">글을 쓸 수 있는 사람</string>
     <string name="community_board_comment">댓글을 쓸 수 있는 사람</string>
-    <string name="community_board_scope_note">여러 개를 고르면 그중 하나에만 맞아도 돼요. 학년·반으로 나누려면 '역할'에서 먼저 만들어주세요. 댓글을 하나도 고르지 않으면 글쓰기와 같아요.</string>
+    <string name="community_board_scope_note">여러 개를 고르면 그중 하나에만 맞아도 돼요. 학년·반으로 나누려면 \'역할\'에서 먼저 만들어주세요. 댓글을 하나도 고르지 않으면 글쓰기와 같아요.</string>
     <string name="community_board_order">순서 (작을수록 위)</string>
     <string name="community_board_allow_anonymous">익명 글쓰기 허용</string>
     <string name="community_board_allow_anonymous_desc">운영 설정에서 익명 글쓰기를 켜야 실제로 보여요.</string>
@@ -64,14 +64,14 @@
     <string name="community_role_numbers_hint">예: 1-20. 비우면 모든 번호</string>
     <string name="community_role_types">계정 종류</string>
     <string name="community_role_patterns">학번 패턴</string>
-    <string name="community_role_patterns_hint">? = 숫자 한 자리, * = 나머지 (예: 1??0?, 2*)</string>
+    <string name="community_role_patterns_hint">\? = 숫자 한 자리, * = 나머지 (예: 1\?\?0\?, 2*)</string>
     <string name="community_role_include">항상 넣을 학번</string>
     <string name="community_role_exclude">항상 뺄 학번</string>
     <string name="community_role_hakbun_hint">학번 5자리 (쉼표로 여러 개)</string>
     <string name="community_role_rule_note">빼는 학번이 가장 먼저 적용되고, 넣는 학번은 다른 조건과 상관없이 들어가요. 선생님 ID는 학년·반 조건에 맞지 않아요.</string>
     <string name="community_role_unused">아직 쓰는 게시판이 없어요</string>
     <string name="community_role_used_by">쓰는 게시판: %1$s</string>
-    <string name="community_role_delete_title">'%1$s' 역할을 삭제할까요?</string>
+    <string name="community_role_delete_title">\'%1$s\' 역할을 삭제할까요?</string>
     <string name="community_role_delete_desc">게시판에서 쓰고 있으면 삭제할 수 없어요. 게시판 권한에서 먼저 빼주세요.</string>
     <string name="community_role_check">학번으로 확인하기</string>
     <string name="community_role_check_desc">어떤 역할에 들고, 게시판마다 무엇을 할 수 있는지 봐요</string>
