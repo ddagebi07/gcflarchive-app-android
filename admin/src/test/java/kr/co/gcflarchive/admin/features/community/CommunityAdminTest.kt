@@ -49,4 +49,27 @@ class CommunityAdminTest {
         assertEquals(listOf("바보", "멍청이"), CommunityAdmin.splitWords("바보, 멍청이\n바보\n "))
         assertEquals("로그인한 사람", CommunityAdmin.scopeLabel("login"))
     }
+
+    @Test
+    fun scopesAreCommaListsWithRoles() {
+        val options = CommunityAdmin.SCOPES + ("role:g1-eng" to "1학년 영일과")
+        assertEquals(listOf("students", "role:g1-eng"), CommunityAdmin.splitScope(" students, role:g1-eng ,"))
+        assertEquals("학생, 1학년 영일과", CommunityAdmin.scopeLabel("students,role:g1-eng", options))
+        assertEquals("role:gone", CommunityAdmin.scopeLabel("role:gone", options))
+    }
+
+    @Test
+    fun validatesRoleRules() {
+        assertNull(CommunityAdmin.rangeError("01-02, 05", "반"))
+        assertNull(CommunityAdmin.rangeError("", "반"))
+        assertNull(CommunityAdmin.rangeError("1~20", "번호"))
+        assertTrue(CommunityAdmin.rangeError("일반", "반") != null)
+        assertTrue(CommunityAdmin.rangeError("0-3", "반") != null)
+        assertNull(CommunityAdmin.patternError(listOf("1??0?", "2*")))
+        assertTrue(CommunityAdmin.patternError(listOf("1ab")) != null)
+        assertNull(CommunityAdmin.hakbunListError(listOf("10203")))
+        assertTrue(CommunityAdmin.hakbunListError(listOf("1020")) != null)
+        assertEquals("역할 만듦", CommunityAdmin.actionLabel("role_create"))
+        assertTrue(CommunityAdmin.inGroup("admin", "role_delete"))
+    }
 }

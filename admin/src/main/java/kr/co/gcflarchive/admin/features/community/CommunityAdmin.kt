@@ -9,7 +9,7 @@ object CommunityAdmin {
     private val SEOUL: ZoneId = ZoneId.of("Asia/Seoul")
     private val TIME: DateTimeFormatter = DateTimeFormatter.ofPattern("M월 d일 HH:mm")
 
-    /** routes/community.py SCOPES, in order. */
+    /** Basic scopes (services/community_roles.py BASE_SCOPES); the server also sends roles as "role:<id>". */
     val SCOPES = listOf(
         "all" to "누구나",
         "login" to "로그인한 사람",
@@ -18,7 +18,32 @@ object CommunityAdmin {
         "admins" to "관리자",
     )
 
-    fun scopeLabel(scope: String): String = SCOPES.firstOrNull { it.first == scope }?.second ?: scope
+    /** A board permission is a comma list; any one match is enough. */
+    fun splitScope(scope: String): List<String> = scope.split(',').map { it.trim() }.filter { it.isNotEmpty() }
+
+    /** "학생, 1학년 영일과" using [options] (value to label) from the server, basic labels otherwise. */
+    fun scopeLabel(scope: String, options: List<Pair<String, String>> = SCOPES): String =
+        splitScope(scope).joinToString(", ") { t -> options.firstOrNull { it.first == t }?.second ?: SCOPES.firstOrNull { it.first == t }?.second ?: t }
+
+    /** 학번 5자리 check for 포함/제외 lists; null when every value is fine. */
+    fun hakbunListError(values: List<String>): String? =
+        values.firstOrNull { !Regex("\\d{5}").matches(it) }?.let { "학번 5자리를 넣어주세요: $it" }
+
+    /** 학번 패턴: digits, ? (one digit), * (the rest), up to 5 characters. */
+    fun patternError(values: List<String>): String? =
+        values.firstOrNull { !Regex("[0-9?*]{1,5}").matches(it) }?.let { "패턴은 숫자, ?, *로 5자리까지 입력해주세요: $it" }
+
+    /** 반·번호 범위 like "01-02, 05"; blank is fine (no condition). */
+    fun rangeError(text: String, what: String): String? {
+        val parts = text.split(',', ' ').map { it.trim() }.filter { it.isNotEmpty() }
+        val ok = parts.all { p ->
+            val m = Regex("(\\d{1,2})(?:[-~](\\d{1,2}))?").matchEntire(p) ?: return@all false
+            val a = m.groupValues[1].toInt()
+            val b = m.groupValues[2].ifEmpty { m.groupValues[1] }.toInt()
+            minOf(a, b) >= 1 && maxOf(a, b) <= 99
+        }
+        return if (ok) null else "${what}은(는) '01-02, 05'처럼 1~99 사이 숫자와 범위로 입력해주세요."
+    }
 
     private val ACTIONS = mapOf(
         "view_post" to "글 보기",
@@ -40,6 +65,9 @@ object CommunityAdmin {
         "board_update" to "게시판 고침",
         "board_delete" to "게시판 지움",
         "settings_update" to "운영 설정 바꿈",
+        "role_create" to "역할 만듦",
+        "role_update" to "역할 고침",
+        "role_delete" to "역할 지움",
         "filter_add" to "금칙어 추가",
         "filter_replace" to "금칙어 목록 바꿈",
         "filter_remove" to "금칙어 뺌",
@@ -58,6 +86,7 @@ object CommunityAdmin {
         Triple("nickname", "닉네임", setOf("nickname_set", "nickname_change")),
         Triple("admin", "관리", setOf(
             "moderate_restore", "moderate_delete", "moderate_blind", "board_create", "board_update", "board_delete",
+            "role_create", "role_update", "role_delete",
             "settings_update", "filter_add", "filter_replace", "filter_remove",
         )),
     )

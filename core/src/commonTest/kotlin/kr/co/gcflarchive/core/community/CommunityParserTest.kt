@@ -21,6 +21,8 @@ class CommunityParserTest {
         assertTrue(post.edited)
         assertFalse(post.comments.single().edited)
         assertEquals("info", post.boardId)
+        assertTrue(post.canComment)  // older servers don't send it
+        assertFalse(CommunityParser.post("""{"id":4,"canComment":false}""").canComment)
     }
 
     @Test

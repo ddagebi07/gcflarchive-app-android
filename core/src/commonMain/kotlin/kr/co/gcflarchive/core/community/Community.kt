@@ -54,6 +54,8 @@ data class CommunityPost(
     val content: String,
     val liked: Boolean,
     val canEdit: Boolean,
+    /** The board's 댓글 permission (servers without it: true). */
+    val canComment: Boolean = true,
     val edited: Boolean,
     val comments: List<CommunityComment>,
 )
@@ -114,6 +116,7 @@ object CommunityParser {
             content = j.optString("content"),
             liked = j.optBoolean("liked"),
             canEdit = j.optBoolean("canEdit"),
+            canComment = j.optBoolean("canComment", true),
             edited = isEdited(j.optString("createdAt"), j.optString("updatedAt")),
             comments = j.optJSONArray("comments").objects().map {
                 CommunityComment(

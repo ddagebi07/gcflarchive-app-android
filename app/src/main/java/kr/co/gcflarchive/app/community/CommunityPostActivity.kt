@@ -91,7 +91,7 @@ class CommunityPostActivity : AppCompatActivity() {
         binding.blindedNotice.isVisible = s.blinded && p.canEdit
         renderLike(p.liked, s.likeCount)
         binding.btnLike.isEnabled = !s.blinded
-        binding.commentBar.isVisible = !s.blinded
+        binding.commentBar.isVisible = !s.blinded && p.canComment
 
         binding.commentHeader.text = getString(R.string.community_comment_header, p.comments.size)
         binding.noComments.isVisible = p.comments.isEmpty()

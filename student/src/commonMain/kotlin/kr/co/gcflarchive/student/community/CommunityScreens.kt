@@ -291,7 +291,7 @@ fun CommunityPostScreen(id: Int) {
             }
         },
         bottomBar = {
-            if (p != null && !p.summary.blinded) {
+            if (p != null && !p.summary.blinded && p.canComment) {
                 Row(
                     Modifier.fillMaxWidth().imePadding().padding(horizontal = 12.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
