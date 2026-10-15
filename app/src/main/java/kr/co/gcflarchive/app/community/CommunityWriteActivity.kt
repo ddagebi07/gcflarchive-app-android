@@ -25,7 +25,7 @@ import kr.co.gcflarchive.app.R
 import kr.co.gcflarchive.app.databinding.ActivityCommunityWriteBinding
 import kr.co.gcflarchive.app.library.ImageLoader
 
-/** 글쓰기·글 고치기. 게시판은 드롭다운으로 고르고, 사진은 10장까지 붙여요. 쓸 수 없는 표현은 서버가 알려 줘요. */
+/** 글쓰기·글 수정. 게시판은 드롭다운으로 고르고, 사진은 10장까지 붙여요. 쓸 수 없는 표현은 서버가 알려 줘요. */
 class CommunityWriteActivity : AppCompatActivity() {
     private lateinit var binding: ActivityCommunityWriteBinding
     private var boards: List<CommunityBoard> = emptyList()

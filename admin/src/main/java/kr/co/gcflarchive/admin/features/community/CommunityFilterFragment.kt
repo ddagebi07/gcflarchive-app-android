@@ -12,7 +12,7 @@ import kr.co.gcflarchive.admin.ui.kit.Row
 import kr.co.gcflarchive.admin.ui.kit.joinMeta
 import org.json.JSONObject
 
-/** 금칙어: 띄어쓰기·기호를 무시하고 찾아요. 추가는 여러 개를 한 번에, 지우기는 밀거나 여러 개 골라서. */
+/** 금칙어: 띄어쓰기·기호를 무시하고 찾아요. 추가는 여러 개를 한 번에, 삭제는 밀거나 여러 개 골라서. */
 class CommunityFilterFragment : ListFragment() {
     override val searchHint get() = getString(R.string.community_filter_search)
     override val fab get() = getString(R.string.community_filter_add) to R.drawable.ic_add

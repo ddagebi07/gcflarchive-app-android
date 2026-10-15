@@ -590,7 +590,7 @@ private fun ScheduleDialog(app: AppState, place: Place, current: Map<String, Day
                 if (bad) { error = "시간은 09:30처럼 HH:MM 형식으로 입력해주세요."; return@TextButton }
                 scope.launch {
                     runCatching { app.services.map.suggestSchedule(place, schedule) }
-                        .onSuccess { app.toast("영업 정보를 보냈어요. 관리자가 확인하면 반영해요."); onDismiss() }
+                        .onSuccess { app.toast("영업 정보를 제출했어요. 관리자가 확인하면 반영해요."); onDismiss() }
                         .onFailure { if (it is CancellationException) throw it else error = it.userMessage() }
                 }
             }) { Text("제출") }

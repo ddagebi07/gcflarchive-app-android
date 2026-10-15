@@ -23,7 +23,7 @@ import kr.co.gcflarchive.app.databinding.ActivityCommunityPostBinding
 import kr.co.gcflarchive.app.databinding.ItemCommunityCommentBinding
 import kr.co.gcflarchive.app.library.ImageLoader
 
-/** 글 하나: 본문, 추천, 댓글, 신고. 내 글·댓글은 고치거나 지울 수 있어요. */
+/** 글 하나: 본문, 추천, 댓글, 신고. 내 글·댓글은 수정하거나 삭제할 수 있어요. */
 class CommunityPostActivity : AppCompatActivity() {
     private lateinit var binding: ActivityCommunityPostBinding
     private var postId = 0
@@ -135,7 +135,7 @@ class CommunityPostActivity : AppCompatActivity() {
 
     private fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
 
-    /** 댓글 고치기: the row turns into a text field with 취소/저장하기 (no popup). */
+    /** 댓글 수정: the row turns into a text field with 취소/저장하기 (no popup). */
     private fun showEditor(row: ItemCommunityCommentBinding, c: CommunityComment) {
         row.content.isVisible = false
         row.meta.isVisible = false

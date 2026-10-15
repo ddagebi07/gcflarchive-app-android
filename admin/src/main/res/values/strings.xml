@@ -2,7 +2,7 @@
 <resources>
     <string name="admin_add">관리자 추가</string>
     <string name="admin_delete">관리자 삭제</string>
-    <string name="admin_delete_message">%1$s 관리자 계정의 모든 권한을 지워요.</string>
+    <string name="admin_delete_message">%1$s 관리자 계정의 모든 권한을 삭제해요.</string>
     <string name="admin_edit">권한 수정 %1$s</string>
     <string name="admin_permissions">권한</string>
     <string name="admin_permissions_note">Ultimate는 모든 권한을 포함해요. 권한 변경은 즉시 적용돼요.</string>
@@ -68,7 +68,7 @@
     <string name="doc_category">분류</string>
     <string name="doc_category_hint">기출 / 수업자료 / 행정서식 / 학교 규정 등</string>
     <string name="doc_collection">컬렉션</string>
-    <string name="doc_delete_message">다음 자료를 서버에서 지워요:\n%1$s</string>
+    <string name="doc_delete_message">다음 자료를 서버에서 삭제해요:\n%1$s</string>
     <string name="doc_delete_title">자료 %1$d개 삭제</string>
     <string name="doc_edit">자료 정보 수정</string>
     <string name="doc_public">공개</string>
@@ -103,7 +103,7 @@
     <string name="grade_entry_add">점수 수동 입력</string>
     <string name="grade_entry_add_desc">같은 학번·과목·시험의 기록이 있으면 덮어써요.</string>
     <string name="grade_entry_delete">성적 기록 삭제</string>
-    <string name="grade_entry_delete_message">%1$s 기록을 지울까요?</string>
+    <string name="grade_entry_delete_message">%1$s 기록을 삭제할까요?</string>
     <string name="grade_entry_search">과목·학번·시험명 검색</string>
     <string name="grade_entry_summary">기록 %1$d건 · 현재 시험: %2$s</string>
     <string name="grade_exam_name">시험명</string>
@@ -206,7 +206,7 @@
     <string name="photo_copyright">저작권</string>
     <string name="photo_date">촬영일</string>
     <string name="photo_delete">앨범 삭제</string>
-    <string name="photo_delete_message">%1$s 앨범을 사진첩에서 지울까요?</string>
+    <string name="photo_delete_message">%1$s 앨범을 사진첩에서 삭제할까요?</string>
     <string name="photo_edit">앨범 수정</string>
     <string name="photo_performers">출연자</string>
     <string name="photo_roles">공개 역할</string>
@@ -246,7 +246,7 @@
     <string name="role_add">역할 추가</string>
     <string name="role_assign">역할 배정</string>
     <string name="role_assignments">학번 배정</string>
-    <string name="role_delete_message">%1$s 을(를) 지울까요?</string>
+    <string name="role_delete_message">%1$s 을(를) 삭제할까요?</string>
     <string name="role_label">표시 이름</string>
     <string name="role_list">역할</string>
     <string name="role_members">배정 %1$d명</string>
@@ -264,7 +264,7 @@
     <string name="settings_account">계정</string>
     <string name="settings_display">화면</string>
     <string name="settings_logout">로그아웃</string>
-    <string name="settings_logout_confirm">이 기기에 저장한 키·세션·캐시를 모두 지워요.</string>
+    <string name="settings_logout_confirm">이 기기에 저장한 키·세션·캐시를 모두 삭제해요.</string>
     <string name="settings_notifications">알림</string>
     <string name="settings_notify_how">알림 방식</string>
     <string name="settings_notify_how_desc">앱이 15분마다 서버 상태를 확인해 변경이 있으면 알려드려요. (FCM 서버 푸시는 Firebase 설정 후 추가 예정)</string>
@@ -288,13 +288,13 @@
     <string name="teacher_alias">별칭</string>
     <string name="teacher_contacts">연락처</string>
     <string name="teacher_delete">교사 프로필 삭제</string>
-    <string name="teacher_delete_message">%1$s 프로필을 지울까요?</string>
+    <string name="teacher_delete_message">%1$s 프로필을 삭제할까요?</string>
     <string name="teacher_edit">교사 프로필 수정</string>
     <string name="teacher_id">교사 ID</string>
     <string name="teacher_search_hint">이름·ID·이메일 검색</string>
     <string name="teacher_summary">교사 %1$d명</string>
     <string name="tool_delete">미니서비스 삭제</string>
-    <string name="tool_delete_message">%1$s 도구와 파일을 서버에서 지울까요?</string>
+    <string name="tool_delete_message">%1$s 도구와 파일을 서버에서 삭제할까요?</string>
     <string name="tool_search_hint">도구 이름 검색</string>
     <string name="tool_summary">미니서비스 %1$d개</string>
     <string name="unblock">차단 해제</string>

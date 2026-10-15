@@ -13,7 +13,7 @@ import kr.co.gcflarchive.admin.ui.kit.Trailing
 import org.json.JSONObject
 
 /**
- * 게시판: 추가·이름·설명·읽기/쓰기/댓글 권한·순서·익명 허용·운영 여부를 고치고, 밀어서 지워요.
+ * 게시판: 추가·이름·설명·읽기/쓰기/댓글 권한·순서·익명 허용·운영 여부를 수정하고, 밀어서 삭제해요.
  * 권한은 기본 범위와 역할(학번 규칙)을 여러 개 고를 수 있어요.
  */
 class CommunityBoardsFragment : ListFragment() {

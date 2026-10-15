@@ -11,7 +11,7 @@ import kr.co.gcflarchive.admin.ui.kit.Trailing
 import kr.co.gcflarchive.admin.ui.kit.joinMeta
 import org.json.JSONObject
 
-/** 신고 검토: 숨겨진 글·댓글이 먼저 오고, 눌러서 다시 보이기·숨기기·지우기를 골라요. */
+/** 신고 검토: 숨겨진 글·댓글이 먼저 오고, 눌러서 다시 보이기·숨기기·삭제를 골라요. */
 class CommunityReportsFragment : ListFragment() {
     override val searchHint get() = getString(R.string.community_reports_search)
     override val emptyText get() = getString(R.string.community_reports_empty)

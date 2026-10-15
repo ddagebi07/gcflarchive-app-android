@@ -39,7 +39,7 @@
             android:layout_marginTop="4dp"
             android:textAppearance="@style/TextAppearance.Krds.Meta" />
 
-        <!-- 댓글 고치기: 팝업 대신 이 자리에서 고쳐요. -->
+        <!-- 댓글 수정: 팝업 대신 이 자리에서 수정해요. -->
         <LinearLayout
             android:id="@+id/editGroup"
             android:layout_width="match_parent"

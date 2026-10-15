@@ -25,11 +25,11 @@
     <string name="community_comment_hint">댓글 남기기</string>
     <string name="community_comment_send">댓글 올리기</string>
     <string name="community_comment_actions">댓글 메뉴</string>
-    <string name="community_edit">고치기</string>
-    <string name="community_delete">지우기</string>
+    <string name="community_edit">수정</string>
+    <string name="community_delete">삭제</string>
     <string name="community_report">신고하기</string>
     <string name="community_save">저장하기</string>
-    <string name="community_edit_comment">댓글 고치기</string>
+    <string name="community_edit_comment">댓글 수정</string>
     <string name="community_cancel_edit">취소</string>
     <string name="community_comment_required">댓글 내용을 입력해주세요.</string>
     <string name="community_photo_desc">사진 %1$d</string>
@@ -41,10 +41,10 @@
     <string name="community_photo_wait">사진을 올리는 중이에요. 잠시만 기다려주세요.</string>
     <string name="community_photo_remove">사진 빼기</string>
     <string name="community_photo_read_failed">사진을 읽지 못했어요. 다른 사진을 골라주세요.</string>
-    <string name="community_photo_note">사진에 담긴 위치 정보는 올릴 때 지워져요.</string>
+    <string name="community_photo_note">사진에 담긴 위치 정보는 올릴 때 삭제돼요.</string>
     <string name="community_content_or_photo">내용을 입력하거나 사진을 붙여주세요.</string>
-    <string name="community_delete_post_confirm">이 글을 지울까요? 지운 글은 되살릴 수 없어요.</string>
-    <string name="community_delete_comment_confirm">이 댓글을 지울까요?</string>
+    <string name="community_delete_post_confirm">이 글을 삭제할까요? 삭제한 글은 되살릴 수 없어요.</string>
+    <string name="community_delete_comment_confirm">이 댓글을 삭제할까요?</string>
     <string name="community_report_title">신고하는 이유를 골라주세요</string>
     <string name="community_reported">신고했어요. 관리자가 확인할게요.</string>
     <string name="community_reported_blinded">신고했어요. 신고가 쌓여 관리자가 확인할 때까지 숨겨져요.</string>
@@ -62,7 +62,7 @@
     <string name="community_nickname_set">닉네임을 정했어요.</string>
 
     <string name="community_write_title">글쓰기</string>
-    <string name="community_edit_title">글 고치기</string>
+    <string name="community_edit_title">글 수정</string>
     <string name="community_title_hint">제목</string>
     <string name="community_content_hint">내용</string>
     <string name="community_title_required">제목을 입력해주세요.</string>

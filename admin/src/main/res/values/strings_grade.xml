@@ -6,7 +6,7 @@
     <string name="gp_exam_name">현재 시험명</string>
     <string name="gp_exam_unset">설정되지 않음 — 학생이 점수를 제출할 수 없어요</string>
     <string name="gp_exam_hint">점수 제출·등급컷 집계는 이 시험명 기준이에요.</string>
-    <string name="gp_exam_desc">시험명을 바꾸면 새 시험으로 집계가 시작돼요. 이전 시험 점수는 지워지지 않아요.</string>
+    <string name="gp_exam_desc">시험명을 바꾸면 새 시험으로 집계가 시작돼요. 이전 시험 점수는 삭제되지 않아요.</string>
     <string name="gp_exam_example">예: 2026학년도 2학기 중간고사</string>
     <string name="gp_unset">미설정</string>
 
@@ -60,7 +60,7 @@
 
     <string name="gp_tools_header">도구</string>
     <string name="gp_migrate">정책 파일 정리</string>
-    <string name="gp_migrate_desc">예전 형식의 항목(default_subjects 등)을 지우고 현재 형식으로 다시 저장해요.</string>
+    <string name="gp_migrate_desc">예전 형식의 항목(default_subjects 등)을 삭제하고 현재 형식으로 다시 저장해요.</string>
     <string name="gp_migrate_confirm">정책 파일을 현재 형식으로 다시 저장할까요? 설정 내용은 그대로 남아요.</string>
     <string name="gp_migrate_run">정리하기</string>
     <string name="gp_web_desc">웹 관리자 화면을 열어요.</string>
@@ -86,8 +86,8 @@
     <string name="gm_active_desc">지금 이 과목은 직접 입력한 등급컷을 사용 중이에요.</string>
     <string name="gm_badge">직접 입력</string>
     <string name="gm_clear">자동 계산으로 되돌리기</string>
-    <string name="gm_clear_desc">직접 입력한 등급컷을 지우고 제출 점수로 다시 계산해요.</string>
-    <string name="gm_clear_confirm">%1$s 과목의 직접 입력 등급컷을 지울까요?</string>
+    <string name="gm_clear_desc">직접 입력한 등급컷을 삭제하고 제출 점수로 다시 계산해요.</string>
+    <string name="gm_clear_confirm">%1$s 과목의 직접 입력 등급컷을 삭제할까요?</string>
     <string name="gm_level_title">어느 학년 기준인가요?</string>
     <string name="gm_form_title">%1$s 등급컷 입력</string>
     <string name="gm_form_desc">집계 기준: %1$s. 비워 둔 등급은 \"산출불가\"로 표시돼요. 아래 등급일수록 컷이 같거나 낮아야 해요.</string>

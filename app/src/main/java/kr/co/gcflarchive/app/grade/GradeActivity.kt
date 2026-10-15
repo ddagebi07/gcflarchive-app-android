@@ -554,7 +554,7 @@ class GradeActivity : AppCompatActivity() {
                     } catch (e: CancellationException) {
                         throw e
                     } catch (e: Exception) {
-                        failures += "$subject: ${e.message ?: "내지 못했어요"}"
+                        failures += "$subject: ${e.message ?: "제출하지 못했어요"}"
                     }
                 }
                 val ok = targets.size - failures.size

@@ -480,7 +480,7 @@ private fun Calculator(
             profile?.current?.containsKey(subject) != true &&
                 GradeLogic.openInfo(s.row.scheduleSubject.ifBlank { subject }, p).open && s.score.isNotBlank()
         }
-        if (targets.isEmpty()) return app.toast("낼 수 있는 과목의 점수를 하나 이상 입력해주세요.")
+        if (targets.isEmpty()) return app.toast("제출할 수 있는 과목의 점수를 하나 이상 입력해주세요.")
         guarded(true) {
             scope.launch {
                 submitStatus = "${targets.size}개 과목 제출 중…"
@@ -545,12 +545,12 @@ private fun Calculator(
     if (!testUser) {
         Section("1", "원점수 입력")
         InfoBox("관리자가 설정한 현재 시험에 대해서만 제출/수정/삭제할 수 있어요.")
-        if (rows.isEmpty()) Text("점수를 낼 수 있는 과목이 없어요. 관리자에게 문의해주세요.", style = KrdsText.meta)
+        if (rows.isEmpty()) Text("점수를 제출할 수 있는 과목이 없어요. 관리자에게 문의해주세요.", style = KrdsText.meta)
         rows.forEach { s ->
             InputCard(s, p, prof, onAction = { action ->
                 val subject = s.subject ?: return@InputCard
                 when (action) {
-                    "delete" -> confirm = "$subject 과목의 이번 시험 점수를 지울까요?" to { perform(s, action) }
+                    "delete" -> confirm = "$subject 과목의 이번 시험 점수를 삭제할까요?" to { perform(s, action) }
                     "submit" -> guarded(true) { perform(s, action) }
                     else -> perform(s, action)
                 }
@@ -561,7 +561,7 @@ private fun Calculator(
 
         Section("2", "내 점수")
         Text("현재까지 제출한 점수예요. 표본 수가 적은 경우 등급이 부정확하게 산출될 수 있어요.", style = KrdsText.meta)
-        if (prof.scores.isEmpty()) Text("아직 낸 점수가 없어요.", style = KrdsText.meta.copy(color = Krds.colors.textDisabled))
+        if (prof.scores.isEmpty()) Text("아직 제출한 점수가 없어요.", style = KrdsText.meta.copy(color = Krds.colors.textDisabled))
         prof.scores.forEach { MyScoreCard(it) }
     }
 
@@ -575,7 +575,7 @@ private fun Calculator(
     }
     val statsSubjects = GradeLogic.statsSubjects(prof, testUser, isAdmin)
     if (statsSubjects.isEmpty()) {
-        Text("점수를 제출한 과목만 조회할 수 있어요. 먼저 점수를 내주세요.", style = KrdsText.meta)
+        Text("점수를 제출한 과목만 조회할 수 있어요. 먼저 점수를 제출해주세요.", style = KrdsText.meta)
     } else {
         KrdsDropdown("과목", statsSubjects.map { it to it }, cutoffSubject ?: "", { cutoffSubject = it }, Modifier.fillMaxWidth())
         cutoffSubject?.let { subject ->
@@ -626,8 +626,8 @@ private fun Calculator(
         AlertDialog(
             onDismissRequest = { confirm = null },
             text = { Text(message) },
-            // Buttons say what happens: the only confirmations here are 지우기 and 점수 내기.
-            confirmButton = { TextButton(onClick = { confirm = null; action() }) { Text(if ("지울까요" in message) "지우기" else "내기") } },
+            // Buttons say what happens: the only confirmations here are 삭제 and 점수 제출.
+            confirmButton = { TextButton(onClick = { confirm = null; action() }) { Text(if ("삭제할까요" in message) "삭제" else "제출") } },
             dismissButton = { TextButton(onClick = { confirm = null }) { Text("닫기") } },
         )
     }

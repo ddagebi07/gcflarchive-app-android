@@ -40,8 +40,8 @@ class CommunityParserTest {
 
     @Test
     fun errorsKeepTheServersWordsAndFlags() {
-        val filtered = CommunityParser.error(422, """{"error":"쓸 수 없는 표현이 있어요: '바보'. 고쳐서 다시 올려주세요.","filtered":true}""")
-        assertEquals("쓸 수 없는 표현이 있어요: '바보'. 고쳐서 다시 올려주세요.", filtered.message)
+        val filtered = CommunityParser.error(422, """{"error":"쓸 수 없는 표현이 있어요: '바보'. 수정해서 다시 올려주세요.","filtered":true}""")
+        assertEquals("쓸 수 없는 표현이 있어요: '바보'. 수정해서 다시 올려주세요.", filtered.message)
         assertTrue(CommunityParser.error(409, """{"error":"x","nicknameRequired":true}""").nicknameRequired)
         assertTrue(CommunityParser.error(401, "").loginRequired)
         assertEquals("인터넷 연결이 불안정해요. 잠시 후 다시 시도해주세요.", CommunityParser.error(502, "<html>").message)

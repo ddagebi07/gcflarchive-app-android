@@ -235,7 +235,7 @@ fun CommunityScreen() {
 
 // ── 글 ────────────────────────────────────────────────────────────────────
 
-/** 글 하나: 본문, 추천(비추천 없음), 댓글, 신고. 내 글·댓글은 고치거나 지울 수 있어요. */
+/** 글 하나: 본문, 추천(비추천 없음), 댓글, 신고. 내 글·댓글은 수정하거나 삭제할 수 있어요. */
 @Composable
 fun CommunityPostScreen(id: Int) {
     val app = LocalApp.current
@@ -282,13 +282,13 @@ fun CommunityPostScreen(id: Int) {
                 IconButton(onClick = { menuOpen = true }) { Icon(Icons.Filled.MoreVert, "글 메뉴") }
                 DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
                     if (p.canEdit && !p.summary.blinded) {
-                        DropdownMenuItem(text = { Text("고치기") }, onClick = {
+                        DropdownMenuItem(text = { Text("수정") }, onClick = {
                             menuOpen = false
                             app.push(Route.CommunityWrite(p.boardId, p.summary.id, p.summary.title, p.content, p.images))
                         })
                     }
                     if (p.canEdit) {
-                        DropdownMenuItem(text = { Text("지우기") }, onClick = {
+                        DropdownMenuItem(text = { Text("삭제") }, onClick = {
                             menuOpen = false
                             confirmDelete = {
                                 scope.launch {
@@ -430,15 +430,15 @@ fun CommunityPostScreen(id: Int) {
     confirmDelete?.let { action ->
         AlertDialog(
             onDismissRequest = { confirmDelete = null },
-            text = { Text("지울까요? 지운 글과 댓글은 되살릴 수 없어요.") },
+            text = { Text("삭제할까요? 삭제한 글과 댓글은 되살릴 수 없어요.") },
             dismissButton = { TextButton(onClick = { confirmDelete = null }) { Text("닫기") } },
-            confirmButton = { TextButton(onClick = { confirmDelete = null; action() }) { Text("지우기", color = Krds.colors.danger) } },
+            confirmButton = { TextButton(onClick = { confirmDelete = null; action() }) { Text("삭제", color = Krds.colors.danger) } },
         )
     }
     askNickname?.let { retry -> NicknameDialog(app, onDismiss = { askNickname = null }) { askNickname = null; retry() } }
 }
 
-/** 댓글 한 줄. 고치기를 누르면 그 자리에서 입력란으로 바뀌어요 (팝업 없음). */
+/** 댓글 한 줄. 수정을 누르면 그 자리에서 입력란으로 바뀌어요 (팝업 없음). */
 @Composable
 private fun CommentRow(
     c: CommunityComment,
@@ -459,7 +459,7 @@ private fun CommentRow(
             OutlinedTextField(
                 value = text,
                 onValueChange = { if (it.length <= 1000) text = it },
-                label = { Text("댓글 고치기") },
+                label = { Text("댓글 수정") },
                 supportingText = { Text("${text.length}/1,000") },
                 maxLines = 6,
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
@@ -480,8 +480,8 @@ private fun CommentRow(
         Box {
             IconButton(onClick = { open = true }) { Icon(Icons.Filled.MoreVert, "댓글 메뉴", tint = Krds.colors.textSecondary) }
             DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-                if (c.isMine && !c.blinded) DropdownMenuItem(text = { Text("고치기") }, onClick = { open = false; onEdit() })
-                if (c.isMine || moderator) DropdownMenuItem(text = { Text("지우기") }, onClick = { open = false; onDelete() })
+                if (c.isMine && !c.blinded) DropdownMenuItem(text = { Text("수정") }, onClick = { open = false; onEdit() })
+                if (c.isMine || moderator) DropdownMenuItem(text = { Text("삭제") }, onClick = { open = false; onDelete() })
                 if (!c.isMine) DropdownMenuItem(text = { Text("신고하기") }, onClick = { open = false; onReport() })
             }
         }
@@ -545,7 +545,7 @@ private fun NicknameDialog(app: AppState, onDismiss: () -> Unit, onDone: () -> U
 
 // ── 글쓰기 ─────────────────────────────────────────────────────────────────
 
-/** 글쓰기·글 고치기. 쓸 수 없는 표현은 서버가 알려 줘요. */
+/** 글쓰기·글 수정. 쓸 수 없는 표현은 서버가 알려 줘요. */
 @Composable
 fun CommunityWriteScreen(route: Route.CommunityWrite) {
     val app = LocalApp.current
@@ -607,7 +607,7 @@ fun CommunityWriteScreen(route: Route.CommunityWrite) {
                 app.contentChanged()
                 app.pop()
                 if (!editing) app.push(Route.CommunityPost(newId))
-                app.toast(if (editing) "글을 고쳤어요." else "글을 올렸어요.")
+                app.toast(if (editing) "글을 수정했어요." else "글을 올렸어요.")
             }.onFailure { e ->
                 if (e is CommunityException && e.nicknameRequired) askNickname = { submit() }
                 else error = messageOf(e)
@@ -616,7 +616,7 @@ fun CommunityWriteScreen(route: Route.CommunityWrite) {
         }
     }
 
-    ScreenScaffold(if (editing) "글 고치기" else "글쓰기") {
+    ScreenScaffold(if (editing) "글 수정" else "글쓰기") {
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).imePadding().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             if (!editing && boards.isNotEmpty()) {
                 KrdsDropdown("게시판", boards.map { it.id to it.name }, boardId ?: "", { boardId = it }, Modifier.fillMaxWidth())
@@ -672,7 +672,7 @@ fun CommunityWriteScreen(route: Route.CommunityWrite) {
                 enabled = images.size < MAX_PHOTOS && uploading == 0,
                 icon = Icons.Filled.AddPhotoAlternate,
             )
-            Text("사진에 담긴 위치 정보는 올릴 때 지워져요.", style = KrdsText.meta)
+            Text("사진에 담긴 위치 정보는 올릴 때 삭제돼요.", style = KrdsText.meta)
             if (!editing && board?.allowAnonymous == true) {
                 Row(Modifier.clickable { anonymous = !anonymous }, verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(anonymous, { anonymous = it })
