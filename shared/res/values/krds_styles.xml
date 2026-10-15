@@ -171,35 +171,35 @@
         <item name="ensureMinTouchTargetSize">false</item>
     </style>
 
-    <!-- .krds-btn.primary / .secondary / .tertiary (8dp corners like KRDS) -->
+    <!-- .krds-btn.primary / .secondary / .tertiary (corner radius per app: krds_dimens.xml) -->
     <style name="Widget.Krds.Button.Primary" parent="Widget.Material3.Button">
         <item name="backgroundTint">@color/krds_primary</item>
         <item name="android:textColor">@color/krds_on_primary</item>
         <item name="iconTint">@color/krds_on_primary</item>
-        <item name="shapeAppearance">@style/ShapeAppearance.Material3.Corner.Small</item>
+        <item name="cornerRadius">@dimen/krds_button_radius</item>
     </style>
 
     <style name="Widget.Krds.Button.Secondary" parent="Widget.Material3.Button.OutlinedButton">
         <item name="strokeColor">@color/krds_primary_text</item>
         <item name="android:textColor">@color/krds_primary_text</item>
         <item name="iconTint">@color/krds_primary_text</item>
-        <item name="shapeAppearance">@style/ShapeAppearance.Material3.Corner.Small</item>
+        <item name="cornerRadius">@dimen/krds_button_radius</item>
     </style>
 
     <style name="Widget.Krds.Button.Tertiary" parent="Widget.Material3.Button.OutlinedButton">
         <item name="strokeColor">@color/krds_border_strong</item>
         <item name="android:textColor">@color/krds_text_primary</item>
         <item name="iconTint">@color/krds_text_primary</item>
-        <item name="shapeAppearance">@style/ShapeAppearance.Material3.Corner.Small</item>
+        <item name="cornerRadius">@dimen/krds_button_radius</item>
     </style>
 
     <!-- .krds-input / search field -->
     <style name="Widget.Krds.SearchField" parent="Widget.Material3.TextInputLayout.OutlinedBox.Dense">
         <item name="boxStrokeColor">@color/krds_primary_text</item>
-        <item name="boxCornerRadiusTopStart">8dp</item>
-        <item name="boxCornerRadiusTopEnd">8dp</item>
-        <item name="boxCornerRadiusBottomStart">8dp</item>
-        <item name="boxCornerRadiusBottomEnd">8dp</item>
+        <item name="boxCornerRadiusTopStart">@dimen/krds_field_radius</item>
+        <item name="boxCornerRadiusTopEnd">@dimen/krds_field_radius</item>
+        <item name="boxCornerRadiusBottomStart">@dimen/krds_field_radius</item>
+        <item name="boxCornerRadiusBottomEnd">@dimen/krds_field_radius</item>
         <item name="hintEnabled">false</item>
         <item name="endIconMode">clear_text</item>
         <item name="startIconDrawable">@drawable/ic_search</item>
@@ -208,10 +208,10 @@
     <!-- .krds-select: one dropdown instead of a row of buttons -->
     <style name="Widget.Krds.Dropdown" parent="Widget.Material3.TextInputLayout.OutlinedBox.Dense.ExposedDropdownMenu">
         <item name="boxStrokeColor">@color/krds_primary_text</item>
-        <item name="boxCornerRadiusTopStart">8dp</item>
-        <item name="boxCornerRadiusTopEnd">8dp</item>
-        <item name="boxCornerRadiusBottomStart">8dp</item>
-        <item name="boxCornerRadiusBottomEnd">8dp</item>
+        <item name="boxCornerRadiusTopStart">@dimen/krds_field_radius</item>
+        <item name="boxCornerRadiusTopEnd">@dimen/krds_field_radius</item>
+        <item name="boxCornerRadiusBottomStart">@dimen/krds_field_radius</item>
+        <item name="boxCornerRadiusBottomEnd">@dimen/krds_field_radius</item>
     </style>
 
     <!-- Detail sheet (KRDS modal → bottom sheet on phones) -->

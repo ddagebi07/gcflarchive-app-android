@@ -10,18 +10,26 @@
     android:paddingHorizontal="20dp"
     android:paddingVertical="8dp">
 
-    <ImageView
-        android:id="@+id/icon"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:importantForAccessibility="no"
-        app:tint="@color/krds_primary_text" />
+    <FrameLayout
+        android:id="@+id/iconChip"
+        android:layout_width="38dp"
+        android:layout_height="38dp"
+        android:background="@drawable/bg_icon_chip">
+
+        <ImageView
+            android:id="@+id/icon"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_gravity="center"
+            android:importantForAccessibility="no"
+            app:tint="@color/krds_primary_text" />
+    </FrameLayout>
 
     <TextView
         android:id="@+id/label"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
+        android:layout_marginStart="14dp"
         android:layout_weight="1"
         android:textAppearance="?attr/textAppearanceBodyLarge"
         android:textColor="@color/krds_text_primary" />

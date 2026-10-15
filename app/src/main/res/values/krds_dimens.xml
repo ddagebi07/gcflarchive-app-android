@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 사용자 앱 모서리 (TDS처럼 둥글게). 관리자 앱은 admin/src/main/res/values/krds_dimens.xml. -->
+<resources>
+    <dimen name="krds_button_radius">14dp</dimen>
+    <dimen name="krds_field_radius">12dp</dimen>
+    <dimen name="krds_card_radius">20dp</dimen>
+    <dimen name="krds_card_stroke">0dp</dimen>
+</resources>

@@ -11,21 +11,29 @@
     android:orientation="vertical"
     android:minHeight="84dp"
     android:paddingHorizontal="4dp"
-    android:paddingTop="14dp"
+    android:paddingTop="16dp"
     android:paddingBottom="12dp">
 
-    <ImageView
-        android:id="@+id/icon"
-        android:layout_width="28dp"
-        android:layout_height="28dp"
-        android:importantForAccessibility="no"
-        app:tint="@color/brand_primary" />
+    <FrameLayout
+        android:id="@+id/iconChip"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:background="@drawable/bg_icon_chip">
+
+        <ImageView
+            android:id="@+id/icon"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:layout_gravity="center"
+            android:importantForAccessibility="no"
+            app:tint="@color/brand_primary" />
+    </FrameLayout>
 
     <TextView
         android:id="@+id/label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
+        android:layout_marginTop="8dp"
         android:ellipsize="end"
         android:gravity="center"
         android:maxLines="1"

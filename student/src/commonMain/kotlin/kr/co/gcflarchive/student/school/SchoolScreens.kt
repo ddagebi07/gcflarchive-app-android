@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
@@ -285,71 +287,92 @@ private fun TimetableTab(me: SchoolMe) {
     }
 }
 
-/** 월~금 × 1~7교시 in one table. Tapping a cell picks (day, period index). */
+/**
+ * 월~금 × 1~7교시 in one table, TDS style: rounded tiles with small gaps on a white card, each
+ * 과목 in its own color (same 과목 → same color). Tapping a cell picks (day, period index).
+ */
 @Composable
-private fun WeekGrid(week: TtWeek, picked: Pair<Int, Int>?, onPick: (Pair<Int, Int>) -> Unit) {
-    val line = Krds.colors.border
+private fun WeekGrid(week: TtWeek, picked: Pair<Int, Int>?, onPick: (Pair<Int, Int>) -> Unit) =
     // 설정 > 시간표 과목 이름: 줄임말(심F) or 전체 이름(심화영어 Ⅱ).
-    val fullNames = TimetableNames.full(LocalApp.current.services.prefs)
+    WeekGridContent(week, picked, TimetableNames.full(LocalApp.current.services.prefs), onPick)
+
+@Composable
+internal fun WeekGridContent(week: TtWeek, picked: Pair<Int, Int>?, fullNames: Boolean, onPick: (Pair<Int, Int>) -> Unit) {
+    val k = Krds.colors
     val periods = week.classPeriods
-    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).border(1.dp, line, RoundedCornerShape(10.dp))) {
-        Row(Modifier.fillMaxWidth().background(Krds.colors.surfaceRaised)) {
-            Box(Modifier.width(34.dp))
+    val gap = 4.dp
+    Column(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(k.surface).padding(8.dp),
+        verticalArrangement = Arrangement.spacedBy(gap),
+    ) {
+        Row(horizontalArrangement = Arrangement.spacedBy(gap)) {
+            Box(Modifier.width(22.dp))
             week.days.forEach { d ->
-                Column(Modifier.weight(1f).background(if (d.isToday) Krds.colors.primaryTint else Color.Transparent).padding(vertical = 6.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(d.weekday, style = KrdsText.label.copy(fontWeight = FontWeight.Bold, color = if (d.isToday) Krds.colors.primaryText else Krds.colors.textStrong))
-                    Text(d.date.takeLast(5).replace('-', '/').trimStart('0'), style = KrdsText.label.copy(fontSize = 11.sp))
+                Column(
+                    Modifier.weight(1f).clip(RoundedCornerShape(10.dp))
+                        .background(if (d.isToday) k.primaryTint else Color.Transparent).padding(vertical = 4.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(d.weekday, style = KrdsText.label.copy(fontWeight = FontWeight.Bold, color = if (d.isToday) k.primaryText else k.textStrong))
+                    Text(d.date.takeLast(5).replace('-', '/').trimStart('0'), style = KrdsText.label.copy(fontSize = 11.sp, color = if (d.isToday) k.primaryText else k.textSecondary))
                 }
             }
         }
         periods.forEachIndexed { pi, p ->
-            Hairline()
-            Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
-                Column(Modifier.width(34.dp).fillMaxHeight().background(Krds.colors.surfaceRaised), verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(p.key, style = KrdsText.label.copy(fontWeight = FontWeight.Bold, color = Krds.colors.textStrong))
+            Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(gap)) {
+                Box(Modifier.width(22.dp).fillMaxHeight(), contentAlignment = Alignment.Center) {
+                    Text(p.key, style = KrdsText.label.copy(fontWeight = FontWeight.Bold, color = k.textSecondary))
                 }
                 week.days.forEachIndexed { di, d ->
                     val c = week.cell(di, p)
                     val isPicked = picked == (di to pi)
+                    val hue = k.hueFor(if (c.empty) "" else c.subject)
                     val bg = when {
-                        isPicked -> Krds.colors.primary
-                        c.moving && !c.empty -> Krds.colors.primaryTint
-                        else -> Color.Transparent
+                        isPicked -> k.primary
+                        c.empty -> k.surfaceRaised.copy(alpha = 0.5f)
+                        else -> hue.bg
                     }
-                    val fg = if (isPicked) Krds.colors.onPrimary else Krds.colors.textStrong
-                    val sub = if (isPicked) Krds.colors.onPrimary else Krds.colors.textSecondary
-                    Box(Modifier.width(1.dp).fillMaxHeight().background(line))
-                    Column(
-                        Modifier.weight(1f).fillMaxHeight().heightIn(min = 52.dp)
+                    // The tint carries the 과목 color; the name stays textStrong so it reads on every tint.
+                    val fg = if (isPicked) k.onPrimary else k.textStrong
+                    val sub = if (isPicked) k.onPrimary else k.textSecondary
+                    val shape = RoundedCornerShape(10.dp)
+                    Box(
+                        Modifier.weight(1f).fillMaxHeight().heightIn(min = 56.dp).clip(shape)
                             .background(bg)
-                            .then(if (c.changed && !isPicked) Modifier.border(1.5.dp, Krds.colors.danger) else Modifier)
+                            .then(if (c.changed && !isPicked) Modifier.border(1.5.dp, k.danger, shape) else Modifier)
                             .clickable(onClickLabel = "자세히 보기") { onPick(di to pi) }
-                            .semantics { contentDescription = "${d.weekday}요일 ${p.label} " + if (c.empty) "수업 없음" else c.title }
-                            .padding(horizontal = 2.dp, vertical = 6.dp),
-                        verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally,
+                            .semantics { contentDescription = "${d.weekday}요일 ${p.label} " + (if (c.empty) "수업 없음" else c.title) + (if (c.moving) ", 이동수업" else "") },
                     ) {
-                        if (c.empty) Text("", style = KrdsText.label)
-                        else {
-                            val name = c.shortOrFull(fullNames)
-                            Text(name, maxLines = if (name == c.subject) 1 else 3, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center,
-                                style = KrdsText.label.copy(fontSize = if (name == c.subject) 14.sp else 11.sp, lineHeight = 13.sp,
-                                    fontWeight = FontWeight.Bold, color = fg,
-                                    textDecoration = if (c.handedOver) TextDecoration.LineThrough else null))
-                            val small = c.place.ifBlank { c.teachers.firstOrNull()?.let(::teacherLabel).orEmpty() }
-                            if (small.isNotBlank()) Text(small, maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center,
-                                style = KrdsText.label.copy(fontSize = 11.sp, color = sub))
+                        Column(
+                            Modifier.fillMaxSize().padding(horizontal = 2.dp, vertical = 6.dp),
+                            verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally,
+                        ) {
+                            if (!c.empty) {
+                                val name = c.shortOrFull(fullNames)
+                                Text(name, maxLines = if (name == c.subject) 1 else 3, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center,
+                                    style = KrdsText.label.copy(fontSize = if (name == c.subject) 14.sp else 11.sp, lineHeight = 13.sp,
+                                        fontWeight = FontWeight.Bold, color = fg,
+                                        textDecoration = if (c.handedOver) TextDecoration.LineThrough else null))
+                                val small = c.place.ifBlank { c.teachers.firstOrNull()?.let(::teacherLabel).orEmpty() }
+                                if (small.isNotBlank()) Text(small, maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center,
+                                    style = KrdsText.label.copy(fontSize = 11.sp, color = sub))
+                            }
                         }
+                        // 이동수업: a small dot in the corner (the color now means the 과목).
+                        if (c.moving && !c.empty) Box(
+                            Modifier.align(Alignment.TopEnd).padding(5.dp).size(6.dp)
+                                .background(if (isPicked) k.onPrimary else k.primary, RoundedCornerShape(50)),
+                        )
                     }
                 }
             }
         }
     }
-    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-        Box(Modifier.width(14.dp).height(14.dp).clip(RoundedCornerShape(3.dp)).background(Krds.colors.primaryTint))
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Box(Modifier.size(8.dp).background(k.primary, RoundedCornerShape(50)))
         Text("이동수업", style = KrdsText.label)
-        Box(Modifier.width(14.dp).height(14.dp).border(1.5.dp, Krds.colors.danger, RoundedCornerShape(3.dp)))
+        Spacer(Modifier.width(4.dp))
+        Box(Modifier.size(14.dp).border(1.5.dp, k.danger, RoundedCornerShape(4.dp)))
         Text("바뀐 수업", style = KrdsText.label)
     }
 }

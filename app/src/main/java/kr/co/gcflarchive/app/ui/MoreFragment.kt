@@ -6,10 +6,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import com.google.android.material.divider.MaterialDivider
 import kr.co.gcflarchive.app.BuildConfig
 import kr.co.gcflarchive.app.Config
 import kr.co.gcflarchive.app.MainActivity
@@ -72,24 +72,29 @@ class MoreFragment : Fragment() {
         ))
     }
 
+    /** TDS: a section title, then its rows in one white rounded card on the grey page. */
     private fun section(titleRes: Int, entries: List<Entry>) {
+        val ctx = requireContext()
         val list = binding.list
-        if (list.childCount > 1) {
-            list.addView(MaterialDivider(requireContext()).apply {
-                dividerColor = requireContext().getColor(R.color.krds_border)
-            }, ViewGroup.MarginLayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
-                topMargin = dp(8)
-                bottomMargin = dp(8)
-            })
-        }
-        list.addView(TextView(requireContext()).apply {
+        list.addView(TextView(ctx).apply {
             setText(titleRes)
             setTextAppearance(R.style.TextAppearance_Gcfl_Section)
-            setPadding(dp(20), dp(16), dp(20), dp(4))
+            setPadding(dp(24), dp(if (list.childCount > 1) 20 else 12), dp(24), dp(8))
+        })
+        val card = LinearLayout(ctx).apply {
+            orientation = LinearLayout.VERTICAL
+            setBackgroundResource(R.drawable.bg_krds_card)
+            clipToOutline = true
+            setPadding(0, dp(6), 0, dp(6))
+        }
+        list.addView(card, ViewGroup.MarginLayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+            marginStart = dp(16)
+            marginEnd = dp(16)
         })
         for (e in entries) {
-            val row = ItemMoreRowBinding.inflate(layoutInflater, list, false)
+            val row = ItemMoreRowBinding.inflate(layoutInflater, card, false)
             row.icon.setImageResource(e.iconRes)
+            TdsHue.forIcon(e.iconRes).apply(row.icon, row.iconChip)
             row.label.setText(e.labelRes)
             row.value.isVisible = e.value != null
             row.value.text = e.value
@@ -98,7 +103,7 @@ class MoreFragment : Fragment() {
             row.chevron.isVisible = open != null
             row.root.isClickable = open != null
             if (open != null) row.root.setOnClickListener { open() } else row.root.background = null
-            list.addView(row.root)
+            card.addView(row.root)
         }
     }
 

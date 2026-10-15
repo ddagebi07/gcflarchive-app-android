@@ -100,21 +100,21 @@ fun Badge(text: String, tone: BadgeTone = BadgeTone.INFO, modifier: Modifier = M
         fontWeight = FontWeight.Bold,
         maxLines = 1,
         modifier = modifier
-            .background(bg, RoundedCornerShape(4.dp))
-            .border(1.dp, fg.copy(alpha = 0.25f), RoundedCornerShape(4.dp))
-            .padding(horizontal = 6.dp, vertical = 1.dp),
+            .background(bg, RoundedCornerShape(50))
+            .padding(horizontal = 8.dp, vertical = 2.dp),
     )
 }
 
 /** Bordered card (.board-card-item). */
 @Composable
 fun KrdsCard(modifier: Modifier = Modifier, onClick: (() -> Unit)? = null, padding: PaddingValues = PaddingValues(16.dp), content: @Composable ColumnScope.() -> Unit) {
-    val shape = RoundedCornerShape(12.dp)
+    // TDS: a white (dark: #202027) rounded card on the grey page, no border.
+    val shape = RoundedCornerShape(20.dp)
     Column(
         modifier
             .fillMaxWidth()
+            .clip(shape)
             .background(Krds.colors.surface, shape)
-            .border(1.dp, Krds.colors.border, shape)
             .let { if (onClick != null) it.clickable(onClick = onClick) else it }
             .padding(padding),
         content = content,
@@ -125,7 +125,7 @@ fun KrdsCard(modifier: Modifier = Modifier, onClick: (() -> Unit)? = null, paddi
 @Composable
 fun InfoBox(text: String, modifier: Modifier = Modifier, icon: ImageVector? = null) {
     Row(
-        modifier.fillMaxWidth().background(Krds.colors.surfaceRaised, RoundedCornerShape(8.dp)).padding(14.dp),
+        modifier.fillMaxWidth().background(Krds.colors.primaryTint, RoundedCornerShape(14.dp)).padding(14.dp),
         verticalAlignment = Alignment.Top,
     ) {
         if (icon != null) {
@@ -151,7 +151,7 @@ fun PrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifi
         onClick = onClick,
         enabled = enabled,
         modifier = modifier.heightIn(min = 48.dp),
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(14.dp),
         colors = ButtonDefaults.buttonColors(containerColor = color ?: Krds.colors.primary, contentColor = Krds.colors.onPrimary),
     ) {
         if (icon != null) { Icon(icon, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp)) }
@@ -161,14 +161,19 @@ fun PrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifi
 
 @Composable
 fun SecondaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, icon: ImageVector? = null, danger: Boolean = false) {
+    // TDS 'weak' button: tinted fill, colored text, no outline.
     val c = if (danger) Krds.colors.danger else Krds.colors.primaryText
-    OutlinedButton(
+    val fill = if (danger) Krds.colors.dangerTint else Krds.colors.primaryTint
+    Button(
         onClick = onClick,
         enabled = enabled,
         modifier = modifier.heightIn(min = 48.dp),
-        shape = RoundedCornerShape(8.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, if (enabled) c else Krds.colors.border),
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = c),
+        shape = RoundedCornerShape(14.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = fill, contentColor = c,
+            disabledContainerColor = Krds.colors.surfaceRaised, disabledContentColor = Krds.colors.textDisabled,
+        ),
+        elevation = null,
     ) {
         if (icon != null) { Icon(icon, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp)) }
         Text(text, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -213,8 +218,8 @@ fun KrdsPickerBox(label: String, value: String, modifier: Modifier = Modifier, o
     Column(
         modifier.fillMaxWidth()
             .heightIn(min = 52.dp)
-            .border(1.dp, Krds.colors.borderStrong, RoundedCornerShape(8.dp))
-            .clip(RoundedCornerShape(8.dp))
+            .border(1.dp, Krds.colors.borderStrong, RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(12.dp))
             .clickable(onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 6.dp),
         verticalArrangement = Arrangement.Center,
@@ -235,12 +240,12 @@ fun KrdsChip(label: String, selected: Boolean, onClick: () -> Unit) {
         label = { Text(label, maxLines = 1) },
         shape = RoundedCornerShape(50),
         colors = FilterChipDefaults.filterChipColors(
-            containerColor = Krds.colors.surfaceRaised,
+            containerColor = Krds.colors.surface,
             labelColor = Krds.colors.text,
             selectedContainerColor = Krds.colors.primary,
             selectedLabelColor = Krds.colors.onPrimary,
         ),
-        border = FilterChipDefaults.filterChipBorder(enabled = true, selected = selected, borderColor = Krds.colors.borderStrong, selectedBorderColor = Krds.colors.primary),
+        border = null,
     )
 }
 

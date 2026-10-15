@@ -14,6 +14,17 @@
         <item name="colorOutline">@color/krds_input_border</item>
         <item name="colorOutlineVariant">@color/krds_border</item>
         <item name="colorError">@color/krds_danger</item>
+        <!-- TDS: 회색 바탕 위에 흰(다크: #202027) 카드. M3 기본 보라빛 회색 대신. -->
+        <item name="colorSurfaceContainerLowest">@color/krds_surface</item>
+        <item name="colorSurfaceContainerLow">@color/krds_surface</item>
+        <item name="colorSurfaceContainer">@color/krds_surface</item>
+        <item name="colorSurfaceContainerHigh">@color/krds_surface</item>
+        <item name="colorSurfaceContainerHighest">@color/krds_surface</item>
+        <item name="colorSurfaceVariant">@color/krds_surface_raised</item>
+        <item name="materialCardViewStyle">@style/Widget.Gcfl.MaterialCard</item>
+        <item name="materialCardViewFilledStyle">@style/Widget.Gcfl.MaterialCard</item>
+        <item name="materialCardViewElevatedStyle">@style/Widget.Gcfl.MaterialCard</item>
+        <item name="materialCardViewOutlinedStyle">@style/Widget.Gcfl.MaterialCard</item>
         <!-- KRDS typeface everywhere, including Material's type scale -->
         <item name="android:fontFamily">@font/pretendard_gov</item>
         <item name="fontFamily">@font/pretendard_gov</item>
@@ -59,6 +70,14 @@
         <item name="textAppearanceLabelLarge">@style/TextAppearance.Gcfl.LabelLarge</item>
         <item name="textAppearanceLabelMedium">@style/TextAppearance.Gcfl.LabelMedium</item>
         <item name="textAppearanceLabelSmall">@style/TextAppearance.Gcfl.LabelSmall</item>
+    </style>
+
+    <!-- TDS 카드: 둥근 모서리, 테두리·그림자 없음 -->
+    <style name="Widget.Gcfl.MaterialCard" parent="Widget.Material3.CardView.Filled">
+        <item name="cardBackgroundColor">@color/krds_surface</item>
+        <item name="cardCornerRadius">@dimen/krds_card_radius</item>
+        <item name="cardElevation">0dp</item>
+        <item name="strokeWidth">0dp</item>
     </style>
 
     <style name="TextAppearance.Gcfl.Section" parent="TextAppearance.Material3.TitleSmall">

@@ -62,18 +62,23 @@ fun TodayTimetableCard(
     }
     val w = week?.takeIf { it.hasTimetable && it.days.isNotEmpty() } ?: return
     val now = Clock.System.now().toLocalDateTime(TimeZone.of("Asia/Seoul"))
+    val hm = "${now.hour.toString().padStart(2, '0')}:${now.minute.toString().padStart(2, '0')}"
+    TodayTimetableContent(w, hm, TimetableNames.full(services.prefs), modifier, containerColor, onOpen)
+}
+
+/** The card itself for a loaded [w]; [hm] is the current time (HH:MM) for the 지금 교시 highlight. */
+@Composable
+internal fun TodayTimetableContent(w: TtWeek, hm: String, fullNames: Boolean, modifier: Modifier = Modifier, containerColor: Color? = null, onOpen: () -> Unit = {}) {
     val day = w.days.indexOfFirst { it.isToday }.takeIf { it >= 0 } ?: 0
     val isToday = w.days[day].isToday
-    val hm = "${now.hour.toString().padStart(2, '0')}:${now.minute.toString().padStart(2, '0')}"
-    val fullNames = TimetableNames.full(services.prefs)
     val title = if (isToday) "오늘 시간표" else "${w.days[day].weekday}요일 시간표"
     Column(
-        modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(containerColor ?: Krds.colors.surfaceRaised)
+        modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(containerColor ?: Krds.colors.surface)
             .clickable(onClickLabel = "학교생활 시간표 열기", onClick = onOpen).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Filled.CalendarMonth, null, tint = Krds.colors.primaryText, modifier = Modifier.size(20.dp))
+            Icon(Icons.Filled.CalendarMonth, null, tint = Krds.colors.purple.fg, modifier = Modifier.size(20.dp))
             Spacer(Modifier.width(8.dp))
             Text(title, style = KrdsText.cardTitle, modifier = Modifier.weight(1f))
             Text(w.days[day].date.takeLast(5).replace('-', '/').trimStart('0'), style = KrdsText.meta)
@@ -85,11 +90,12 @@ fun TodayTimetableCard(
                 val current = isToday && p.start <= hm && hm < p.end
                 val name = if (c.empty) "" else c.shortOrFull(fullNames)
                 val small = if (c.empty) "" else c.place.ifBlank { c.teachers.firstOrNull()?.let(::teacherLabel).orEmpty() }
+                val hue = Krds.colors.hueFor(if (c.empty) "" else c.subject)
                 Column(
-                    Modifier.weight(1f).heightIn(min = 64.dp).clip(RoundedCornerShape(10.dp))
-                        .background(if (current) Krds.colors.primaryTint else Krds.colors.bg.copy(alpha = 0.35f))
-                        .then(if (current) Modifier.border(1.5.dp, Krds.colors.primary, RoundedCornerShape(10.dp)) else Modifier)
-                        .then(if (c.changed && !current) Modifier.border(1.dp, Krds.colors.danger, RoundedCornerShape(10.dp)) else Modifier)
+                    Modifier.weight(1f).heightIn(min = 64.dp).clip(RoundedCornerShape(12.dp))
+                        .background(if (c.empty) Krds.colors.surfaceRaised.copy(alpha = 0.5f) else hue.bg)
+                        .then(if (current) Modifier.border(2.dp, Krds.colors.primary, RoundedCornerShape(12.dp)) else Modifier)
+                        .then(if (c.changed && !current) Modifier.border(1.dp, Krds.colors.danger, RoundedCornerShape(12.dp)) else Modifier)
                         .semantics { contentDescription = "${p.label} " + (if (c.empty) "수업 없음" else c.title) + (if (current) ", 지금" else "") }
                         .padding(horizontal = 2.dp, vertical = 6.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,

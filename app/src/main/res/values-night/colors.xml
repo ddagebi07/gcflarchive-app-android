@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="brand_primary">#8AB8FF</color>
-    <color name="brand_primary_container">#1B2D57</color>
-    <color name="on_brand_primary_container">#DCE4F9</color>
-    <color name="text_secondary">#A9B0BF</color>
-    <color name="error">#FF8A80</color>
-    <color name="success">#81C784</color>
-    <color name="tile_background">#1E222B</color>
+    <color name="brand_primary">#449BFF</color>
+    <color name="brand_primary_container">#202C4D</color>
+    <color name="on_brand_primary_container">#90C2FF</color>
+    <color name="text_secondary">#9E9EA4</color>
+    <color name="error">#F04251</color>
+    <color name="success">#16BB76</color>
+    <color name="tile_background">#202027</color>
     <color name="search_highlight">#5C4D00</color>
 </resources>

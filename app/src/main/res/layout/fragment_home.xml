@@ -151,7 +151,7 @@
                         android:layout_height="20dp"
                         android:importantForAccessibility="no"
                         android:src="@drawable/ic_meal"
-                        app:tint="@color/brand_primary" />
+                        app:tint="@color/tds_orange" />
 
                     <TextView
                         android:layout_width="0dp"
@@ -212,7 +212,7 @@
                     android:layout_height="20dp"
                     android:importantForAccessibility="no"
                     android:src="@drawable/ic_event"
-                    app:tint="@color/brand_primary" />
+                    app:tint="@color/tds_blue" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -271,7 +271,7 @@
                         android:layout_height="20dp"
                         android:importantForAccessibility="no"
                         android:src="@drawable/ic_forum"
-                        app:tint="@color/brand_primary" />
+                        app:tint="@color/tds_teal" />
 
                     <TextView
                         android:layout_width="0dp"

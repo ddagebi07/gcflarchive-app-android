@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 사용자 앱: TDS(Toss Design System) 색 (@toss/tds-colors, light). 이름은 KRDS 때 그대로 둬서 화면 코드는 그대로예요.
+     관리자 앱은 admin/src/main/res의 KRDS 색을 써요. -->
+<resources>
+    <color name="krds_primary">#3182F6</color>          <!-- blue500 -->
+    <color name="krds_primary_text">#2272EB</color>     <!-- blue600 -->
+    <color name="krds_primary_tint">#E8F3FF</color>     <!-- blue50 -->
+    <color name="krds_on_primary">#FFFFFF</color>
+    <color name="krds_bg">#F2F4F6</color>               <!-- greyBackground: 회색 바탕 위에 흰 카드 -->
+    <color name="krds_surface">#FFFFFF</color>
+    <color name="krds_surface_raised">#F2F4F6</color>   <!-- grey100 -->
+    <color name="krds_border">#E5E8EB</color>           <!-- hairline -->
+    <color name="krds_border_strong">#D1D6DB</color>    <!-- grey300 -->
+    <color name="krds_input_border">#B0B8C1</color>     <!-- grey400 -->
+    <color name="krds_text_strong">#191F28</color>      <!-- grey900 -->
+    <color name="krds_text_primary">#333D4B</color>     <!-- grey800 -->
+    <color name="krds_text_secondary">#6B7684</color>   <!-- grey600 -->
+    <color name="krds_text_disabled">#B0B8C1</color>
+    <color name="krds_danger">#F04452</color>           <!-- red500 -->
+    <color name="krds_danger_tint">#FFEEEE</color>      <!-- red50 -->
+    <color name="krds_star">#FFC342</color>             <!-- yellow500 -->
+
+    <color name="krds_badge_info_bg">#E8F3FF</color>
+    <color name="krds_badge_info_fg">#1B64DA</color>
+    <color name="krds_badge_info_border">#C9E2FF</color>
+    <color name="krds_badge_success_bg">#F0FAF6</color>
+    <color name="krds_badge_success_fg">#029359</color>
+    <color name="krds_badge_success_border">#AEEFD5</color>
+    <color name="krds_badge_purple_bg">#F9F0FC</color>
+    <color name="krds_badge_purple_fg">#8222A2</color>
+    <color name="krds_badge_purple_border">#EDCCF8</color>
+    <color name="krds_badge_neutral_bg">#F2F4F6</color>
+    <color name="krds_badge_neutral_fg">#4E5968</color>
+    <color name="krds_badge_neutral_border">#E5E8EB</color>
+
+    <!-- 메뉴 아이콘 색 (TDS 500 / 50; 초록·청록·주황·노랑은 옅은 바탕에서 잘 보이게 700/800) -->
+    <color name="tds_blue">#3182F6</color>    <color name="tds_blue_bg">#E8F3FF</color>
+    <color name="tds_green">#029359</color>   <color name="tds_green_bg">#F0FAF6</color>
+    <color name="tds_orange">#ED6700</color>  <color name="tds_orange_bg">#FFF3E0</color>
+    <color name="tds_purple">#A234C7</color>  <color name="tds_purple_bg">#F9F0FC</color>
+    <color name="tds_teal">#0C8585</color>    <color name="tds_teal_bg">#EDF8F8</color>
+    <color name="tds_red">#F04452</color>     <color name="tds_red_bg">#FFEEEE</color>
+    <color name="tds_yellow">#EE8F11</color>  <color name="tds_yellow_bg">#FFF9E7</color>
+    <color name="tds_grey">#6B7684</color>    <color name="tds_grey_bg">#F2F4F6</color>
+</resources>
