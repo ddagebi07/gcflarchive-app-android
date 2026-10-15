@@ -84,6 +84,22 @@
             android:name=".library.PdfViewerActivity"
             android:exported="false" />
 
+        <!-- 설문조사 -->
+        <activity
+            android:name=".survey.SurveyListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".survey.SurveyActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".survey.SurveyBuilderActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".survey.SurveyResultsActivity"
+            android:exported="false" />
+
         <!-- 커뮤니티 -->
         <activity
             android:name=".community.CommunityActivity"

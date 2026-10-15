@@ -76,6 +76,9 @@ object NativePages {
             }
             "/notice" -> kr.co.gcflarchive.app.notice.NoticeListActivity::class.java
             "/community" -> kr.co.gcflarchive.app.community.CommunityActivity::class.java
+            "/survey", "/surveys" -> return uri.getQueryParameter("id")?.toIntOrNull()
+                ?.let { kr.co.gcflarchive.app.survey.SurveyActivity.intent(context, it) }
+                ?: kr.co.gcflarchive.app.survey.SurveyListActivity.intent(context)
             "/grade-calculator", "/grade-consent" -> kr.co.gcflarchive.app.grade.GradeActivity::class.java
             "/past-exams" -> kr.co.gcflarchive.app.library.PastExamsActivity::class.java
             "/documents" -> kr.co.gcflarchive.app.library.DocumentsActivity::class.java

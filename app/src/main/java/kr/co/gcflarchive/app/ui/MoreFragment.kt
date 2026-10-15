@@ -47,6 +47,7 @@ class MoreFragment : Fragment() {
 
         section(R.string.more_section_community, listOf(
             Entry(R.drawable.ic_forum, R.string.more_community) { start(CommunityActivity.intent(ctx)) },
+            Entry(R.drawable.ic_assignment, R.string.survey_title) { start(kr.co.gcflarchive.app.survey.SurveyListActivity.intent(ctx)) },
             Entry(R.drawable.ic_notice, R.string.link_notice) { start(Intent(ctx, NoticeListActivity::class.java)) },
         ))
         section(R.string.more_section_study, listOf(
