@@ -16,6 +16,7 @@ import kr.co.gcflarchive.app.ui.HomeFragment
 import kr.co.gcflarchive.app.ui.MealFragment
 import kr.co.gcflarchive.app.ui.SearchFragment
 import kr.co.gcflarchive.app.ui.MoreFragment
+import kr.co.gcflarchive.app.update.AppUpdate
 import kr.co.gcflarchive.app.util.Links
 
 class MainActivity : AppCompatActivity() {
@@ -33,12 +34,18 @@ class MainActivity : AppCompatActivity() {
             true
         }
         binding.bottomNav.setOnItemReselectedListener { item ->
-            (supportFragmentManager.findFragmentByTag(tagFor(item.itemId)) as? Reselectable)?.onReselected()
+            val existing = supportFragmentManager.findFragmentByTag(tagFor(item.itemId))
+            // 홈 is selected from the start, so "selecting" it at launch arrives here as a
+            // reselect: create the tab instead of leaving the screen empty.
+            if (existing == null) showTab(item.itemId) else (existing as? Reselectable)?.onReselected()
         }
 
         if (savedInstanceState == null) {
-            binding.bottomNav.selectedItemId = tabFromIntent(intent) ?: R.id.tab_home
+            val start = tabFromIntent(intent) ?: R.id.tab_home
+            binding.bottomNav.selectedItemId = start
+            if (supportFragmentManager.findFragmentByTag(tagFor(start)) == null) showTab(start)
             openPathFromIntent(intent)
+            AppUpdate.checkOnLaunch(this)
         }
 
         val prefs = AppPrefs(this)

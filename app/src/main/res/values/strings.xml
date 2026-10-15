@@ -49,6 +49,10 @@
     <string name="meal_notify_title_all">오늘의 급식</string>
 
     <!-- Settings -->
+    <string name="update_title">새 버전이 나왔어요</string>
+    <string name="update_message">%1$s 버전을 받을 수 있어요. 지금 쓰는 버전은 %2$s예요.</string>
+    <string name="update_go">업데이트하기</string>
+    <string name="update_later">나중에</string>
     <string name="settings_meal_section">급식 알림</string>
     <string name="settings_notice_section">공지 알림</string>
     <string name="settings_notice_switch">새 공지 알림 받기</string>

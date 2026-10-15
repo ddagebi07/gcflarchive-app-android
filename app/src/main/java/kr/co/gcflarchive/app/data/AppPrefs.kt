@@ -38,6 +38,11 @@ class AppPrefs(context: Context) {
         get() = prefs.getString(KEY_NOTICE_SINCE, null)
         set(value) = prefs.edit { putString(KEY_NOTICE_SINCE, value) }
 
+    /** 업데이트 안내에서 '나중에'를 고른 버전 (그 버전은 다시 묻지 않아요). */
+    var skippedUpdateVersion: String?
+        get() = prefs.getString(KEY_SKIPPED_UPDATE, null)
+        set(value) = prefs.edit { putString(KEY_SKIPPED_UPDATE, value) }
+
     /** 앱을 열 때 생체 인증 (기본 꺼짐). */
     var appLockEnabled: Boolean
         get() = prefs.getBoolean(KEY_APP_LOCK, false)
@@ -56,6 +61,7 @@ class AppPrefs(context: Context) {
         const val KEY_ONBOARDING = "onboarding_shown"
         const val KEY_APP_LOCK = "app_lock_enabled"
         const val KEY_NOTICE = "notice_notify_enabled"
+        const val KEY_SKIPPED_UPDATE = "skipped_update_version"
         const val KEY_NOTICE_SINCE = "notice_push_since"
     }
 }

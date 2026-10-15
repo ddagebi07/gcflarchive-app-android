@@ -33,9 +33,13 @@ class MainActivity : BaseActivity() {
 
         applyTabVisibility()
         binding.bottomNav.setOnItemSelectedListener { show(it.itemId); true }
+        // Selecting the already-selected 홈 at launch only counts as a reselect; create the tab then.
+        binding.bottomNav.setOnItemReselectedListener { if (supportFragmentManager.findFragmentByTag("tab_${it.itemId}") == null) show(it.itemId) }
         if (savedInstanceState == null) {
             binding.bottomNav.selectedItemId = R.id.tab_home
+            if (supportFragmentManager.findFragmentByTag("tab_${R.id.tab_home}") == null) show(R.id.tab_home)
             handleDeepLink(intent)
+            kr.co.gcflarchive.admin.update.AppUpdate.checkOnLaunch(this)
         }
 
         // Scopes can change on the server; refresh them for hakbun sessions.

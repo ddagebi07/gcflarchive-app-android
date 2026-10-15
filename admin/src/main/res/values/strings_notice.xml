@@ -33,4 +33,10 @@
     <string name="notice_photo_failed">사진을 올리지 못했어요. 다른 사진을 골라주세요.</string>
     <string name="notice_photo_desc">사진 %1$d</string>
     <string name="notice_photo_remove">사진 빼기</string>
+
+    <!-- 앱 업데이트 안내 -->
+    <string name="update_title">새 버전이 나왔어요</string>
+    <string name="update_message">%1$s 버전을 받을 수 있어요. 지금 쓰는 버전은 %2$s예요.</string>
+    <string name="update_go">업데이트하기</string>
+    <string name="update_later">나중에</string>
 </resources>
