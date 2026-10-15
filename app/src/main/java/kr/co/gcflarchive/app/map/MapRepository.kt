@@ -10,9 +10,16 @@ data class MapUser(val verified: Boolean, val nickname: String)
 data class NicknameStatus(val nickname: String, val canChange: Boolean, val nextChangeAt: String, val changeDays: Int)
 
 /** /api/map/… endpoints (routes/map_api.py). */
+/** [limited]: the server couldn't reach Kakao, so only places with reviews were searched. */
+data class PlaceSearch(val places: List<Place>, val limited: Boolean)
+
 object MapRepository {
-    suspend fun search(query: String): List<Place> =
-        MapLogic.parsePlaces(JSONObject(SiteApi.get("/api/map/search?q=" + android.net.Uri.encode(query))).optJSONArray("places"))
+    suspend fun searchPlaces(query: String): PlaceSearch {
+        val j = JSONObject(SiteApi.get("/api/map/search?q=" + android.net.Uri.encode(query)))
+        return PlaceSearch(MapLogic.parsePlaces(j.optJSONArray("places")), j.optBoolean("limited"))
+    }
+
+    suspend fun search(query: String): List<Place> = searchPlaces(query).places
 
     suspend fun customPlaces(): List<Place> {
         val arr = JSONArray(SiteApi.get("/api/map/custom-places"))

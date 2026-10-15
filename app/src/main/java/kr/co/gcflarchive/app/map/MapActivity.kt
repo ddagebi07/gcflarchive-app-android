@@ -329,10 +329,17 @@ class MapActivity : AppCompatActivity() {
         hideKeyboard()
         binding.progress.isVisible = true
         lifecycleScope.launch {
-            val result = runCatching { MapRepository.search(q) }
+            val result = runCatching { MapRepository.searchPlaces(q) }
             binding.progress.isVisible = false
-            result.onSuccess { places ->
-                showResults(places, if (places.isEmpty()) getString(R.string.map_no_results) else getString(R.string.map_results, places.size))
+            result.onSuccess { found ->
+                val places = found.places
+                val title = when {
+                    found.limited && places.isEmpty() -> getString(R.string.map_no_results_limited)
+                    found.limited -> getString(R.string.map_results_limited, places.size)
+                    places.isEmpty() -> getString(R.string.map_no_results)
+                    else -> getString(R.string.map_results, places.size)
+                }
+                showResults(places, title)
                 binding.registerGroup.isVisible = true
             }.onFailure { e ->
                 if (e is CancellationException) throw e

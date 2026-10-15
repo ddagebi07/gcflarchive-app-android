@@ -177,6 +177,8 @@
     <string name="map_results">찾은 장소 %1$d곳</string>
     <string name="map_favorites_title">즐겨찾기한 장소 %1$d곳</string>
     <string name="map_no_results">찾은 장소가 없어요. 다른 이름으로 찾아보세요.</string>
+    <string name="map_results_limited">후기가 있는 장소에서 %1$d곳 찾았어요</string>
+    <string name="map_no_results_limited">지금은 후기가 있는 장소만 찾을 수 있는데, 맞는 장소가 없어요. 장소를 직접 등록할 수도 있어요.</string>
     <string name="map_no_favorites">즐겨찾기한 장소가 없어요.</string>
     <string name="map_not_found">찾는 장소가 없나요?</string>
     <string name="map_register_place">장소 직접 등록하기</string>

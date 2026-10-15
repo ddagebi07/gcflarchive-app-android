@@ -12,10 +12,17 @@ data class MapUser(val verified: Boolean, val nickname: String)
 /** The one nickname shown on 지도 후기 and 커뮤니티 (/api/nickname). [nextChangeAt]: ISO time, blank when it can change now. */
 data class NicknameStatus(val nickname: String, val canChange: Boolean, val nextChangeAt: String, val changeDays: Int)
 
+/** [limited]: the server couldn't reach Kakao, so only places with reviews were searched. */
+data class PlaceSearch(val places: List<Place>, val limited: Boolean)
+
 /** /api/map/… (routes/map_api.py). */
 class MapRepository(private val site: SiteClient) {
-    suspend fun search(query: String): List<Place> =
-        MapLogic.parsePlaces(site.getJson("/api/map/search?q=" + encQuery(query)).optJSONArray("places"))
+    suspend fun searchPlaces(query: String): PlaceSearch {
+        val j = site.getJson("/api/map/search?q=" + encQuery(query))
+        return PlaceSearch(MapLogic.parsePlaces(j.optJSONArray("places")), j.optBoolean("limited"))
+    }
+
+    suspend fun search(query: String): List<Place> = searchPlaces(query).places
 
     suspend fun customPlaces(): List<Place> = parseArray(site.get("/api/map/custom-places")).objects().mapNotNull(MapLogic::parseCustomPlace)
 

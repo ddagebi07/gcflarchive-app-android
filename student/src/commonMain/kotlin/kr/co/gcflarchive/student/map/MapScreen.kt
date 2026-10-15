@@ -154,11 +154,17 @@ fun MapScreen(placeId: String?, placeName: String?) {
         focus.clearFocus()
         busy = true
         scope.launch {
-            runCatching { app.services.map.search(q) }
-                .onSuccess { places ->
+            runCatching { app.services.map.searchPlaces(q) }
+                .onSuccess { found ->
+                    val places = found.places
                     results = places
                     selected = null
-                    resultsTitle = if (places.isEmpty()) "검색 결과가 없어요." else "검색 결과 ${places.size}건"
+                    resultsTitle = when {
+                        found.limited && places.isEmpty() -> "지금은 후기가 있는 장소만 찾을 수 있는데, 맞는 장소가 없어요."
+                        found.limited -> "후기가 있는 장소에서 ${places.size}곳 찾았어요"
+                        places.isEmpty() -> "검색 결과가 없어요."
+                        else -> "검색 결과 ${places.size}건"
+                    }
                 }
                 .onFailure { if (it is CancellationException) throw it else app.toast("찾지 못했어요. 인터넷 연결을 확인하고 다시 시도해주세요.") }
             busy = false
