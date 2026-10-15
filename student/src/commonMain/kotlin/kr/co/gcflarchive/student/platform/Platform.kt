@@ -24,6 +24,13 @@ expect suspend fun saveFile(name: String, bytes: ByteArray, mimeType: String?)
 @Composable
 expect fun rememberFilePicker(onPicked: (List<UploadFile>) -> Unit): () -> Unit
 
+/**
+ * Returns a launcher for the photo picker (up to [max] photos). Photos come back ready to
+ * upload: formats the server can't read (HEIC) are turned into JPEG on the device.
+ */
+@Composable
+expect fun rememberImagePicker(max: Int, onPicked: (List<UploadFile>) -> Unit): () -> Unit
+
 /** System back (Android back button / gesture); no-op where the platform has none. */
 @Composable
 expect fun PlatformBackHandler(enabled: Boolean, onBack: () -> Unit)

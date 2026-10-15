@@ -4,18 +4,25 @@ import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.ImageDecoder
+import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.provider.OpenableColumns
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kr.co.gcflarchive.core.map.Place
 import kr.co.gcflarchive.core.net.UploadFile
@@ -72,6 +79,48 @@ actual fun rememberFilePicker(onPicked: (List<UploadFile>) -> Unit): () -> Unit 
         if (files.isNotEmpty()) onPicked(files)
     }
     return { launcher.launch(arrayOf("*/*")) }
+}
+
+@Composable
+actual fun rememberImagePicker(max: Int, onPicked: (List<UploadFile>) -> Unit): () -> Unit {
+    val ctx = LocalContext.current
+    val latest = rememberUpdatedState(onPicked)
+    val scope = rememberCoroutineScope()
+    // PickMultipleVisualMedia needs a limit of at least 2.
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(max.coerceAtLeast(2))) { uris ->
+        if (uris.isEmpty()) return@rememberLauncherForActivityResult
+        scope.launch {
+            val files = withContext(Dispatchers.IO) {
+                uris.take(max).mapIndexedNotNull { i, uri -> runCatching { uploadablePhoto(ctx, uri, i + 1) }.getOrNull() }
+            }
+            if (files.isNotEmpty()) latest.value(files)
+        }
+    }
+    return { if (max > 0) launcher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }
+}
+
+private const val PHOTO_PASS_THROUGH_BYTES = 15 * 1024 * 1024
+private const val PHOTO_MAX_SIDE = 1600
+
+/** JPG/PNG/GIF/WEBP go as they are (the server strips metadata); others (HEIC) become JPEG here. */
+private fun uploadablePhoto(ctx: Context, uri: Uri, n: Int): UploadFile? {
+    val type = ctx.contentResolver.getType(uri).orEmpty()
+    val raw = ctx.contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: return null
+    if (type in setOf("image/jpeg", "image/png", "image/gif", "image/webp") && raw.size <= PHOTO_PASS_THROUGH_BYTES) {
+        return UploadFile("photo$n.${type.substringAfter('/').replace("jpeg", "jpg")}", raw, type)
+    }
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) return UploadFile("photo$n", raw, type.ifBlank { null })
+    val bitmap = ImageDecoder.decodeBitmap(ImageDecoder.createSource(java.nio.ByteBuffer.wrap(raw))) { decoder, info, _ ->
+        val w = info.size.width
+        val h = info.size.height
+        val scale = minOf(1f, PHOTO_MAX_SIDE.toFloat() / maxOf(w, h))
+        decoder.setTargetSize((w * scale).toInt().coerceAtLeast(1), (h * scale).toInt().coerceAtLeast(1))
+        decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+    }
+    val out = java.io.ByteArrayOutputStream()
+    bitmap.compress(Bitmap.CompressFormat.JPEG, 85, out)
+    bitmap.recycle()
+    return UploadFile("photo$n.jpg", out.toByteArray(), "image/jpeg")
 }
 
 @Composable

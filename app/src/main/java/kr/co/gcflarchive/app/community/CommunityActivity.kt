@@ -208,6 +208,7 @@ class CommunityActivity : AppCompatActivity() {
                 CommunityParser.displayTime(p.createdAt).ifBlank { null },
                 ctx.getString(R.string.community_likes, p.likeCount),
                 ctx.getString(R.string.community_comments, p.commentCount),
+                if (p.imageCount > 0) ctx.getString(R.string.community_photos_count, p.imageCount) else null,
             ).joinToString(" · ")
             holder.b.root.setOnClickListener { onClick(p) }
         }

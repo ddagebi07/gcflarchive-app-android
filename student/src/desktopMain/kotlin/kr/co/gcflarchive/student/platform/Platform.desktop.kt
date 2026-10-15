@@ -32,6 +32,17 @@ actual fun rememberFilePicker(onPicked: (List<UploadFile>) -> Unit): () -> Unit 
 }
 
 @Composable
+actual fun rememberImagePicker(max: Int, onPicked: (List<UploadFile>) -> Unit): () -> Unit = {
+    val dialog = FileDialog(null as Frame?, "사진 선택", FileDialog.LOAD).apply {
+        isMultipleMode = true
+        setFilenameFilter { _, name -> name.substringAfterLast('.').lowercase() in setOf("jpg", "jpeg", "png", "gif", "webp") }
+        isVisible = true
+    }
+    val files = dialog.files.orEmpty().take(max).map { UploadFile(it.name, it.readBytes(), null) }
+    if (files.isNotEmpty()) onPicked(files)
+}
+
+@Composable
 actual fun PlatformBackHandler(enabled: Boolean, onBack: () -> Unit) = Unit
 
 @Composable

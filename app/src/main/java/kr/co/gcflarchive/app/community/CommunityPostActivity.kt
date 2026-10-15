@@ -20,8 +20,8 @@ import kotlinx.coroutines.launch
 import kr.co.gcflarchive.app.R
 import kr.co.gcflarchive.app.auth.LoginActivity
 import kr.co.gcflarchive.app.databinding.ActivityCommunityPostBinding
-import kr.co.gcflarchive.app.databinding.DialogInputBinding
 import kr.co.gcflarchive.app.databinding.ItemCommunityCommentBinding
+import kr.co.gcflarchive.app.library.ImageLoader
 
 /** 글 하나: 본문, 추천, 댓글, 신고. 내 글·댓글은 고치거나 지울 수 있어요. */
 class CommunityPostActivity : AppCompatActivity() {
@@ -29,6 +29,8 @@ class CommunityPostActivity : AppCompatActivity() {
     private var postId = 0
     private var post: CommunityPost? = null
     private var sending = false
+    /** The comment being edited in place (survives reloads until saved or cancelled). */
+    private var editingCommentId = 0
 
     private val login = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         if (it.resultCode == Activity.RESULT_OK) load()
@@ -87,6 +89,8 @@ class CommunityPostActivity : AppCompatActivity() {
             getString(R.string.community_views, s.viewCount),
         ).joinToString(" · ")
         binding.content.text = p.content
+        binding.content.isVisible = p.content.isNotBlank()
+        renderPhotos(p.images)
         // Moderators still see a blinded post; tell them why others don't.
         binding.blindedNotice.isVisible = s.blinded && p.canEdit
         renderLike(p.liked, s.likeCount)
@@ -106,7 +110,70 @@ class CommunityPostActivity : AppCompatActivity() {
                 if (c.edited) getString(R.string.community_edited) else null,
             ).joinToString(" · ")
             row.btnMore.setOnClickListener { v -> commentActions(v, c) }
+            if (c.id == editingCommentId && c.isMine && !c.blinded) showEditor(row, c)
             binding.comments.addView(row.root)
+        }
+    }
+
+    /** Photos at full width, sized from their known aspect ratio before they load. */
+    private fun renderPhotos(images: List<CommunityImage>) {
+        binding.photos.removeAllViews()
+        binding.photos.isVisible = images.isNotEmpty()
+        val width = (binding.photos.width.takeIf { it > 0 } ?: (resources.displayMetrics.widthPixels - dp(40)))
+        images.forEachIndexed { i, img ->
+            val view = android.widget.ImageView(this).apply {
+                scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+                adjustViewBounds = true
+                contentDescription = getString(R.string.community_photo_desc, i + 1)
+                setBackgroundColor(getColor(R.color.krds_surface_raised))
+            }
+            val height = if (img.width > 0 && img.height > 0) width * img.height / img.width else width * 3 / 4
+            binding.photos.addView(view, android.widget.LinearLayout.LayoutParams(width, height).apply { topMargin = dp(12) })
+            ImageLoader.into(view, img.url, lifecycleScope, targetWidth = width)
+        }
+    }
+
+    private fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
+
+    /** 댓글 고치기: the row turns into a text field with 취소/저장하기 (no popup). */
+    private fun showEditor(row: ItemCommunityCommentBinding, c: CommunityComment) {
+        row.content.isVisible = false
+        row.meta.isVisible = false
+        row.btnMore.isVisible = false
+        row.editGroup.isVisible = true
+        row.editInput.setText(c.content)
+        row.editInput.setSelection(row.editInput.text?.length ?: 0)
+        row.editInput.requestFocus()
+        getSystemService(InputMethodManager::class.java)?.showSoftInput(row.editInput, InputMethodManager.SHOW_IMPLICIT)
+        row.btnCancelEdit.setOnClickListener {
+            editingCommentId = 0
+            hideKeyboard()
+            post?.let(::render)
+        }
+        row.btnSaveEdit.setOnClickListener {
+            val text = row.editInput.text?.toString().orEmpty().trim()
+            if (text.isEmpty()) {
+                row.editField.error = getString(R.string.community_comment_required)
+                return@setOnClickListener
+            }
+            if (text == c.content) {
+                editingCommentId = 0
+                post?.let(::render)
+                return@setOnClickListener
+            }
+            row.btnSaveEdit.isEnabled = false
+            lifecycleScope.launch {
+                runCatching { CommunityRepository.editComment(c.id, text) }
+                    .onSuccess {
+                        editingCommentId = 0
+                        hideKeyboard()
+                        load()
+                    }
+                    .onFailure { e ->
+                        row.btnSaveEdit.isEnabled = true
+                        handle(e)
+                    }
+            }
         }
     }
 
@@ -163,19 +230,8 @@ class CommunityPostActivity : AppCompatActivity() {
     }
 
     private fun editComment(c: CommunityComment) {
-        val field = DialogInputBinding.inflate(layoutInflater)
-        field.input.setText(c.content)
-        field.input.maxLines = 6
-        field.input.inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE
-        MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.community_edit_comment)
-            .setView(field.root)
-            .setNegativeButton(R.string.close, null)
-            .setPositiveButton(R.string.community_save) { _, _ ->
-                val text = field.input.text?.toString().orEmpty().trim()
-                if (text.isNotEmpty()) change { CommunityRepository.editComment(c.id, text) }
-            }
-            .show()
+        editingCommentId = c.id
+        post?.let(::render)
     }
 
     private fun report(type: String, id: Int) {

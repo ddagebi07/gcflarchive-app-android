@@ -41,6 +41,11 @@ import platform.MapKit.MKMapView
 import platform.MapKit.MKMapViewDelegateProtocol
 import platform.MapKit.MKMarkerAnnotationView
 import platform.MapKit.MKPointAnnotation
+import platform.PhotosUI.PHPickerConfiguration
+import platform.PhotosUI.PHPickerFilter
+import platform.PhotosUI.PHPickerResult
+import platform.PhotosUI.PHPickerViewController
+import platform.PhotosUI.PHPickerViewControllerDelegateProtocol
 import platform.UIKit.UIActivityViewController
 import platform.UIKit.UIApplication
 import platform.UIKit.UIApplicationDidEnterBackgroundNotification
@@ -49,6 +54,8 @@ import platform.UIKit.UIColor
 import platform.UIKit.UIDevice
 import platform.UIKit.UIDocumentPickerDelegateProtocol
 import platform.UIKit.UIDocumentPickerViewController
+import platform.UIKit.UIImage
+import platform.UIKit.UIImageJPEGRepresentation
 import platform.UIKit.UIViewController
 import platform.UIKit.popoverPresentationController
 import platform.UniformTypeIdentifiers.UTTypeItem
@@ -60,6 +67,8 @@ import platform.UserNotifications.UNNotificationRequest
 import platform.UserNotifications.UNNotificationSound
 import platform.UserNotifications.UNUserNotificationCenter
 import platform.darwin.NSObject
+import platform.darwin.dispatch_async
+import platform.darwin.dispatch_get_main_queue
 import platform.posix.memcpy
 
 private fun topController(): UIViewController? {
@@ -122,6 +131,45 @@ actual fun rememberFilePicker(onPicked: (List<UploadFile>) -> Unit): () -> Unit 
             picker.allowsMultipleSelection = true
             picker.delegate = delegate
             topController()?.presentViewController(picker, animated = true, completion = null)
+        }
+    }
+}
+
+/** 사진 보관함에서 고른 사진을 JPEG로 바꿔서 넘겨줘요 (HEIC도 서버가 읽을 수 있게). */
+private class PhotoPickerDelegate(var onPicked: (List<UploadFile>) -> Unit) : NSObject(), PHPickerViewControllerDelegateProtocol {
+    override fun picker(picker: PHPickerViewController, didFinishPicking: List<*>) {
+        picker.dismissViewControllerAnimated(true, completion = null)
+        val results = didFinishPicking.mapNotNull { it as? PHPickerResult }
+        if (results.isEmpty()) return
+        val files = arrayOfNulls<UploadFile>(results.size)
+        var pending = results.size
+        results.forEachIndexed { i, result ->
+            result.itemProvider.loadDataRepresentationForTypeIdentifier("public.image") { data, _ ->
+                val jpeg = data?.let { UIImage(data = it) }?.let { UIImageJPEGRepresentation(it, 0.85) }
+                dispatch_async(dispatch_get_main_queue()) {
+                    if (jpeg != null) files[i] = UploadFile("photo${i + 1}.jpg", jpeg.toByteArray(), "image/jpeg")
+                    pending -= 1
+                    if (pending == 0) files.filterNotNull().takeIf { it.isNotEmpty() }?.let { onPicked(it) }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+actual fun rememberImagePicker(max: Int, onPicked: (List<UploadFile>) -> Unit): () -> Unit {
+    val latest = rememberUpdatedState(onPicked)
+    val delegate = remember { PhotoPickerDelegate { latest.value(it) } }
+    return remember(max) {
+        {
+            if (max > 0) {
+                val config = PHPickerConfiguration()
+                config.selectionLimit = max.toLong()
+                config.filter = PHPickerFilter.imagesFilter
+                val picker = PHPickerViewController(configuration = config)
+                picker.delegate = delegate
+                topController()?.presentViewController(picker, animated = true, completion = null)
+            }
         }
     }
 }

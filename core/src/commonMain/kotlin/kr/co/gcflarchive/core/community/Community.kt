@@ -3,6 +3,7 @@ package kr.co.gcflarchive.core.community
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -10,6 +11,7 @@ import kr.co.gcflarchive.core.encPath
 import kr.co.gcflarchive.core.encQuery
 import kr.co.gcflarchive.core.net.JObject
 import kr.co.gcflarchive.core.net.SiteClient
+import kr.co.gcflarchive.core.net.UploadFile
 import kr.co.gcflarchive.core.net.objects
 import kr.co.gcflarchive.core.net.parseObject
 
@@ -34,7 +36,16 @@ data class CommunityPostSummary(
     val commentCount: Int,
     val blinded: Boolean,
     val isMine: Boolean,
+    val imageCount: Int = 0,
+    /** Only on /api/community/recent (홈 화면). */
+    val boardName: String = "",
 )
+
+/** A photo attached to a post; [url] is a site path that needs the session cookie. */
+data class CommunityImage(val id: String, val url: String, val width: Int, val height: Int)
+
+/** 홈 화면 카드: newest posts from boards this user can read. */
+data class CommunityRecent(val loggedIn: Boolean, val posts: List<CommunityPostSummary>)
 
 data class CommunityPostPage(val page: Int, val totalPages: Int, val totalCount: Int, val posts: List<CommunityPostSummary>)
 
@@ -58,6 +69,7 @@ data class CommunityPost(
     val canComment: Boolean = true,
     val edited: Boolean,
     val comments: List<CommunityComment>,
+    val images: List<CommunityImage> = emptyList(),
 )
 
 enum class CommunitySort(val apiValue: String, val label: String) {
@@ -103,7 +115,15 @@ object CommunityParser {
         commentCount = j.optInt("commentCount"),
         blinded = j.optBoolean("blinded"),
         isMine = j.optBoolean("isMine"),
+        imageCount = j.optInt("imageCount"),
+        boardName = j.optString("boardName"),
     )
+
+    fun image(j: JObject) = CommunityImage(j.optString("id"), j.optString("url"), j.optInt("width"), j.optInt("height"))
+
+    fun recent(body: String): CommunityRecent = parseObject(body).let { j ->
+        CommunityRecent(j.optBoolean("loggedIn"), j.optJSONArray("posts").objects().map(::summary))
+    }
 
     fun page(body: String): CommunityPostPage = parseObject(body).let { j ->
         CommunityPostPage(j.optInt("page", 1), j.optInt("totalPages", 1), j.optInt("totalCount"), j.optJSONArray("posts").objects().map(::summary))
@@ -129,6 +149,7 @@ object CommunityParser {
                     isMine = it.optBoolean("isMine"),
                 )
             },
+            images = j.optJSONArray("images").objects().map(::image).filter { it.id.isNotBlank() },
         )
     }
 
@@ -166,13 +187,29 @@ class CommunityRepository(private val site: SiteClient) {
 
     suspend fun post(id: Int): CommunityPost = CommunityParser.post(ok(site.exchange("/api/community/posts/$id")))
 
-    suspend fun write(boardId: String, title: String, content: String, anonymous: Boolean): Int {
-        val body = buildJsonObject { put("title", title); put("content", content); put("anonymous", anonymous) }
+    suspend fun recent(limit: Int = 5): CommunityRecent = CommunityParser.recent(ok(site.exchange("/api/community/recent?limit=$limit")))
+
+    /** Uploads one photo; attach it by passing its id to [write] or [edit]. */
+    suspend fun uploadImage(file: UploadFile, onProgress: (Float) -> Unit = {}): CommunityImage {
+        val res = site.upload("/api/community/images", "file", listOf(file), onProgress = onProgress)
+        return CommunityParser.image(parseObject(ok(res)).optJSONObject("image") ?: throw CommunityParser.error(res.code, res.body))
+    }
+
+    suspend fun write(boardId: String, title: String, content: String, anonymous: Boolean, imageIds: List<String> = emptyList()): Int {
+        val body = buildJsonObject {
+            put("title", title); put("content", content); put("anonymous", anonymous)
+            put("images", JsonArray(imageIds.map { JsonPrimitive(it) }))
+        }
         return parseObject(ok(site.exchange("/api/community/boards/${encPath(boardId)}/posts", "POST", body))).optInt("id")
     }
 
-    suspend fun edit(id: Int, title: String, content: String) {
-        ok(site.exchange("/api/community/posts/$id", "PUT", buildJsonObject { put("title", title); put("content", content) }))
+    /** [imageIds] null keeps the photos as they are. */
+    suspend fun edit(id: Int, title: String, content: String, imageIds: List<String>? = null) {
+        val body = buildJsonObject {
+            put("title", title); put("content", content)
+            if (imageIds != null) put("images", JsonArray(imageIds.map { JsonPrimitive(it) }))
+        }
+        ok(site.exchange("/api/community/posts/$id", "PUT", body))
     }
 
     suspend fun delete(id: Int) {

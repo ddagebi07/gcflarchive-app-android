@@ -1,11 +1,14 @@
 package kr.co.gcflarchive.student.community
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -13,14 +16,18 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.AddPhotoAlternate
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.ThumbUp
@@ -48,15 +55,20 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import kotlinx.coroutines.launch
+import kr.co.gcflarchive.core.Config
 import kotlinx.datetime.Clock
 import kr.co.gcflarchive.core.community.COMMUNITY_REPORT_REASONS
 import kr.co.gcflarchive.core.community.CommunityBoard
 import kr.co.gcflarchive.core.community.CommunityComment
 import kr.co.gcflarchive.core.community.CommunityException
+import kr.co.gcflarchive.core.community.CommunityImage
 import kr.co.gcflarchive.core.community.CommunityParser
 import kr.co.gcflarchive.core.community.CommunityPost
 import kr.co.gcflarchive.core.community.CommunityPostSummary
@@ -65,6 +77,7 @@ import kr.co.gcflarchive.core.map.MapLogic
 import kr.co.gcflarchive.student.AppState
 import kr.co.gcflarchive.student.LocalApp
 import kr.co.gcflarchive.student.Route
+import kr.co.gcflarchive.student.platform.rememberImagePicker
 import kr.co.gcflarchive.student.ui.Hairline
 import kr.co.gcflarchive.student.ui.InfoBox
 import kr.co.gcflarchive.student.ui.Krds
@@ -78,6 +91,9 @@ import kr.co.gcflarchive.student.ui.StateMessage
 import kr.co.gcflarchive.student.ui.StrongRule
 
 private fun time(iso: String) = CommunityParser.displayTime(iso, Clock.System.now())
+
+/** routes/community.py IMAGES_PER_POST */
+private const val MAX_PHOTOS = 10
 
 private fun messageOf(e: Throwable) = e.message ?: "인터넷 연결이 불안정해요. 잠시 후 다시 시도해주세요."
 
@@ -186,7 +202,7 @@ fun CommunityScreen() {
                                 overflow = TextOverflow.Ellipsis,
                             )
                             Text(
-                                listOfNotNull(p.author.ifBlank { null }, time(p.createdAt).ifBlank { null }, "추천 ${p.likeCount}", "댓글 ${p.commentCount}").joinToString(" · "),
+                                listOfNotNull(p.author.ifBlank { null }, time(p.createdAt).ifBlank { null }, "추천 ${p.likeCount}", "댓글 ${p.commentCount}", if (p.imageCount > 0) "사진 ${p.imageCount}" else null).joinToString(" · "),
                                 style = KrdsText.meta,
                                 maxLines = 1,
                                 modifier = Modifier.padding(top = 6.dp),
@@ -268,7 +284,7 @@ fun CommunityPostScreen(id: Int) {
                     if (p.canEdit && !p.summary.blinded) {
                         DropdownMenuItem(text = { Text("고치기") }, onClick = {
                             menuOpen = false
-                            app.push(Route.CommunityWrite(p.boardId, p.summary.id, p.summary.title, p.content))
+                            app.push(Route.CommunityWrite(p.boardId, p.summary.id, p.summary.title, p.content, p.images))
                         })
                     }
                     if (p.canEdit) {
@@ -343,9 +359,20 @@ fun CommunityPostScreen(id: Int) {
                         )
                         if (d.summary.blinded && d.canEdit) InfoBox("신고가 쌓여 다른 사람에게는 숨겨진 글이에요. 관리 앱에서 검토해주세요.")
                         Hairline()
-                        SelectionContainer {
-                            Text(d.content, style = KrdsText.body, modifier = Modifier.padding(vertical = 16.dp))
+                        if (d.content.isNotBlank()) SelectionContainer {
+                            Text(d.content, style = KrdsText.body, modifier = Modifier.padding(top = 16.dp))
                         }
+                        d.images.forEachIndexed { i, img ->
+                            AsyncImage(
+                                model = Config.url(img.url),
+                                contentDescription = "사진 ${i + 1}",
+                                contentScale = ContentScale.FillWidth,
+                                modifier = Modifier.padding(top = 12.dp).fillMaxWidth()
+                                    .aspectRatio(if (img.width > 0 && img.height > 0) img.width.toFloat() / img.height else 4f / 3f)
+                                    .clip(RoundedCornerShape(8.dp)).background(Krds.colors.surfaceRaised),
+                            )
+                        }
+                        Box(Modifier.padding(top = 16.dp))
                         SecondaryButton(
                             "추천 $likes",
                             {
@@ -366,7 +393,16 @@ fun CommunityPostScreen(id: Int) {
                             CommentRow(
                                 c,
                                 moderator = moderator,
+                                editing = editing?.id == c.id,
                                 onEdit = { editing = c },
+                                onCancelEdit = { editing = null },
+                                onSave = { text ->
+                                    scope.launch {
+                                        runCatching { repo.editComment(c.id, text) }
+                                            .onSuccess { editing = null; reload++ }
+                                            .onFailure { handle(it) }
+                                    }
+                                },
                                 onDelete = { confirmDelete = { change { repo.deleteComment(c.id) } } },
                                 onReport = { reportTarget = "comment" to c.id },
                             )
@@ -399,27 +435,42 @@ fun CommunityPostScreen(id: Int) {
             confirmButton = { TextButton(onClick = { confirmDelete = null; action() }) { Text("지우기", color = Krds.colors.danger) } },
         )
     }
-    editing?.let { c ->
-        var text by remember(c.id) { mutableStateOf(c.content) }
-        AlertDialog(
-            onDismissRequest = { editing = null },
-            title = { Text("댓글 고치기") },
-            text = { OutlinedTextField(text, { if (it.length <= 1000) text = it }, maxLines = 6) },
-            dismissButton = { TextButton(onClick = { editing = null }) { Text("닫기") } },
-            confirmButton = {
-                TextButton(enabled = text.isNotBlank(), onClick = {
-                    editing = null
-                    change { repo.editComment(c.id, text.trim()) }
-                }) { Text("저장하기") }
-            },
-        )
-    }
     askNickname?.let { retry -> NicknameDialog(app, onDismiss = { askNickname = null }) { askNickname = null; retry() } }
 }
 
+/** 댓글 한 줄. 고치기를 누르면 그 자리에서 입력란으로 바뀌어요 (팝업 없음). */
 @Composable
-private fun CommentRow(c: CommunityComment, moderator: Boolean, onEdit: () -> Unit, onDelete: () -> Unit, onReport: () -> Unit) {
+private fun CommentRow(
+    c: CommunityComment,
+    moderator: Boolean,
+    editing: Boolean,
+    onEdit: () -> Unit,
+    onCancelEdit: () -> Unit,
+    onSave: (String) -> Unit,
+    onDelete: () -> Unit,
+    onReport: () -> Unit,
+) {
     var open by remember { mutableStateOf(false) }
+    if (editing) {
+        var text by remember(c.id) { mutableStateOf(c.content) }
+        var saving by remember(c.id) { mutableStateOf(false) }
+        Column(Modifier.fillMaxWidth().padding(vertical = 12.dp)) {
+            Text(c.author, style = KrdsText.label.copy(color = Krds.colors.textStrong))
+            OutlinedTextField(
+                value = text,
+                onValueChange = { if (it.length <= 1000) text = it },
+                label = { Text("댓글 고치기") },
+                supportingText = { Text("${text.length}/1,000") },
+                maxLines = 6,
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+            )
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
+                SecondaryButton("취소", onCancelEdit)
+                PrimaryButton("저장하기", { saving = true; onSave(text.trim()) }, enabled = !saving && text.isNotBlank() && text.trim() != c.content)
+            }
+        }
+        return
+    }
     Row(Modifier.fillMaxWidth().padding(vertical = 12.dp)) {
         Column(Modifier.weight(1f)) {
             Text(c.author, style = KrdsText.label.copy(color = Krds.colors.textStrong))
@@ -510,6 +561,19 @@ fun CommunityWriteScreen(route: Route.CommunityWrite) {
     var submitting by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var askNickname by remember { mutableStateOf<(() -> Unit)?>(null) }
+    val images = remember { mutableStateListOf<CommunityImage>().apply { addAll(route.images) } }
+    var uploading by remember { mutableIntStateOf(0) }
+    val pickPhotos = rememberImagePicker(MAX_PHOTOS - images.size) { files ->
+        scope.launch {
+            for (file in files.take(MAX_PHOTOS - images.size)) {
+                uploading++
+                runCatching { repo.uploadImage(file) }
+                    .onSuccess { images += it; error = null }
+                    .onFailure { e -> if (e is CommunityException && e.loginRequired) app.requireLogin() else error = messageOf(e) }
+                uploading--
+            }
+        }
+    }
 
     LaunchedEffect(Unit) {
         runCatching { repo.me() }.getOrNull()?.let { nickname = it.nickname }
@@ -524,7 +588,8 @@ fun CommunityWriteScreen(route: Route.CommunityWrite) {
         if (submitting) return
         error = when {
             title.isBlank() -> "제목을 입력해주세요."
-            content.isBlank() -> "내용을 입력해주세요."
+            content.isBlank() && images.isEmpty() -> "내용을 입력하거나 사진을 붙여주세요."
+            uploading > 0 -> "사진을 올리는 중이에요. 잠시만 기다려주세요."
             !editing && boardId == null -> "게시판을 골라주세요."
             else -> null
         }
@@ -533,10 +598,10 @@ fun CommunityWriteScreen(route: Route.CommunityWrite) {
         scope.launch {
             runCatching {
                 if (editing) {
-                    repo.edit(route.editId, title.trim(), content.trim())
+                    repo.edit(route.editId, title.trim(), content.trim(), images.map { it.id })
                     route.editId
                 } else {
-                    repo.write(boardId!!, title.trim(), content.trim(), anonymous && board?.allowAnonymous == true)
+                    repo.write(boardId!!, title.trim(), content.trim(), anonymous && board?.allowAnonymous == true, images.map { it.id })
                 }
             }.onSuccess { newId ->
                 app.contentChanged()
@@ -571,6 +636,43 @@ fun CommunityWriteScreen(route: Route.CommunityWrite) {
                 minLines = 8,
                 modifier = Modifier.fillMaxWidth(),
             )
+            Text("사진 ${images.size}/$MAX_PHOTOS", style = KrdsText.label)
+            if (images.isNotEmpty() || uploading > 0) {
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(images, key = { it.id }) { img ->
+                        Box(Modifier.size(96.dp)) {
+                            AsyncImage(
+                                model = Config.url(img.url),
+                                contentDescription = "붙인 사진",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(8.dp)).background(Krds.colors.surfaceRaised),
+                            )
+                            IconButton(
+                                onClick = { images.remove(img) },
+                                modifier = Modifier.align(Alignment.TopEnd).size(36.dp),
+                            ) {
+                                Icon(
+                                    Icons.Filled.Close, "사진 빼기", tint = androidx.compose.ui.graphics.Color.White,
+                                    modifier = Modifier.background(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.55f), RoundedCornerShape(50)).padding(4.dp),
+                                )
+                            }
+                        }
+                    }
+                    if (uploading > 0) item {
+                        Box(Modifier.size(96.dp).clip(RoundedCornerShape(8.dp)).background(Krds.colors.surfaceRaised), contentAlignment = Alignment.Center) {
+                            Text("올리는 중", style = KrdsText.meta)
+                        }
+                    }
+                }
+            }
+            SecondaryButton(
+                if (images.size >= MAX_PHOTOS) "사진은 ${MAX_PHOTOS}장까지 붙일 수 있어요" else "사진 붙이기",
+                pickPhotos,
+                Modifier.fillMaxWidth(),
+                enabled = images.size < MAX_PHOTOS && uploading == 0,
+                icon = Icons.Filled.AddPhotoAlternate,
+            )
+            Text("사진에 담긴 위치 정보는 올릴 때 지워져요.", style = KrdsText.meta)
             if (!editing && board?.allowAnonymous == true) {
                 Row(Modifier.clickable { anonymous = !anonymous }, verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(anonymous, { anonymous = it })

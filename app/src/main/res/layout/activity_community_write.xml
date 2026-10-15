@@ -78,6 +78,45 @@
                     android:minLines="8" />
             </com.google.android.material.textfield.TextInputLayout>
 
+            <TextView
+                android:id="@+id/photoCount"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:textAppearance="?attr/textAppearanceLabelLarge"
+                android:textColor="@color/krds_text_strong" />
+
+            <HorizontalScrollView
+                android:id="@+id/photoScroll"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:scrollbars="none"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:id="@+id/photoList"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal" />
+            </HorizontalScrollView>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAddPhoto"
+                style="@style/Widget.Krds.Button.Secondary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/community_add_photo"
+                app:icon="@drawable/ic_photo" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/community_photo_note"
+                android:textAppearance="@style/TextAppearance.Krds.Meta" />
+
             <com.google.android.material.checkbox.MaterialCheckBox
                 android:id="@+id/anonymous"
                 android:layout_width="wrap_content"

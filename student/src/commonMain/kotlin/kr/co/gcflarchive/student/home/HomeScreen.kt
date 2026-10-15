@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Photo
@@ -51,6 +52,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import kr.co.gcflarchive.core.community.CommunityRecent
 import kr.co.gcflarchive.core.Config
 import kr.co.gcflarchive.core.auth.LoginState
 import kr.co.gcflarchive.core.meal.Meal
@@ -76,6 +78,10 @@ fun HomeScreen() {
         meal = runCatching { MealRepository.featured(app.services.meals.fetch(MealRepository.today()), MealRepository.nowHour()) }
     }
     val pick = rememberFilePicker { files -> app.push(Route.Upload(files)) }
+    var recent by remember { mutableStateOf<Result<CommunityRecent>?>(null) }
+    LaunchedEffect(app.sessionVersion, app.contentVersion) {
+        recent = runCatching { app.services.community.recent(3) }
+    }
 
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         Column(Modifier.contentWidth().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -113,6 +119,8 @@ fun HomeScreen() {
                 )
             }
 
+            CommunityCard(recent, onOpen = { app.push(Route.Community) }, onPost = { app.push(Route.CommunityPost(it)) })
+
             // 극플드라이브 업로드
             Column(
                 Modifier.fillMaxWidth().background(Krds.colors.primary, RoundedCornerShape(12.dp)).clickable(onClick = pick).padding(18.dp),
@@ -148,6 +156,41 @@ fun HomeScreen() {
 
             TextButton(onClick = { uri.openUri(Config.BASE_URL) }, modifier = Modifier.fillMaxWidth()) {
                 Text("브라우저에서 웹사이트 열기", color = Krds.colors.primaryText)
+            }
+        }
+    }
+}
+
+/** 홈에서 바로 보이는 커뮤니티: 최근 글 3개와 전체 보기. */
+@Composable
+private fun CommunityCard(recent: Result<CommunityRecent>?, onOpen: () -> Unit, onPost: (Int) -> Unit) {
+    KrdsCard(onClick = onOpen) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Filled.Forum, null, tint = Krds.colors.primaryText, modifier = Modifier.size(20.dp))
+            Spacer(Modifier.width(8.dp))
+            Text("커뮤니티", style = KrdsText.cardTitle, modifier = Modifier.weight(1f))
+            Text("전체 보기 ›", style = KrdsText.label.copy(color = Krds.colors.primaryText))
+        }
+        Spacer(Modifier.height(6.dp))
+        val posts = recent?.getOrNull()?.posts.orEmpty()
+        when {
+            recent == null -> Text("불러오는 중…", style = KrdsText.meta)
+            recent.isFailure -> Text("최근 글을 불러오지 못했어요. 눌러서 커뮤니티로 가요.", style = KrdsText.meta)
+            recent.getOrNull()?.loggedIn == false -> Text("로그인하면 친구들이 올린 글을 볼 수 있어요.", style = KrdsText.meta)
+            posts.isEmpty() -> Text("아직 글이 없어요. 첫 글을 올려보세요.", style = KrdsText.meta)
+            else -> posts.forEach { p ->
+                Row(
+                    Modifier.fillMaxWidth().heightIn(min = 44.dp).clickable { onPost(p.id) }.padding(vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text(p.title, style = KrdsText.body, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(
+                            listOfNotNull(p.boardName.ifBlank { null }, "댓글 ${p.commentCount}", if (p.imageCount > 0) "사진 ${p.imageCount}" else null).joinToString(" · "),
+                            style = KrdsText.meta,
+                        )
+                    }
+                }
             }
         }
     }

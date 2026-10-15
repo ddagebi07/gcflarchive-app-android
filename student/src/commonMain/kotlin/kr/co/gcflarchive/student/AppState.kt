@@ -36,7 +36,13 @@ sealed interface Route {
     data object Community : Route
     data class CommunityPost(val id: Int) : Route
     /** New post on [boardId], or edit [editId] (with its current [title] / [content]). */
-    data class CommunityWrite(val boardId: String?, val editId: Int = 0, val title: String = "", val content: String = "") : Route
+    data class CommunityWrite(
+        val boardId: String?,
+        val editId: Int = 0,
+        val title: String = "",
+        val content: String = "",
+        val images: List<kr.co.gcflarchive.core.community.CommunityImage> = emptyList(),
+    ) : Route
     /** 통합검색 첨부파일 미리보기 (pdf / image / text). */
     data class Preview(val api: String, val kind: String, val filename: String, val downloadUrl: String) : Route
 }

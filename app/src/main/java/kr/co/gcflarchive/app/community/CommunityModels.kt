@@ -28,7 +28,16 @@ data class CommunityPostSummary(
     val commentCount: Int,
     val blinded: Boolean,
     val isMine: Boolean,
+    val imageCount: Int = 0,
+    /** Only on /api/community/recent (홈 화면). */
+    val boardName: String = "",
 )
+
+/** A photo attached to a post; [url] is a site path that needs the session cookie. */
+data class CommunityImage(val id: String, val url: String, val width: Int, val height: Int) : java.io.Serializable
+
+/** 홈 화면 카드: newest posts from boards this user can read. */
+data class CommunityRecent(val loggedIn: Boolean, val posts: List<CommunityPostSummary>)
 
 data class CommunityPostPage(val page: Int, val totalPages: Int, val totalCount: Int, val posts: List<CommunityPostSummary>)
 
@@ -52,6 +61,7 @@ data class CommunityPost(
     val canComment: Boolean = true,
     val edited: Boolean,
     val comments: List<CommunityComment>,
+    val images: List<CommunityImage> = emptyList(),
 )
 
 enum class CommunitySort(val apiValue: String, val label: String) {
@@ -102,7 +112,15 @@ object CommunityParser {
         commentCount = j.optInt("commentCount"),
         blinded = j.optBoolean("blinded"),
         isMine = j.optBoolean("isMine"),
+        imageCount = j.optInt("imageCount"),
+        boardName = j.optString("boardName"),
     )
+
+    fun image(j: JSONObject) = CommunityImage(j.optString("id"), j.optString("url"), j.optInt("width"), j.optInt("height"))
+
+    fun recent(body: String): CommunityRecent = JSONObject(body).let { j ->
+        CommunityRecent(j.optBoolean("loggedIn"), j.optJSONArray("posts").objects().map(::summary))
+    }
 
     fun page(body: String): CommunityPostPage = JSONObject(body).let { j ->
         CommunityPostPage(
@@ -133,6 +151,7 @@ object CommunityParser {
                     isMine = it.optBoolean("isMine"),
                 )
             },
+            images = j.optJSONArray("images").objects().map(::image).filter { it.id.isNotBlank() },
         )
     }
 

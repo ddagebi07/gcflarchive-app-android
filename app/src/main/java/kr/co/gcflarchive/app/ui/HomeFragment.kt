@@ -17,6 +17,10 @@ import kr.co.gcflarchive.app.Config
 import kr.co.gcflarchive.app.MainActivity
 import kr.co.gcflarchive.app.R
 import kr.co.gcflarchive.app.auth.LoginActivity
+import kr.co.gcflarchive.app.community.CommunityActivity
+import kr.co.gcflarchive.app.community.CommunityParser
+import kr.co.gcflarchive.app.community.CommunityPostActivity
+import kr.co.gcflarchive.app.community.CommunityRepository
 import kr.co.gcflarchive.app.data.LoginState
 import kr.co.gcflarchive.app.data.SiteSession
 import kr.co.gcflarchive.app.databinding.FragmentHomeBinding
@@ -48,6 +52,7 @@ class HomeFragment : Fragment() {
         binding.uploadCard.setOnClickListener { pickFiles.launch(arrayOf("*/*")) }
         binding.driveOpen.setOnClickListener { (activity as? MainActivity)?.selectTab(MainActivity.TAB_DRIVE) }
         binding.mealCard.setOnClickListener { (activity as? MainActivity)?.selectTab(MainActivity.TAB_MEAL) }
+        binding.communityCard.setOnClickListener { startActivity(CommunityActivity.intent(requireContext())) }
         binding.loginBanner.setOnClickListener { login.launch(LoginActivity.intent(requireContext())) }
         binding.btnBannerLogin.setOnClickListener { login.launch(LoginActivity.intent(requireContext())) }
         binding.openSite.setOnClickListener { Links.openExternal(requireContext(), android.net.Uri.parse(Config.BASE_URL)) }
@@ -94,6 +99,7 @@ class HomeFragment : Fragment() {
         super.onResume()
         // Re-check on every return: the user may have just logged in or out elsewhere.
         loadWelcome()
+        loadCommunity()
     }
 
     override fun onHiddenChanged(hidden: Boolean) {
@@ -101,6 +107,7 @@ class HomeFragment : Fragment() {
         if (!hidden && _binding != null) {
             loadTodayMeal()
             loadWelcome()
+            loadCommunity()
         }
     }
 
@@ -117,6 +124,41 @@ class HomeFragment : Fragment() {
                     bold { append(getString(R.string.home_welcome_name, userId)) }
                     append(getString(R.string.home_welcome_suffix))
                 }
+            }
+        }
+    }
+
+    /** 홈의 커뮤니티 카드: 최근 글 3개 (읽을 수 있는 게시판만). */
+    private fun loadCommunity() {
+        val b = _binding ?: return
+        if (b.communityPosts.childCount == 0) {
+            b.communityStatus.isVisible = true
+            b.communityStatus.setText(R.string.home_community_loading)
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            val result = runCatching { CommunityRepository.recent(3) }
+            val v = _binding ?: return@launch
+            v.communityPosts.removeAllViews()
+            val recent = result.getOrNull()
+            val status = when {
+                recent == null -> R.string.home_community_failed
+                !recent.loggedIn -> R.string.home_community_login
+                recent.posts.isEmpty() -> R.string.home_community_empty
+                else -> 0
+            }
+            v.communityStatus.isVisible = status != 0
+            if (status != 0) v.communityStatus.setText(status)
+            recent?.posts?.forEach { p ->
+                val row = layoutInflater.inflate(R.layout.item_home_community_post, v.communityPosts, false)
+                row.findViewById<android.widget.TextView>(R.id.title).text = p.title
+                row.findViewById<android.widget.TextView>(R.id.meta).text = listOfNotNull(
+                    p.boardName.ifBlank { null },
+                    CommunityParser.displayTime(p.createdAt).ifBlank { null },
+                    getString(R.string.community_comments, p.commentCount),
+                    if (p.imageCount > 0) getString(R.string.community_photos_count, p.imageCount) else null,
+                ).joinToString(" · ")
+                row.setOnClickListener { startActivity(CommunityPostActivity.intent(requireContext(), p.id)) }
+                v.communityPosts.addView(row)
             }
         }
     }

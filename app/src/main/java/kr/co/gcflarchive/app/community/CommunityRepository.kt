@@ -16,13 +16,26 @@ object CommunityRepository {
 
     suspend fun post(id: Int): CommunityPost = CommunityParser.post(ok(SiteApi.exchange("/api/community/posts/$id")))
 
-    suspend fun write(boardId: String, title: String, content: String, anonymous: Boolean): Int {
+    suspend fun recent(limit: Int = 3): CommunityRecent = CommunityParser.recent(ok(SiteApi.exchange("/api/community/recent?limit=$limit")))
+
+    /** Uploads one photo; attach it by passing its id to [write] or [edit]. */
+    suspend fun uploadImage(photo: CommunityPhotos.Photo): CommunityImage {
+        val res = SiteApi.postFile("/api/community/images", "file", photo.name, photo.bytes, photo.mimeType)
+        val image = JSONObject(ok(res)).optJSONObject("image") ?: throw CommunityParser.error(res.code, res.body)
+        return CommunityParser.image(image)
+    }
+
+    suspend fun write(boardId: String, title: String, content: String, anonymous: Boolean, imageIds: List<String> = emptyList()): Int {
         val body = JSONObject().put("title", title).put("content", content).put("anonymous", anonymous)
+            .put("images", org.json.JSONArray(imageIds))
         return JSONObject(ok(SiteApi.exchange("/api/community/boards/${enc(boardId)}/posts", "POST", body))).optInt("id")
     }
 
-    suspend fun edit(id: Int, title: String, content: String) {
-        ok(SiteApi.exchange("/api/community/posts/$id", "PUT", JSONObject().put("title", title).put("content", content)))
+    /** [imageIds] null keeps the photos as they are. */
+    suspend fun edit(id: Int, title: String, content: String, imageIds: List<String>? = null) {
+        val body = JSONObject().put("title", title).put("content", content)
+        if (imageIds != null) body.put("images", org.json.JSONArray(imageIds))
+        ok(SiteApi.exchange("/api/community/posts/$id", "PUT", body))
     }
 
     suspend fun delete(id: Int) {

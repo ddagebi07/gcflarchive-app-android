@@ -58,6 +58,17 @@ object SiteApi {
         }
     }
 
+    /** One file as multipart/form-data ([field] = the form field name); errors come back in the [Response]. */
+    suspend fun postFile(path: String, field: String, fileName: String, bytes: ByteArray, mimeType: String?): Response = withContext(Dispatchers.IO) {
+        val body = okhttp3.MultipartBody.Builder().setType(okhttp3.MultipartBody.FORM)
+            .addFormDataPart(field, fileName, bytes.toRequestBody((mimeType ?: "application/octet-stream").toMediaType()))
+            .build()
+        Http.client.newCall(request(path).post(body).build()).execute().use { res ->
+            syncCookies(res)
+            Response(res.code, res.body?.string().orEmpty())
+        }
+    }
+
     /** Raw bytes (e.g. viewer page images); 401 maps to [LoginRequiredException]. */
     suspend fun bytes(path: String): ByteArray = withContext(Dispatchers.IO) {
         Http.client.newCall(request(path).build()).execute().use { res ->

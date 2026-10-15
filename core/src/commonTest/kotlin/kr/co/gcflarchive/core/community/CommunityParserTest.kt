@@ -26,6 +26,20 @@ class CommunityParserTest {
     }
 
     @Test
+    fun parsesImagesAndRecentPosts() {
+        val post = CommunityParser.post(
+            """{"id":5,"images":[{"id":"ab12","url":"/api/community/images/ab12","width":1600,"height":800},{"id":""}],"imageCount":1}""",
+        )
+        assertEquals(listOf("ab12"), post.images.map { it.id })
+        assertEquals(1600, post.images.single().width)
+        assertEquals(1, post.summary.imageCount)
+        val recent = CommunityParser.recent("""{"loggedIn":true,"posts":[{"id":7,"title":"안녕","boardName":"자유게시판"}]}""")
+        assertTrue(recent.loggedIn)
+        assertEquals("자유게시판", recent.posts.single().boardName)
+        assertFalse(CommunityParser.recent("""{"loggedIn":false,"posts":[]}""").loggedIn)
+    }
+
+    @Test
     fun errorsKeepTheServersWordsAndFlags() {
         assertEquals("쓸 수 없는 표현이 있어요: '바보'.", CommunityParser.error(422, """{"error":"쓸 수 없는 표현이 있어요: '바보'."}""").message)
         assertTrue(CommunityParser.error(409, """{"error":"x","nicknameRequired":true}""").nicknameRequired)
