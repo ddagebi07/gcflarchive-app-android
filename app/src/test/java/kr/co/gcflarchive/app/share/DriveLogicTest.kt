@@ -28,7 +28,7 @@ class DriveLogicTest {
         val usage = DriveLogic.usage(listing.files)
         assertEquals(2, usage.count)
         assertEquals(5L * 1024 * 1024, usage.bytes)
-        assertEquals(50, usage.percent)
+        assertEquals(17, usage.percent)
         assertFalse(usage.isFull)
     }
 

@@ -13,7 +13,7 @@
     <string name="drive_storage_title">남은 용량</string>
     <string name="drive_storage_limit">용량 제한</string>
     <string name="drive_count">보관한 파일 %1$d개 / 5개</string>
-    <string name="drive_usage">%1$s MB / 10 MB (%2$d%%)</string>
+    <string name="drive_usage">%1$s MB / 30 MB (%2$d%%)</string>
     <string name="drive_retention">처음 내려받고 5분이 지나거나, 올리고 7일이 지나면 파일을 삭제해요.</string>
     <string name="drive_pin_title">내 드라이브 주소</string>
     <string name="drive_pin">PIN %1$s</string>
@@ -27,7 +27,7 @@
     <string name="drive_pin_changed">PIN을 바꿨어요.</string>
     <string name="drive_change">바꾸기</string>
     <string name="drive_upload_title">파일 올리기</string>
-    <string name="drive_upload_desc">파일 5개, 10MB까지 · PDF, HWP, 오피스 문서, TXT, ZIP</string>
+    <string name="drive_upload_desc">파일 5개, 30MB까지 · 파일 종류 상관없음</string>
     <string name="drive_files_title">보관 중인 파일</string>
     <string name="drive_empty_title">보관 중인 파일이 없어요.</string>
     <string name="drive_empty_desc">위의 \'파일 올리기\'로 문서를 올려주세요.</string>

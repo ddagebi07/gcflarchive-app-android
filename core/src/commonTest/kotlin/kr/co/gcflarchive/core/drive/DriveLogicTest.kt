@@ -28,8 +28,16 @@ class DriveLogicTest {
         val usage = DriveLogic.usage(listing.files)
         assertEquals(2, usage.count)
         assertEquals(5L * 1024 * 1024, usage.bytes)
-        assertEquals(50, usage.percent)
+        assertEquals(17, usage.percent) // 5MB of the 30MB quota
         assertFalse(usage.isFull)
+    }
+
+    @Test
+    fun anyFileTypeUpTo30Mb() {
+        assertEquals(null, DriveLogic.validate(listOf("photo.heic" to 1024L, "tool.exe" to 1024L, "noextension" to 1L)))
+        assertEquals(null, DriveLogic.validate(listOf("big.mp4" to 30L * 1024 * 1024)))
+        assertTrue(DriveLogic.validate(listOf("big.mp4" to 30L * 1024 * 1024 + 1)) != null)
+        assertTrue(DriveLogic.validate(emptyList()) != null)
     }
 
     @Test

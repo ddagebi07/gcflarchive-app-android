@@ -16,9 +16,8 @@ object Config {
     const val NEIS_SCHOOL_CODE = "7530145"  // 과천외국어고등학교
     const val SCHOOL_NAME = "과천외국어고등학교"
 
-    // Mirrors allowed_exts in routes/temp_share.py:api_upload_temp_file.
-    val DRIVE_ALLOWED_EXTENSIONS = setOf("pdf", "hwp", "hwpx", "doc", "docx", "ppt", "pptx", "xls", "xlsx", "txt", "zip")
-    const val DRIVE_MAX_TOTAL_BYTES = 10L * 1024 * 1024
+    /** 극플드라이브: up to 30MB of your own files, any type (routes/temp_share.py DRIVE_QUOTA_MB). */
+    const val DRIVE_MAX_TOTAL_BYTES = 30L * 1024 * 1024
 
     /** School location the map starts at (map.html). */
     const val SCHOOL_LAT = 37.4313541

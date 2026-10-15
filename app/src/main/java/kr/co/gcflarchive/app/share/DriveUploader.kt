@@ -26,7 +26,6 @@ data class PickedFile(
     val mimeType: String?,
 ) {
     val extension: String get() = name.substringAfterLast('.', "").lowercase()
-    val isAllowed: Boolean get() = extension in Config.DRIVE_ALLOWED_EXTENSIONS
 }
 
 data class UploadedFile(val name: String, val shortCode: String) {

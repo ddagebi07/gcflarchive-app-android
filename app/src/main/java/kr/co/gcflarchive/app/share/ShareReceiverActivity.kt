@@ -76,12 +76,8 @@ class ShareReceiverActivity : AppCompatActivity() {
         for (f in files) {
             val row = ItemShareFileBinding.inflate(inflater, binding.fileList, false)
             row.name.text = f.name
-            row.meta.text = when {
-                !f.isAllowed -> getString(R.string.share_unsupported_type, f.extension.ifBlank { "?" })
-                f.size >= 0 -> Formatter.formatShortFileSize(this, f.size)
-                else -> ""
-            }
-            row.meta.setTextColor(getColor(if (f.isAllowed) R.color.text_secondary else R.color.error))
+            row.meta.text = if (f.size >= 0) Formatter.formatShortFileSize(this, f.size) else ""
+            row.meta.setTextColor(getColor(R.color.text_secondary))
             row.icon.setImageResource(if (f.extension == "pdf") R.drawable.ic_pdf else R.drawable.ic_file)
             binding.fileList.addView(row.root)
         }
@@ -90,8 +86,7 @@ class ShareReceiverActivity : AppCompatActivity() {
     /** Client-side check of the same rules the server enforces, so users see why before uploading. */
     private fun validationError(): String? {
         if (files.isEmpty()) return getString(R.string.share_no_files)
-        if (files.none { it.isAllowed }) return getString(R.string.share_none_allowed)
-        val total = files.filter { it.isAllowed }.sumOf { it.size.coerceAtLeast(0) }
+        val total = files.sumOf { it.size.coerceAtLeast(0) }
         if (total > Config.DRIVE_MAX_TOTAL_BYTES) return getString(R.string.share_too_large, Formatter.formatShortFileSize(this, total))
         return null
     }
@@ -100,10 +95,7 @@ class ShareReceiverActivity : AppCompatActivity() {
         uploading = false
         val error = validationError()
         binding.status.isVisible = true
-        binding.status.text = error ?: buildString {
-            append(getString(R.string.share_ready, files.count { it.isAllowed }))
-            if (files.any { !it.isAllowed }) append("\n").append(getString(R.string.share_skipping_unsupported))
-        }
+        binding.status.text = error ?: getString(R.string.share_ready, files.size)
         binding.status.setTextColor(getColor(if (error != null) R.color.error else R.color.text_secondary))
         binding.progress.isVisible = false
         binding.btnUpload.isVisible = true
@@ -124,7 +116,7 @@ class ShareReceiverActivity : AppCompatActivity() {
         binding.status.text = getString(R.string.share_uploading)
 
         lifecycleScope.launch {
-            val result = uploader.upload(files.filter { it.isAllowed }) { fraction ->
+            val result = uploader.upload(files) { fraction ->
                 runOnUiThread { binding.progress.setProgressCompat((fraction * 100).toInt(), true) }
             }
             when (result) {

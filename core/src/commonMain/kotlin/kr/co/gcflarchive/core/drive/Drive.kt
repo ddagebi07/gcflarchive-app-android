@@ -21,7 +21,7 @@ data class DriveFile(
     val shortCode: String,
     val downloadedAt: String?,
     val deleteAt: String?,
-    /** 기출 copies added from the archive don't count toward the 5-file / 10MB limit. */
+    /** 기출 copies added from the archive don't count toward the 5-file / 30MB limit. */
     val quotaExempt: Boolean,
 ) {
     val shortUrl: String get() = Config.url("/s/$shortCode")
@@ -44,7 +44,7 @@ sealed interface DriveFileStatus {
 /** Pure rules mirrored from share.html, kept separate so they can be unit-tested. */
 object DriveLogic {
     const val MAX_FILES = 5
-    const val MAX_BYTES = 10L * 1024 * 1024
+    const val MAX_BYTES = Config.DRIVE_MAX_TOTAL_BYTES
 
     fun usage(files: List<DriveFile>): DriveUsage {
         val personal = files.filterNot { it.quotaExempt }
@@ -67,10 +67,7 @@ object DriveLogic {
     /** Client-side check before uploading; null when OK, else the message (share.html wording). */
     fun validate(files: List<Pair<String, Long>>): String? {
         if (files.isEmpty()) return "올릴 파일을 골라주세요."
-        files.firstOrNull { extensionOf(it.first) !in Config.DRIVE_ALLOWED_EXTENSIONS }?.let {
-            return "'${it.first}' 파일은 올릴 수 없어요. PDF·한글·오피스 문서·TXT·ZIP 파일을 골라주세요."
-        }
-        if (files.sumOf { it.second.coerceAtLeast(0) } > MAX_BYTES) return "한 번에 10MB까지 올릴 수 있어요. 파일을 줄여서 다시 골라주세요."
+        if (files.sumOf { it.second.coerceAtLeast(0) } > MAX_BYTES) return "한 사람당 30MB까지 올릴 수 있어요. 파일을 줄여서 다시 골라주세요."
         return null
     }
 

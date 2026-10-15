@@ -131,7 +131,7 @@ fun DriveScreen() {
                                 },
                                 trackColor = Krds.colors.surfaceRaised,
                             )
-                            Text("${(usage.bytes / 1048576.0).fixed(2)}MB / 10MB (${usage.percent}%)", style = KrdsText.meta, modifier = Modifier.padding(top = 6.dp))
+                            Text("${(usage.bytes / 1048576.0).fixed(2)}MB / 30MB (${usage.percent}%)", style = KrdsText.meta, modifier = Modifier.padding(top = 6.dp))
                         }
 
                         KrdsCard {
@@ -156,7 +156,7 @@ fun DriveScreen() {
                         ) {
                             Icon(Icons.Filled.UploadFile, null, tint = Krds.colors.primaryText, modifier = Modifier.size(36.dp))
                             Text("파일 선택해서 올리기", style = KrdsText.cardTitle.copy(color = Krds.colors.primaryText), modifier = Modifier.padding(top = 8.dp))
-                            Text("PDF·한글·오피스·TXT·ZIP, 최대 5개 / 10MB", style = KrdsText.meta, modifier = Modifier.padding(top = 2.dp))
+                            Text("파일 종류 상관없이 최대 5개 / 30MB", style = KrdsText.meta, modifier = Modifier.padding(top = 2.dp))
                         }
 
                         Text("보관 중인 파일", style = KrdsText.sectionTitle, modifier = Modifier.padding(top = 8.dp))
