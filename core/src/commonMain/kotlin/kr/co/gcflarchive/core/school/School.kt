@@ -1,5 +1,6 @@
 package kr.co.gcflarchive.core.school
 
+import kotlinx.datetime.daysUntil
 import io.ktor.http.encodeURLParameter
 import kr.co.gcflarchive.core.net.JObject
 import kr.co.gcflarchive.core.net.SiteClient
@@ -171,7 +172,20 @@ data class VisitOption(val period: String, val label: String, val start: String,
     val text: String get() = "$label ($start~$end)"
 }
 
-data class VisitOptions(val teacher: TeacherCard, val date: String, val defaultDate: String, val options: List<VisitOption>)
+/** [dates]: the days a student can pick (today if time is left, through 3 weeks; weekdays). */
+data class VisitOptions(val teacher: TeacherCard, val date: String, val defaultDate: String, val options: List<VisitOption>, val dates: List<String> = emptyList())
+
+/** 질문 날짜 표기 'mm/dd(오늘)': 오늘·내일·모레, 그 뒤로는 '목요일'. [iso] and [today] are yyyy-mm-dd. */
+fun visitDayText(iso: String, today: kotlinx.datetime.LocalDate): String {
+    val d = runCatching { kotlinx.datetime.LocalDate.parse(iso) }.getOrNull() ?: return iso
+    val rel = when (today.daysUntil(d)) {
+        0 -> "오늘"
+        1 -> "내일"
+        2 -> "모레"
+        else -> "${"월화수목금토일"[d.dayOfWeek.ordinal]}요일"
+    }
+    return "${d.monthNumber.toString().padStart(2, '0')}/${d.dayOfMonth.toString().padStart(2, '0')}($rel)"
+}
 
 data class VisitSlot(val date: String, val period: String, val label: String)
 
@@ -319,6 +333,7 @@ object SchoolParse {
     fun visitOptions(o: JObject) = VisitOptions(
         teacher = teacher(o.optJSONObject("teacher") ?: JObject()), date = o.optString("date"), defaultDate = o.optString("defaultDate"),
         options = o.optJSONArray("options").objects().map { VisitOption(it.optString("period"), it.optString("label"), it.optString("start"), it.optString("end")) },
+        dates = o.optJSONArray("dates").strings(),
     )
 
     fun visit(o: JObject) = Visit(

@@ -65,10 +65,10 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DatePeriod
-import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.plus
+import kotlinx.datetime.minus
 import kotlinx.datetime.todayIn
 import kr.co.gcflarchive.core.community.CommunityParser
 import kr.co.gcflarchive.core.net.LoginRequiredException
@@ -96,6 +96,7 @@ import kr.co.gcflarchive.core.school.Visit
 import kr.co.gcflarchive.core.school.VisitOptions
 import kr.co.gcflarchive.core.school.parseTarget
 import kr.co.gcflarchive.core.school.teacherLabel
+import kr.co.gcflarchive.core.school.visitDayText
 import kr.co.gcflarchive.student.AppState
 import kr.co.gcflarchive.student.LocalApp
 import kr.co.gcflarchive.student.Route
@@ -109,6 +110,7 @@ import kr.co.gcflarchive.student.ui.Krds
 import kr.co.gcflarchive.student.ui.KrdsCard
 import kr.co.gcflarchive.student.ui.KrdsChip
 import kr.co.gcflarchive.student.ui.KrdsDropdown
+import kr.co.gcflarchive.student.ui.KrdsPickerBox
 import kr.co.gcflarchive.student.ui.KrdsText
 import kr.co.gcflarchive.student.ui.Loading
 import kr.co.gcflarchive.student.ui.PrimaryButton
@@ -124,20 +126,6 @@ import kr.co.gcflarchive.student.ui.StateMessage
 private fun messageOf(e: Throwable) = e.message ?: "인터넷 연결이 불안정해요. 잠시 후 다시 시도해주세요."
 private fun time(iso: String) = if (iso.isBlank()) "" else CommunityParser.displayTime(iso, Clock.System.now())
 private val SEOUL = TimeZone.of("Asia/Seoul")
-private val KOR_DAYS = listOf("월", "화", "수", "목", "금", "토", "일")
-
-/** The next [count] school days (Mon–Fri) from today, as (iso date, "10/16(금)"). */
-internal fun schoolDays(count: Int = 10, from: LocalDate = Clock.System.todayIn(SEOUL)): List<Pair<String, String>> {
-    val out = mutableListOf<Pair<String, String>>()
-    var d = from
-    while (out.size < count) {
-        if (d.dayOfWeek != DayOfWeek.SATURDAY && d.dayOfWeek != DayOfWeek.SUNDAY) {
-            out += d.toString() to "${d.monthNumber}/${d.dayOfMonth}(${KOR_DAYS[d.dayOfWeek.ordinal]})"
-        }
-        d = d.plus(DatePeriod(days = 1))
-    }
-    return out
-}
 
 enum class SchoolTab(val label: String) {
     TIMETABLE("시간표"), INBOX("연락함"), SEND("연락 보내기"), ASK("선생님께 질문"), VISITS("질문함"), THREADS("대화"), GROUPS("소속·명단"), ALERTS("알림");
@@ -790,20 +778,21 @@ fun SchoolAskScreen(teacherId: String) {
         Loaded(teacherId, { app.services.school.visitOptions(teacherId) }) { first: VisitOptions, _ ->
             var purpose by remember { mutableStateOf("") }
             var name by remember { mutableStateOf("") }
-            val dates = remember { mutableStateListOf(first.defaultDate, "", "") }
+            val dates = remember { mutableStateListOf(first.dates.firstOrNull() ?: first.defaultDate, "", "") }
             val periods = remember { mutableStateListOf("", "", "") }
             var busy by remember { mutableStateOf(false) }
-            val days = remember { schoolDays(10) }
+            // 1·2지망은 꼭, 3지망은 골라도 되고 안 골라도 돼요.
+            val ready = purpose.isNotBlank() && (0..1).all { dates[it].isNotBlank() && periods[it].isNotBlank() }
             Scroll {
                 KrdsCard {
                     Text(teacherLabel(first.teacher.name), style = KrdsText.cardTitle)
                     Text(listOf(first.teacher.department, first.teacher.location).filter { it.isNotBlank() }.joinToString(" · "), style = KrdsText.meta)
                 }
-                Field("찾아가는 이유 (필수)", purpose, { purpose = it }, 500, lines = 3, placeholder = "예: 전학 서류를 어디서 받는지 궁금해요.")
-                Field("이름 (선택, 학번과 같이 보여요)", name, { name = it }, 30)
+                Field("용건", purpose, { purpose = it }, 500, lines = 3, placeholder = "용건(필수)")
+                Field("이름 (선택)", name, { name = it }, 30, placeholder = "내가 누구인지(비워두면 학번만 보여요)")
                 Text("찾아갈 날짜와 시간", style = KrdsText.sectionTitle)
-                Text("선생님 수업이 없는 시간만 보여요. 1지망은 꼭 골라주세요.", style = KrdsText.meta)
-                (0..2).forEach { i -> SlotPicker(i, teacherId, days, dates[i], periods[i], { dates[i] = it; periods[i] = "" }, { periods[i] = it }) }
+                Text("1·2지망은 꼭 골라주세요. 선생님 수업이 없는 시간만 보여요.", style = KrdsText.meta)
+                (0..2).forEach { i -> SlotPicker(i, teacherId, first.dates, dates[i], periods[i], { dates[i] = it; periods[i] = "" }, { periods[i] = it }) }
                 PrimaryButton("제출", {
                     busy = true
                     scope.launch {
@@ -812,36 +801,93 @@ fun SchoolAskScreen(teacherId: String) {
                             .onFailure { app.toast(messageOf(it)) }
                         busy = false
                     }
-                }, Modifier.fillMaxWidth(), enabled = !busy && purpose.isNotBlank() && dates[0].isNotBlank() && periods[0].isNotBlank())
+                }, Modifier.fillMaxWidth(), enabled = !busy && ready)
             }
         }
     }
 }
 
+/** One 지망: '날짜' (opens [VisitCalendar]) and '시간' side by side, same look. */
 @Composable
 private fun SlotPicker(
-    index: Int, teacherId: String, days: List<Pair<String, String>>, date: String, period: String,
+    index: Int, teacherId: String, allowed: List<String>, date: String, period: String,
     onDate: (String) -> Unit, onPeriod: (String) -> Unit,
 ) {
     val app = LocalApp.current
+    var calendar by remember { mutableStateOf(false) }
+    val today = remember { Clock.System.todayIn(SEOUL) }
+    var options by remember(date) { mutableStateOf<List<Pair<String, String>>?>(null) }
+    LaunchedEffect(date) {
+        options = if (date.isBlank()) emptyList()
+        else runCatching { app.services.school.visitOptions(teacherId, date).options.map { it.period to it.label } }.getOrDefault(emptyList())
+    }
     KrdsCard {
-        Text("${index + 1}지망${if (index > 0) " (선택)" else ""}", style = KrdsText.cardTitle)
-        Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            if (index > 0) KrdsChip("고르지 않음", date.isBlank()) { onDate("") }
-            days.forEach { (iso, label) -> KrdsChip(label, iso == date) { onDate(iso) } }
+        Text("${index + 1}지망${if (index == 2) " (선택)" else ""}", style = KrdsText.cardTitle)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            KrdsPickerBox("날짜", if (date.isBlank()) "고르기" else visitDayText(date, today), Modifier.weight(1f)) { calendar = true }
+            val o = options
+            Box(Modifier.weight(1f)) {
+                when {
+                    date.isBlank() -> KrdsPickerBox("시간", "날짜 먼저") { calendar = true }
+                    o == null -> KrdsPickerBox("시간", "불러오는 중") {}
+                    o.isEmpty() -> KrdsPickerBox("시간", "고를 시간 없음") { calendar = true }
+                    else -> KrdsDropdown("시간", listOf("" to "고르기") + o, period, onPeriod)
+                }
+            }
         }
-        if (date.isNotBlank()) {
-            var options by remember(date) { mutableStateOf<List<Pair<String, String>>?>(null) }
-            LaunchedEffect(date) {
-                options = runCatching { app.services.school.visitOptions(teacherId, date).options.map { it.period to it.text } }.getOrDefault(emptyList())
-            }
-            when (val o = options) {
-                null -> Text("시간을 불러오고 있어요", style = KrdsText.meta)
-                else -> if (o.isEmpty()) Text("이 날은 고를 수 있는 시간이 없어요.", style = KrdsText.meta)
-                else KrdsDropdown("시간", listOf("" to "시간 고르기") + o, period, onPeriod)
-            }
+        if (index == 2 && date.isNotBlank()) {
+            TextButton(onClick = { onDate("") }) { Text("3지망 지우기", color = Krds.colors.primaryText) }
         }
     }
+    if (calendar) VisitCalendar(allowed.toSet(), date, today, onDismiss = { calendar = false }) { onDate(it); calendar = false }
+}
+
+/** 월~금 달력 (이번 주부터 4주). 지난 날, 3주 넘는 날 등 [allowed]에 없는 날은 누를 수 없어요. */
+@Composable
+private fun VisitCalendar(allowed: Set<String>, selected: String, today: LocalDate, onDismiss: () -> Unit, onPick: (String) -> Unit) {
+    val monday = today.minus(DatePeriod(days = today.dayOfWeek.ordinal))
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = { TextButton(onClick = onDismiss) { Text("닫기", color = Krds.colors.primaryText) } },
+        title = { Text("날짜 고르기", style = KrdsText.sectionTitle) },
+        containerColor = Krds.colors.surface,
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Row { listOf("월", "화", "수", "목", "금").forEach { Text(it, style = KrdsText.label, textAlign = TextAlign.Center, modifier = Modifier.weight(1f)) } }
+                (0..3).forEach { w ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        (0..4).forEach { i ->
+                            val d = monday.plus(DatePeriod(days = w * 7 + i))
+                            val iso = d.toString()
+                            val ok = iso in allowed
+                            val picked = iso == selected
+                            val isToday = d == today
+                            Box(
+                                Modifier.weight(1f).height(44.dp).clip(RoundedCornerShape(10.dp))
+                                    .background(if (picked) Krds.colors.primary else Color.Transparent)
+                                    .then(if (isToday && !picked) Modifier.border(1.5.dp, Krds.colors.primary, RoundedCornerShape(10.dp)) else Modifier)
+                                    .then(if (ok) Modifier.clickable(onClickLabel = "고르기") { onPick(iso) } else Modifier)
+                                    .semantics { contentDescription = "${d.monthNumber}월 ${d.dayOfMonth}일" + if (ok) "" else ", 고를 수 없어요" },
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Text(
+                                    if (d.dayOfMonth == 1) "${d.monthNumber}/1" else d.dayOfMonth.toString(),
+                                    style = KrdsText.body.copy(
+                                        color = when {
+                                            picked -> Krds.colors.onPrimary
+                                            ok -> Krds.colors.textStrong
+                                            else -> Krds.colors.textSecondary.copy(alpha = 0.45f)
+                                        },
+                                        textDecoration = if (ok) null else TextDecoration.LineThrough,
+                                    ),
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        },
+    )
 }
 
 // ── 질문 상세 / 질문함 (교사) ───────────────────────────────────────────────

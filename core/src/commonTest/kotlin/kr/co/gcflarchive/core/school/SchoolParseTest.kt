@@ -35,6 +35,9 @@ class SchoolParseTest {
         assertEquals("이혜경T", teacherLabel("이혜경"))
         assertEquals("이혜경T", teacherLabel("이혜경T"))
         assertEquals("", teacherLabel(" "))
+        val today = kotlinx.datetime.LocalDate(2026, 10, 15)  // 목
+        assertEquals(listOf("10/15(오늘)", "10/16(내일)", "10/17(모레)", "10/19(월요일)"),
+            listOf("2026-10-15", "2026-10-16", "2026-10-17", "2026-10-19").map { visitDayText(it, today) })
         assertTrue(w.cell(1, w.classPeriods[0]).empty)
         val named = SchoolParse.week(parseObject("""{"days":[{"date":"2026-10-19","weekday":"월"}],"periods":[{"key":"1","isClass":true}],
             "cells":[[{"subject":"심F","fullName":"심화영어 Ⅱ","track":"영어과","empty":false}]]}"""))

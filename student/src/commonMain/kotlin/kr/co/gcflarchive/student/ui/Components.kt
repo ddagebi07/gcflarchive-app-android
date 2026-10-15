@@ -48,6 +48,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -191,20 +192,7 @@ fun <T> KrdsDropdown(label: String, options: List<Pair<T, String>>, selected: T,
     var open by remember { mutableStateOf(false) }
     val current = options.firstOrNull { it.first == selected }?.second ?: options.firstOrNull()?.second.orEmpty()
     Box(modifier) {
-        Column(
-            Modifier.fillMaxWidth()
-                .heightIn(min = 52.dp)
-                .border(1.dp, Krds.colors.borderStrong, RoundedCornerShape(8.dp))
-                .clickable { open = true }
-                .padding(horizontal = 12.dp, vertical = 6.dp),
-            verticalArrangement = Arrangement.Center,
-        ) {
-            Text(label, style = KrdsText.label)
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(current, style = KrdsText.body, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-                Icon(Icons.Filled.ArrowDropDown, null, tint = Krds.colors.textSecondary)
-            }
-        }
+        KrdsPickerBox(label, current) { open = true }
         DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
             options.forEach { (value, text) ->
                 DropdownMenuItem(
@@ -215,6 +203,26 @@ fun <T> KrdsDropdown(label: String, options: List<Pair<T, String>>, selected: T,
                     },
                 )
             }
+        }
+    }
+}
+
+/** The closed look of [KrdsDropdown]: small label, value, ▾. Also for pickers that open a dialog (날짜). */
+@Composable
+fun KrdsPickerBox(label: String, value: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Column(
+        modifier.fillMaxWidth()
+            .heightIn(min = 52.dp)
+            .border(1.dp, Krds.colors.borderStrong, RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(8.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Text(label, style = KrdsText.label)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(value, style = KrdsText.body, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+            Icon(Icons.Filled.ArrowDropDown, null, tint = Krds.colors.textSecondary)
         }
     }
 }
