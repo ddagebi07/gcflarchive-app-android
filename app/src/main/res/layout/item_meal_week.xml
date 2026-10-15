@@ -6,4 +6,4 @@
     android:layout_height="match_parent"
     android:baselineAligned="false"
     android:orientation="horizontal"
-    android:paddingHorizontal="12dp" />
+    android:paddingHorizontal="2dp" />

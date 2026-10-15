@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- 급식 week strip: thin outlined circle around today's date. -->
-<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
-    <stroke android:width="1.5dp" android:color="@color/krds_on_primary" />
-</shape>

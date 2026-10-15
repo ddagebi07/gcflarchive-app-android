@@ -55,6 +55,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.IntrinsicSize
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DatePeriod
@@ -130,8 +137,6 @@ internal fun schoolDays(count: Int = 10, from: LocalDate = Clock.System.todayIn(
     }
     return out
 }
-
-private fun shiftWeek(date: String, weeks: Int): String = LocalDate.parse(date).plus(DatePeriod(days = 7 * weeks)).toString()
 
 enum class SchoolTab(val label: String) {
     TIMETABLE("시간표"), INBOX("연락함"), SEND("연락 보내기"), ASK("선생님께 질문"), VISITS("질문함"), THREADS("대화"), GROUPS("소속·명단"), ALERTS("알림");
@@ -245,41 +250,103 @@ fun SchoolScreen(startTab: String? = null) {
 @Composable
 private fun TimetableTab(me: SchoolMe) {
     val app = LocalApp.current
-    var date by remember { mutableStateOf<String?>(null) }
     var cls by remember { mutableStateOf<ClassRef?>(null) }
     var subPanel by remember { mutableStateOf<Pair<String, Int>?>(null) }
     val teacher = me.role == SchoolRole.TEACHER
-    Loaded(Triple(date, cls, me.role), {
-        val week = if (cls != null) app.services.school.classWeek(cls!!, date) else app.services.school.myWeek(date)
+    // Always this week (on weekends the server already gives the coming week), as one 5×7 table.
+    Loaded(cls to me.role, {
+        val week = if (cls != null) app.services.school.classWeek(cls!!, null) else app.services.school.myWeek(null)
         val classes = if (teacher) runCatching { app.services.school.classes() }.getOrDefault(emptyList()) else emptyList()
         val subs = if (teacher && cls == null) runCatching { app.services.school.substitutes() }.getOrNull() else null
         Triple(week, classes, subs)
     }) { (week, classes, subs), reload ->
-        var day by remember(week.days.firstOrNull()?.date) { mutableIntStateOf(week.todayIndex) }
+        var picked by remember(week) { mutableStateOf<Pair<Int, Int>?>(null) }
         Scroll {
             Text(week.title, style = KrdsText.sectionTitle)
-            Row2 {
-                SecondaryButton("지난주", { date = shiftWeek(week.days.first().date, -1) })
-                SecondaryButton("이번 주", { date = null })
-                SecondaryButton("다음 주", { date = shiftWeek(week.days.first().date, 1) })
-            }
             if (teacher && classes.isNotEmpty()) {
                 KrdsDropdown("시간표 보기", listOf<Pair<ClassRef?, String>>(null to "내 시간표") + classes.map { it to it.label }, cls, { cls = it; subPanel = null })
             }
             if (!week.hasTimetable) InfoBox("아직 시간표가 없어요. 관리자가 시간표를 올리면 여기에 보여요.")
-            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                week.days.forEachIndexed { i, d -> KrdsChip("${d.weekday} ${d.date.takeLast(5).replace('-', '/')}${if (d.isToday) " · 오늘" else ""}", i == day) { day = i } }
-            }
-            val mine = teacher && cls == null
-            week.classPeriods.forEach { p ->
-                val c = week.cell(day, p)
-                PeriodRow(p.label, "${p.start}~${p.end}", c,
-                    onSub = if (mine && !c.empty && !c.handedOver) ({ subPanel = week.days[day].date to p.key.toInt() }) else null)
+            WeekGrid(week, picked) { picked = if (picked == it) null else it }
+            val sel = picked
+            if (sel == null) Text("칸을 누르면 과목 이름과 장소를 자세히 볼 수 있어요.", style = KrdsText.meta)
+            else {
+                val (d, pi) = sel
+                val p = week.classPeriods[pi]
+                val c = week.cell(d, p)
+                val mine = teacher && cls == null
+                PeriodRow("${week.days[d].weekday} ${p.label}", "${p.start}~${p.end}", c,
+                    onSub = if (mine && !c.empty && !c.handedOver) ({ subPanel = week.days[d].date to p.key.toInt() }) else null)
             }
             subPanel?.let { (d, per) -> SubstitutePanel(d, per, onClose = { subPanel = null }, onSent = { reload() }) }
             if (subs != null) SubstituteLists(subs, onChanged = reload)
             Box(Modifier.heightIn(min = 24.dp))
         }
+    }
+}
+
+/** 월~금 × 1~7교시 in one table. Tapping a cell picks (day, period index). */
+@Composable
+private fun WeekGrid(week: TtWeek, picked: Pair<Int, Int>?, onPick: (Pair<Int, Int>) -> Unit) {
+    val line = Krds.colors.border
+    val periods = week.classPeriods
+    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).border(1.dp, line, RoundedCornerShape(10.dp))) {
+        Row(Modifier.fillMaxWidth().background(Krds.colors.surfaceRaised)) {
+            Box(Modifier.width(34.dp))
+            week.days.forEach { d ->
+                Column(Modifier.weight(1f).background(if (d.isToday) Krds.colors.primaryTint else Color.Transparent).padding(vertical = 6.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(d.weekday, style = KrdsText.label.copy(fontWeight = FontWeight.Bold, color = if (d.isToday) Krds.colors.primaryText else Krds.colors.textStrong))
+                    Text(d.date.takeLast(5).replace('-', '/').trimStart('0'), style = KrdsText.label.copy(fontSize = 11.sp))
+                }
+            }
+        }
+        periods.forEachIndexed { pi, p ->
+            Hairline()
+            Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+                Column(Modifier.width(34.dp).fillMaxHeight().background(Krds.colors.surfaceRaised), verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(p.key, style = KrdsText.label.copy(fontWeight = FontWeight.Bold, color = Krds.colors.textStrong))
+                }
+                week.days.forEachIndexed { di, d ->
+                    val c = week.cell(di, p)
+                    val isPicked = picked == (di to pi)
+                    val bg = when {
+                        isPicked -> Krds.colors.primary
+                        c.moving && !c.empty -> Krds.colors.primaryTint
+                        else -> Color.Transparent
+                    }
+                    val fg = if (isPicked) Krds.colors.onPrimary else Krds.colors.textStrong
+                    val sub = if (isPicked) Krds.colors.onPrimary else Krds.colors.textSecondary
+                    Box(Modifier.width(1.dp).fillMaxHeight().background(line))
+                    Column(
+                        Modifier.weight(1f).fillMaxHeight().heightIn(min = 52.dp)
+                            .background(bg)
+                            .then(if (c.changed && !isPicked) Modifier.border(1.5.dp, Krds.colors.danger) else Modifier)
+                            .clickable(onClickLabel = "자세히 보기") { onPick(di to pi) }
+                            .semantics { contentDescription = "${d.weekday}요일 ${p.label} " + if (c.empty) "수업 없음" else c.title }
+                            .padding(horizontal = 2.dp, vertical = 6.dp),
+                        verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        if (c.empty) Text("", style = KrdsText.label)
+                        else {
+                            Text(c.subject, maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center,
+                                style = KrdsText.label.copy(fontSize = 14.sp, fontWeight = FontWeight.Bold, color = fg,
+                                    textDecoration = if (c.handedOver) TextDecoration.LineThrough else null))
+                            val small = c.place.ifBlank { c.teachers.firstOrNull().orEmpty() }
+                            if (small.isNotBlank()) Text(small, maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center,
+                                style = KrdsText.label.copy(fontSize = 11.sp, color = sub))
+                        }
+                    }
+                }
+            }
+        }
+    }
+    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+        Box(Modifier.width(14.dp).height(14.dp).clip(RoundedCornerShape(3.dp)).background(Krds.colors.primaryTint))
+        Text("이동수업", style = KrdsText.label)
+        Box(Modifier.width(14.dp).height(14.dp).border(1.5.dp, Krds.colors.danger, RoundedCornerShape(3.dp)))
+        Text("바뀐 수업", style = KrdsText.label)
     }
 }
 
@@ -669,9 +736,14 @@ private fun TeacherSearch(placeholder: String, exclude: String = "", action: Str
     fun search() = scope.launch {
         runCatching { app.services.school.teachers(q.trim()) }.onSuccess { results = it.filter { t -> t.teacherId != exclude } }.onFailure { app.toast(messageOf(it)) }
     }
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(Modifier.weight(1f)) { Field("담당 업무·부서·이름", q, { q = it }, 50, placeholder = placeholder) }
-        Box(Modifier.padding(start = 8.dp)) { PrimaryButton("검색", { search() }) }
+    // No floating label: it adds space above the box, so the button would sit lower than the field.
+    Row(Modifier.height(IntrinsicSize.Min), verticalAlignment = Alignment.CenterVertically) {
+        OutlinedTextField(
+            value = q, onValueChange = { if (it.length <= 50) q = it }, singleLine = true,
+            placeholder = { Text(placeholder.ifBlank { "담당 업무·부서·이름" }) },
+            modifier = Modifier.weight(1f).semantics { contentDescription = "선생님 검색: 담당 업무·부서·이름" },
+        )
+        PrimaryButton("검색", { search() }, Modifier.padding(start = 8.dp).fillMaxHeight())
     }
     results?.let { list ->
         if (list.isEmpty()) Text(if (q.isBlank()) "선생님 명단이 아직 없어요." else "찾는 선생님이 없어요. 다른 말로 검색해보세요.", style = KrdsText.meta)
@@ -696,7 +768,7 @@ private fun AskTab() {
     Loaded(Unit, { app.services.school.visits() }) { mine, _ ->
         Scroll {
             Text("담당 업무로 선생님을 찾아 질문하고, 찾아갈 시간을 1~3지망까지 골라요.", style = KrdsText.meta)
-            TeacherSearch("예: 방과후, 학적, 영어", action = "질문하기") { app.push(Route.SchoolAsk(it.teacherId)) }
+            TeacherSearch("담당 업무·부서·이름 (예: 방과후)", action = "질문하기") { app.push(Route.SchoolAsk(it.teacherId)) }
             Text("내 질문", style = KrdsText.sectionTitle, modifier = Modifier.padding(top = 8.dp))
             if (mine.isEmpty()) Text("아직 질문이 없어요.", style = KrdsText.meta)
             mine.forEach { v -> VisitRow(v, false) { app.push(Route.SchoolVisit(v.id)) } }

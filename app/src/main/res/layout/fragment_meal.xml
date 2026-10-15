@@ -38,12 +38,39 @@
             android:visibility="invisible" />
     </LinearLayout>
 
-    <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/weekPager"
+    <!-- ‹ 월~금 › : the arrows move a week, like swiping. -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="88dp"
+        android:layout_height="80dp"
         android:layout_marginBottom="8dp"
-        android:contentDescription="@string/meal_week_pager" />
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/btnPrevWeek"
+            android:layout_width="36dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/meal_prev_week"
+            android:src="@drawable/ic_chevron_left"
+            app:tint="@color/krds_text_secondary" />
+
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/weekPager"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:contentDescription="@string/meal_week_pager" />
+
+        <ImageButton
+            android:id="@+id/btnNextWeek"
+            android:layout_width="36dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/meal_next_week"
+            android:src="@drawable/ic_chevron_right"
+            app:tint="@color/krds_text_secondary" />
+    </LinearLayout>
 
     <View
         android:layout_width="match_parent"

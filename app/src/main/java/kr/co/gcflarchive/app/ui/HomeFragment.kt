@@ -132,6 +132,7 @@ class HomeFragment : Fragment() {
     /** 홈의 커뮤니티 카드: 최근 글 3개 (읽을 수 있는 게시판만). */
     private fun loadCommunity() {
         val b = _binding ?: return
+        if (!b.communityCard.isVisible) return  // 카드를 숨겨 둔 동안은 불러오지 않아요.
         if (b.communityPosts.childCount == 0) {
             b.communityStatus.isVisible = true
             b.communityStatus.setText(R.string.home_community_loading)

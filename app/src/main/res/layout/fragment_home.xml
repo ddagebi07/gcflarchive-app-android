@@ -145,6 +145,7 @@
             style="?attr/materialCardViewFilledStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
             android:clickable="true"
             android:focusable="true">
 
@@ -192,12 +193,14 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- 커뮤니티: recent posts, right on the home tab -->
+        <!-- 커뮤니티: recent posts. Hidden for now; set visible to bring it back. -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/communityCard"
             style="?attr/materialCardViewFilledStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:visibility="gone"
             android:clickable="true"
             android:focusable="true">
 

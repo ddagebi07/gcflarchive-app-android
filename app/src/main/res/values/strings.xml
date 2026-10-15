@@ -42,6 +42,8 @@
     <string name="meal_prev">이전 날</string>
     <string name="meal_next">다음 날</string>
     <string name="meal_week_pager">요일 고르기. 옆으로 밀면 지난주·다음 주로 넘어가요.</string>
+    <string name="meal_prev_week">지난주</string>
+    <string name="meal_next_week">다음 주</string>
     <string name="allergy_guide">알레르기 정보: ①난류 ②우유 ③메밀 ④땅콩 ⑤대두 ⑥밀 ⑦고등어 ⑧게 ⑨새우 ⑩돼지고기 ⑪복숭아 ⑫토마토 ⑬아황산류 ⑭호두 ⑮닭고기 ⑯쇠고기 ⑰오징어 ⑱조개류 ⑲잣</string>
     <string name="meal_channel_name">급식 알림</string>
     <string name="meal_channel_desc">매일 정한 시간에 오늘 급식을 알려드려요.</string>
@@ -132,7 +134,6 @@
     <!-- 학교생활 (시간표 · 연락 · 질문) -->
     <string name="school_title">학교생활</string>
     <string name="school_home_desc">내 시간표, 선생님 연락, 질문·방문 신청</string>
-    <string name="school_more_value">시간표 · 연락 · 질문</string>
     <string name="school_channel_name">학교생활 알림</string>
     <string name="school_channel_desc">선생님 연락, 질문 답변, 대화 알림이에요.</string>
     <string name="substitute_channel_name">보강 부탁</string>

@@ -33,7 +33,7 @@ class MoreFragment : Fragment() {
     private val binding get() = _binding!!
 
     /** One row: what it opens is decided when tapped. */
-    private class Entry(val iconRes: Int, val labelRes: Int, val value: String? = null, val open: () -> Unit)
+    private class Entry(val iconRes: Int, val labelRes: Int, val value: String? = null, val open: (() -> Unit)?)
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentMoreBinding.inflate(inflater, container, false)
@@ -46,7 +46,7 @@ class MoreFragment : Fragment() {
         fun tab(name: String) = (activity as? MainActivity)?.selectTab(name)
 
         section(R.string.more_section_community, listOf(
-            Entry(R.drawable.ic_event, R.string.school_title, ctx.getString(R.string.school_more_value)) { start(kr.co.gcflarchive.student.school.SchoolActivity.intent(ctx)) },
+            Entry(R.drawable.ic_event, R.string.school_title) { start(kr.co.gcflarchive.student.school.SchoolActivity.intent(ctx)) },
             Entry(R.drawable.ic_forum, R.string.more_community) { start(CommunityActivity.intent(ctx)) },
             Entry(R.drawable.ic_assignment, R.string.survey_title) { start(kr.co.gcflarchive.app.survey.SurveyListActivity.intent(ctx)) },
             Entry(R.drawable.ic_notice, R.string.link_notice) { start(Intent(ctx, NoticeListActivity::class.java)) },
@@ -68,7 +68,7 @@ class MoreFragment : Fragment() {
         section(R.string.more_section_app, listOf(
             Entry(R.drawable.ic_settings, R.string.settings_title) { start(SettingsActivity.intent(ctx)) },
             Entry(R.drawable.ic_open_in_browser, R.string.more_website) { Links.openExternal(ctx, Uri.parse(Config.BASE_URL)) },
-            Entry(R.drawable.ic_info, R.string.more_version, value = BuildConfig.VERSION_NAME) {},
+            Entry(R.drawable.ic_info, R.string.more_version, value = BuildConfig.VERSION_NAME, open = null),
         ))
     }
 
@@ -94,10 +94,10 @@ class MoreFragment : Fragment() {
             row.value.isVisible = e.value != null
             row.value.text = e.value
             // The version row only shows a value; nothing to open.
-            val opens = e.value == null
-            row.chevron.isVisible = opens
-            row.root.isClickable = opens
-            if (opens) row.root.setOnClickListener { e.open() } else row.root.background = null
+            val open = e.open
+            row.chevron.isVisible = open != null
+            row.root.isClickable = open != null
+            if (open != null) row.root.setOnClickListener { open() } else row.root.background = null
             list.addView(row.root)
         }
     }

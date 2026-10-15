@@ -60,6 +60,9 @@ class MealFragment : Fragment(), MainActivity.Reselectable {
             }
         })
         binding.btnToday.setOnClickListener { setDate(MealRepository.today()) }
+        // ‹ ›: one week back or forward (same as swiping the strip).
+        binding.btnPrevWeek.setOnClickListener { binding.weekPager.currentItem = (binding.weekPager.currentItem - 1).coerceAtLeast(0) }
+        binding.btnNextWeek.setOnClickListener { binding.weekPager.currentItem = (binding.weekPager.currentItem + 1).coerceAtMost(PAGES - 1) }
         binding.weekLabel.setOnClickListener { pickDate() }
         binding.swipe.setOnRefreshListener { load() }
         binding.allergyGuide.text = getString(R.string.allergy_guide)
@@ -179,7 +182,15 @@ class MealFragment : Fragment(), MainActivity.Reselectable {
                 val isToday = day == today
                 cell.weekday.text = WEEKDAYS[i]
                 cell.dayNumber.text = day.dayOfMonth.toString()
-                cell.root.setBackgroundResource(if (selected) R.drawable.bg_meal_day_selected else R.drawable.bg_meal_day)
+                // Selected: filled rounded square. Today: the same square as an outline, so when today is
+                // selected the two overlap into one.
+                cell.root.setBackgroundResource(
+                    when {
+                        selected -> R.drawable.bg_meal_day_selected
+                        isToday -> R.drawable.bg_meal_day_today
+                        else -> R.drawable.bg_meal_day
+                    },
+                )
                 val onSel = ctx.getColor(R.color.krds_on_primary)
                 cell.weekday.setTextColor(if (selected) onSel else ctx.getColor(R.color.krds_text_secondary))
                 cell.dayNumber.setTextColor(
@@ -189,12 +200,6 @@ class MealFragment : Fragment(), MainActivity.Reselectable {
                         else -> ctx.getColor(R.color.krds_text_strong)
                     },
                 )
-                // Today: thin outlined circle (white on the selected fill).
-                if (isToday) {
-                    cell.dayNumber.setBackgroundResource(if (selected) R.drawable.bg_meal_today_ring_selected else R.drawable.bg_meal_today_ring)
-                } else {
-                    cell.dayNumber.background = null
-                }
                 cell.root.isSelected = selected
                 cell.root.contentDescription = "${day.monthValue}월 ${day.dayOfMonth}일 ${WEEKDAYS[i]}요일" +
                     (if (isToday) ", 오늘" else "") + (if (selected) ", 선택됨" else "")
