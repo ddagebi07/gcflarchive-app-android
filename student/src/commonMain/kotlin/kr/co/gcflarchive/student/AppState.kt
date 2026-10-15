@@ -34,6 +34,11 @@ sealed interface Route {
     data object Settings : Route
     data object MyScores : Route
     data object Community : Route
+    data object Surveys : Route
+    data class Survey(val id: Int) : Route
+    /** id 0 = new survey. */
+    data class SurveyBuild(val id: Int) : Route
+    data class SurveyResults(val id: Int) : Route
     data class CommunityPost(val id: Int) : Route
     /** New post on [boardId], or edit [editId] (with its current [title] / [content]). */
     data class CommunityWrite(
@@ -134,6 +139,7 @@ class AppState(val services: Services, private val scope: CoroutineScope) {
                 if (!board.isNullOrBlank() && !idx.isNullOrBlank()) push(Route.PostDetail(board, idx))
             }
             "/community" -> push(Route.Community)
+            "/survey", "/surveys" -> query["id"]?.toIntOrNull()?.let { push(Route.Survey(it)) } ?: push(Route.Surveys)
             "/meal" -> { stack.clear(); tab = Tab.MEAL }
             "/share" -> { stack.clear(); tab = Tab.DRIVE }
             "/verify" -> push(Route.Login)

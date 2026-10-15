@@ -58,6 +58,10 @@ import kr.co.gcflarchive.student.community.CommunityPostScreen
 import kr.co.gcflarchive.student.community.CommunityWriteScreen
 import kr.co.gcflarchive.student.grade.MyScoresScreen
 import kr.co.gcflarchive.student.search.PreviewScreen
+import kr.co.gcflarchive.student.survey.SurveyBuilderScreen
+import kr.co.gcflarchive.student.survey.SurveyListScreen
+import kr.co.gcflarchive.student.survey.SurveyResultsScreen
+import kr.co.gcflarchive.student.survey.SurveyScreen
 import kr.co.gcflarchive.student.ui.Krds
 import kr.co.gcflarchive.student.ui.KrdsTheme
 
@@ -181,6 +185,10 @@ private fun RouteScreen(route: Route) {
         Route.Settings -> SettingsScreen()
         Route.MyScores -> MyScoresScreen()
         Route.Community -> CommunityScreen()
+        Route.Surveys -> SurveyListScreen()
+        is Route.Survey -> SurveyScreen(route.id)
+        is Route.SurveyBuild -> SurveyBuilderScreen(route.id)
+        is Route.SurveyResults -> SurveyResultsScreen(route.id)
         is Route.CommunityPost -> CommunityPostScreen(route.id)
         is Route.CommunityWrite -> CommunityWriteScreen(route)
         is Route.Preview -> PreviewScreen(route.api, route.kind, route.filename, route.downloadUrl)

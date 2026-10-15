@@ -20,6 +20,7 @@ import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.CloudUpload
+import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Map
@@ -63,6 +64,7 @@ fun MoreScreen() {
     val sections = listOf(
         "소통" to listOf(
             Entry(Icons.Filled.Forum, "커뮤니티") { app.push(Route.Community) },
+            Entry(Icons.Filled.Assignment, "설문조사") { app.push(Route.Surveys) },
             Entry(Icons.Filled.Notifications, "공지") { app.push(Route.Notices) },
         ),
         "공부" to listOf(

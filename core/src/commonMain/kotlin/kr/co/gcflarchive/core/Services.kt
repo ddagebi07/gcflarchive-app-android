@@ -11,6 +11,7 @@ import kr.co.gcflarchive.core.meal.MealRepository
 import kr.co.gcflarchive.core.net.SiteClient
 import kr.co.gcflarchive.core.notice.NoticeRepository
 import kr.co.gcflarchive.core.prefs.AppPrefs
+import kr.co.gcflarchive.core.survey.SurveyRepository
 
 /** Everything the student app talks to, created once per process and shared by every screen. */
 class Services(val site: SiteClient = SiteClient(), val prefs: AppPrefs = AppPrefs()) {
@@ -23,4 +24,5 @@ class Services(val site: SiteClient = SiteClient(), val prefs: AppPrefs = AppPre
     val notices = NoticeRepository(site)
     val map = MapRepository(site)
     val community = CommunityRepository(site)
+    val surveys = SurveyRepository(site)
 }
