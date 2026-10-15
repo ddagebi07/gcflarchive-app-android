@@ -33,6 +33,9 @@ class CommunityWriteActivity : AppCompatActivity() {
     private var editId = 0
     private var submitting = false
     private val images = ArrayList<CommunityImage>()
+    private var pollEditor: PollEditor? = null
+    /** The post had a poll and the user took it off (sent as poll: null). */
+    private var pollRemoved = false
     private var uploading = 0
 
     private val pickPhotos = registerForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(CommunityPhotos.MAX_PER_POST)) { uris ->
@@ -64,6 +67,10 @@ class CommunityWriteActivity : AppCompatActivity() {
             pickPhotos.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         }
         renderPhotos()
+        @Suppress("DEPRECATION")
+        val existingPoll = intent.getSerializableExtra(EXTRA_POLL) as? CommunityPoll
+        if (existingPoll != null && savedInstanceState == null) showPollEditor(existingPoll)
+        binding.btnAddPoll.setOnClickListener { showPollEditor(null) }
         // A post stays on its board when edited.
         binding.boardField.isVisible = editId == 0
         binding.boardPicker.setOnItemClickListener { _, _, position, _ ->
@@ -142,6 +149,22 @@ class CommunityWriteActivity : AppCompatActivity() {
 
     private fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
 
+    private fun showPollEditor(existing: CommunityPoll?) {
+        val editor = PollEditor(this, existing, locked = existing != null && existing.voterCount > 0) {
+            pollEditor = null
+            pollRemoved = true
+            binding.pollContainer.removeAllViews()
+            binding.pollContainer.isVisible = false
+            binding.btnAddPoll.isVisible = true
+        }
+        pollEditor = editor
+        pollRemoved = false
+        binding.pollContainer.removeAllViews()
+        binding.pollContainer.addView(editor.view)
+        binding.pollContainer.isVisible = true
+        binding.btnAddPoll.isVisible = false
+    }
+
     private fun loadBoards() {
         if (editId > 0) return
         lifecycleScope.launch {
@@ -175,8 +198,10 @@ class CommunityWriteActivity : AppCompatActivity() {
         val title = binding.titleInput.text?.toString().orEmpty().trim()
         val content = binding.contentInput.text?.toString().orEmpty().trim()
         binding.titleField.error = if (title.isEmpty()) getString(R.string.community_title_required) else null
-        val noBody = content.isEmpty() && images.isEmpty()
-        binding.contentField.error = if (noBody) getString(R.string.community_content_or_photo) else null
+        val poll = pollEditor?.draft()
+        poll?.error()?.let { return snack(it) }
+        val noBody = content.isEmpty() && images.isEmpty() && pollEditor == null
+        binding.contentField.error = if (noBody) getString(R.string.community_content_or_attachment) else null
         if (title.isEmpty() || noBody) return
         if (uploading > 0) return snack(getString(R.string.community_photo_wait))
         val board = boardId
@@ -186,10 +211,10 @@ class CommunityWriteActivity : AppCompatActivity() {
         lifecycleScope.launch {
             runCatching {
                 if (editId > 0) {
-                    CommunityRepository.edit(editId, title, content, images.map { it.id })
+                    CommunityRepository.edit(editId, title, content, images.map { it.id }, poll, removePoll = pollRemoved && pollEditor == null)
                     editId
                 } else {
-                    CommunityRepository.write(board!!, title, content, binding.anonymous.isChecked, images.map { it.id })
+                    CommunityRepository.write(board!!, title, content, binding.anonymous.isChecked, images.map { it.id }, poll)
                 }
             }.onSuccess { id ->
                 setResult(Activity.RESULT_OK, Intent().putExtra(RESULT_POST_ID, if (editId > 0) 0 else id))
@@ -234,6 +259,7 @@ class CommunityWriteActivity : AppCompatActivity() {
         private const val EXTRA_TITLE = "title"
         private const val EXTRA_CONTENT = "content"
         private const val EXTRA_IMAGES = "images"
+        private const val EXTRA_POLL = "poll"
 
         @Suppress("DEPRECATION", "UNCHECKED_CAST")
         private fun imagesExtra(bundle: Bundle?): List<CommunityImage> =
@@ -249,5 +275,6 @@ class CommunityWriteActivity : AppCompatActivity() {
                 .putExtra(EXTRA_TITLE, post.summary.title)
                 .putExtra(EXTRA_CONTENT, post.content)
                 .putExtra(EXTRA_IMAGES, ArrayList(post.images))
+                .apply { post.poll?.let { putExtra(EXTRA_POLL, it) } }
     }
 }

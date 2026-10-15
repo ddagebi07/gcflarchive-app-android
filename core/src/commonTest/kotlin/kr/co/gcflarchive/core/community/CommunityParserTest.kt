@@ -1,6 +1,7 @@
 package kr.co.gcflarchive.core.community
 
 import kotlinx.datetime.Instant
+import kr.co.gcflarchive.core.net.parseObject
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -23,6 +24,32 @@ class CommunityParserTest {
         assertEquals("info", post.boardId)
         assertTrue(post.canComment)  // older servers don't send it
         assertFalse(CommunityParser.post("""{"id":4,"canComment":false}""").canComment)
+    }
+
+    @Test
+    fun parsesPolls() {
+        val post = CommunityParser.post(
+            """{"id":5,"hasPoll":true,"poll":{"question":"종목은?","options":[{"text":"축구","votes":3},{"text":"농구","votes":1}],
+               "multiple":false,"closesAt":"","closed":false,"myChoices":[0],"voterCount":4,"showResults":true,"canVote":true}}""",
+        )
+        val poll = post.poll!!
+        assertTrue(post.summary.hasPoll)
+        assertEquals(listOf("축구", "농구"), poll.options.map { it.text })
+        assertEquals(setOf(0), poll.myChoices)
+        assertEquals(75, poll.percent(0))
+        assertEquals(25, poll.percent(1))
+        val hidden = CommunityParser.poll(parseObject("""{"question":"q","options":[{"text":"a","votes":null},{"text":"b"}],"voterCount":0}"""))!!
+        assertEquals(null, hidden.options[0].votes)
+        assertEquals(0, hidden.percent(0))
+        assertEquals(null, CommunityParser.poll(null))
+    }
+
+    @Test
+    fun pollDraftFollowsServerRules() {
+        assertEquals(null, PollDraft("종목은?", listOf("축구", "농구", " "), false).error())
+        assertTrue(PollDraft("", listOf("a", "b"), false).error() != null)
+        assertTrue(PollDraft("q", listOf("a", "a", ""), false).error() != null)
+        assertTrue(PollDraft("q", (1..11).map { "$it" }, true).error() != null)
     }
 
     @Test

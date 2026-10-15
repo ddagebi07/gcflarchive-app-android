@@ -29,6 +29,7 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.HowToVote
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.outlined.ThumbUp
@@ -202,7 +203,7 @@ fun CommunityScreen() {
                                 overflow = TextOverflow.Ellipsis,
                             )
                             Text(
-                                listOfNotNull(p.author.ifBlank { null }, time(p.createdAt).ifBlank { null }, "추천 ${p.likeCount}", "댓글 ${p.commentCount}", if (p.imageCount > 0) "사진 ${p.imageCount}" else null).joinToString(" · "),
+                                listOfNotNull(p.author.ifBlank { null }, time(p.createdAt).ifBlank { null }, "추천 ${p.likeCount}", "댓글 ${p.commentCount}", if (p.imageCount > 0) "사진 ${p.imageCount}" else null, if (p.hasPoll) "투표" else null).joinToString(" · "),
                                 style = KrdsText.meta,
                                 maxLines = 1,
                                 modifier = Modifier.padding(top = 6.dp),
@@ -251,6 +252,7 @@ fun CommunityPostScreen(id: Int) {
     var reportTarget by remember { mutableStateOf<Pair<String, Int>?>(null) }
     var confirmDelete by remember { mutableStateOf<(() -> Unit)?>(null) }
     var editing by remember { mutableStateOf<CommunityComment?>(null) }
+    var voting by remember { mutableStateOf(false) }
     var askNickname by remember { mutableStateOf<(() -> Unit)?>(null) }
 
     LaunchedEffect(id, reload, app.sessionVersion, app.contentVersion) {
@@ -284,7 +286,7 @@ fun CommunityPostScreen(id: Int) {
                     if (p.canEdit && !p.summary.blinded) {
                         DropdownMenuItem(text = { Text("수정") }, onClick = {
                             menuOpen = false
-                            app.push(Route.CommunityWrite(p.boardId, p.summary.id, p.summary.title, p.content, p.images))
+                            app.push(Route.CommunityWrite(p.boardId, p.summary.id, p.summary.title, p.content, p.images, p.poll))
                         })
                     }
                     if (p.canEdit) {
@@ -371,6 +373,17 @@ fun CommunityPostScreen(id: Int) {
                                     .aspectRatio(if (img.width > 0 && img.height > 0) img.width.toFloat() / img.height else 4f / 3f)
                                     .clip(RoundedCornerShape(8.dp)).background(Krds.colors.surfaceRaised),
                             )
+                        }
+                        d.poll?.let { poll ->
+                            PollCard(poll, busy = voting, onVote = { choices ->
+                                voting = true
+                                scope.launch {
+                                    runCatching { repo.vote(id, choices) }
+                                        .onSuccess { fresh -> if (fresh != null) post = Result.success(d.copy(poll = fresh)) }
+                                        .onFailure { handle(it) }
+                                    voting = false
+                                }
+                            })
                         }
                         Box(Modifier.padding(top = 16.dp))
                         SecondaryButton(
@@ -562,6 +575,12 @@ fun CommunityWriteScreen(route: Route.CommunityWrite) {
     var error by remember { mutableStateOf<String?>(null) }
     var askNickname by remember { mutableStateOf<(() -> Unit)?>(null) }
     val images = remember { mutableStateListOf<CommunityImage>().apply { addAll(route.images) } }
+    // 투표: an existing poll with votes can't change (the server refuses), so it stays locked.
+    val pollLocked = route.poll != null && route.poll.voterCount > 0
+    var poll by remember {
+        mutableStateOf(route.poll?.let { p -> PollEditorState(p.question, p.options.map { it.text }, p.multiple) })
+    }
+    var pollRemoved by remember { mutableStateOf(false) }
     var uploading by remember { mutableIntStateOf(0) }
     val pickPhotos = rememberImagePicker(MAX_PHOTOS - images.size) { files ->
         scope.launch {
@@ -584,11 +603,17 @@ fun CommunityWriteScreen(route: Route.CommunityWrite) {
     }
     val board = boards.firstOrNull { it.id == boardId }
 
+    fun draft() = poll?.let { p ->
+        kr.co.gcflarchive.core.community.PollDraft(p.question, p.options.filter { it.isNotBlank() }, p.multiple, deadlineIso(p.deadlineHours))
+    }
+
     fun submit() {
         if (submitting) return
         error = when {
             title.isBlank() -> "제목을 입력해주세요."
-            content.isBlank() && images.isEmpty() -> "내용을 입력하거나 사진을 붙여주세요."
+            !pollLocked && poll?.let { p -> kr.co.gcflarchive.core.community.PollDraft(p.question, p.options, p.multiple).error() } != null ->
+                poll?.let { p -> kr.co.gcflarchive.core.community.PollDraft(p.question, p.options, p.multiple).error() }
+            content.isBlank() && images.isEmpty() && poll == null -> "내용을 입력하거나 사진·투표를 붙여주세요."
             uploading > 0 -> "사진을 올리는 중이에요. 잠시만 기다려주세요."
             !editing && boardId == null -> "게시판을 골라주세요."
             else -> null
@@ -598,10 +623,11 @@ fun CommunityWriteScreen(route: Route.CommunityWrite) {
         scope.launch {
             runCatching {
                 if (editing) {
-                    repo.edit(route.editId, title.trim(), content.trim(), images.map { it.id })
+                    repo.edit(route.editId, title.trim(), content.trim(), images.map { it.id },
+                        poll = if (pollLocked) null else draft(), removePoll = pollRemoved && poll == null)
                     route.editId
                 } else {
-                    repo.write(boardId!!, title.trim(), content.trim(), anonymous && board?.allowAnonymous == true, images.map { it.id })
+                    repo.write(boardId!!, title.trim(), content.trim(), anonymous && board?.allowAnonymous == true, images.map { it.id }, draft())
                 }
             }.onSuccess { newId ->
                 app.contentChanged()
@@ -673,6 +699,12 @@ fun CommunityWriteScreen(route: Route.CommunityWrite) {
                 icon = Icons.Filled.AddPhotoAlternate,
             )
             Text("사진에 담긴 위치 정보는 올릴 때 삭제돼요.", style = KrdsText.meta)
+            val p = poll
+            if (p == null) {
+                SecondaryButton("투표 추가", { poll = PollEditorState(); pollRemoved = false }, Modifier.fillMaxWidth(), icon = Icons.Filled.HowToVote)
+            } else {
+                PollEditor(p, onRemove = { poll = null; pollRemoved = true }, locked = pollLocked)
+            }
             if (!editing && board?.allowAnonymous == true) {
                 Row(Modifier.clickable { anonymous = !anonymous }, verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(anonymous, { anonymous = it })

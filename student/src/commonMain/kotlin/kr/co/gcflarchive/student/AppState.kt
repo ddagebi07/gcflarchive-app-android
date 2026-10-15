@@ -42,6 +42,7 @@ sealed interface Route {
         val title: String = "",
         val content: String = "",
         val images: List<kr.co.gcflarchive.core.community.CommunityImage> = emptyList(),
+        val poll: kr.co.gcflarchive.core.community.CommunityPoll? = null,
     ) : Route
     /** 통합검색 첨부파일 미리보기 (pdf / image / text). */
     data class Preview(val api: String, val kind: String, val filename: String, val downloadUrl: String) : Route

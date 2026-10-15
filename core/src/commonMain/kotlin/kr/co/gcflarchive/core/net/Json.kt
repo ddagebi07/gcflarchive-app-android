@@ -66,6 +66,8 @@ class JArray(val raw: JsonArray = JsonArray(emptyList())) {
 
     fun objects(): List<JObject> = (0 until length()).mapNotNull { optJSONObject(it) }
 
+    fun ints(): List<Int> = (0 until length()).map(::optInt)
+
     /** Non-blank string values (numbers included as text). */
     fun strings(): List<String> = raw.mapNotNull { (it as? JsonPrimitive)?.contentOrNull?.trim()?.takeIf { s -> s.isNotEmpty() && s != "null" } }
 }

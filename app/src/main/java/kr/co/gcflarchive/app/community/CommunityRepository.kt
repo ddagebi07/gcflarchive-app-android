@@ -25,17 +25,25 @@ object CommunityRepository {
         return CommunityParser.image(image)
     }
 
-    suspend fun write(boardId: String, title: String, content: String, anonymous: Boolean, imageIds: List<String> = emptyList()): Int {
+    suspend fun write(boardId: String, title: String, content: String, anonymous: Boolean, imageIds: List<String> = emptyList(), poll: PollDraft? = null): Int {
         val body = JSONObject().put("title", title).put("content", content).put("anonymous", anonymous)
             .put("images", org.json.JSONArray(imageIds))
+        if (poll != null) body.put("poll", poll.toJson())
         return JSONObject(ok(SiteApi.exchange("/api/community/boards/${enc(boardId)}/posts", "POST", body))).optInt("id")
     }
 
-    /** [imageIds] null keeps the photos as they are. */
-    suspend fun edit(id: Int, title: String, content: String, imageIds: List<String>? = null) {
+    /** [imageIds] null keeps the photos as they are; [poll] null keeps it, [removePoll] takes it off. */
+    suspend fun edit(id: Int, title: String, content: String, imageIds: List<String>? = null, poll: PollDraft? = null, removePoll: Boolean = false) {
         val body = JSONObject().put("title", title).put("content", content)
         if (imageIds != null) body.put("images", org.json.JSONArray(imageIds))
+        if (poll != null) body.put("poll", poll.toJson()) else if (removePoll) body.put("poll", JSONObject.NULL)
         ok(SiteApi.exchange("/api/community/posts/$id", "PUT", body))
+    }
+
+    /** 투표하기 (empty = 취소). Returns the poll with fresh counts. */
+    suspend fun vote(postId: Int, choices: Set<Int>): CommunityPoll? {
+        val body = JSONObject().put("choices", org.json.JSONArray(choices.sorted()))
+        return CommunityParser.poll(JSONObject(ok(SiteApi.exchange("/api/community/posts/$postId/vote", "POST", body))).optJSONObject("poll"))
     }
 
     suspend fun delete(id: Int) {

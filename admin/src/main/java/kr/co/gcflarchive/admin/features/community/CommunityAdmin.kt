@@ -55,6 +55,8 @@ object CommunityAdmin {
         "delete_comment" to "댓글 삭제",
         "like_post" to "추천",
         "unlike_post" to "추천 취소",
+        "poll_vote" to "투표",
+        "poll_unvote" to "투표 취소",
         "report" to "신고",
         "auto_blind" to "신고 누적으로 숨김",
         "filter_blocked" to "금칙어로 막힘",
@@ -81,7 +83,7 @@ object CommunityAdmin {
     val LOG_GROUPS: List<Triple<String, String, Set<String>>> = listOf(
         Triple("all", "전체", emptySet()),
         Triple("write", "글·댓글", setOf("create_post", "edit_post", "delete_post", "create_comment", "edit_comment", "delete_comment")),
-        Triple("react", "조회·추천", setOf("view_post", "like_post", "unlike_post")),
+        Triple("react", "조회·추천·투표", setOf("view_post", "like_post", "unlike_post", "poll_vote", "poll_unvote")),
         Triple("safety", "신고·금칙어", setOf("report", "auto_blind", "filter_blocked")),
         Triple("nickname", "닉네임", setOf("nickname_set", "nickname_change")),
         Triple("admin", "관리", setOf(

@@ -209,6 +209,7 @@ class CommunityActivity : AppCompatActivity() {
                 ctx.getString(R.string.community_likes, p.likeCount),
                 ctx.getString(R.string.community_comments, p.commentCount),
                 if (p.imageCount > 0) ctx.getString(R.string.community_photos_count, p.imageCount) else null,
+                if (p.hasPoll) ctx.getString(R.string.community_poll_badge) else null,
             ).joinToString(" · ")
             holder.b.root.setOnClickListener { onClick(p) }
         }

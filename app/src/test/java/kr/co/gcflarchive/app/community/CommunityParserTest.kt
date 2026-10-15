@@ -54,4 +54,29 @@ class CommunityParserTest {
         assertEquals("2025년 3월 2일", CommunityParser.displayTime("2025-03-02T01:00:00Z", now))
         assertEquals("", CommunityParser.displayTime("not a date", now))
     }
+
+    @Test
+    fun parsesPolls() {
+        val post = CommunityParser.post(
+            """{"id":5,"hasPoll":true,"poll":{"question":"종목은?","options":[{"text":"축구","votes":3},{"text":"농구","votes":1}],
+               "multiple":false,"closesAt":"","closed":false,"myChoices":[0],"voterCount":4,"showResults":true,"canVote":true}}""",
+        )
+        val poll = post.poll!!
+        assertTrue(post.summary.hasPoll)
+        assertEquals(setOf(0), poll.myChoices)
+        assertEquals(75, poll.percent(0))
+        val hidden = CommunityParser.post("""{"id":6,"poll":{"question":"q","options":[{"text":"a","votes":null},{"text":"b"}]}}""").poll!!
+        assertEquals(null, hidden.options[0].votes)
+        assertEquals(null, hidden.options[1].votes)
+        assertEquals(null, CommunityParser.post("""{"id":7}""").poll)
+    }
+
+    @Test
+    fun pollDraftRulesAndJson() {
+        assertEquals(null, PollDraft("q", listOf("a", "b", " "), false).error())
+        assertTrue(PollDraft("q", listOf("a", "a"), false).error() != null)
+        val json = PollDraft("q", listOf("a", " ", "b"), true, "2026-10-20T00:00:00Z").toJson()
+        assertEquals(2, json.getJSONArray("options").length())
+        assertTrue(json.getBoolean("multiple"))
+    }
 }

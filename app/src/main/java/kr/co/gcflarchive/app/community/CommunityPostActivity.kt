@@ -91,6 +91,7 @@ class CommunityPostActivity : AppCompatActivity() {
         binding.content.text = p.content
         binding.content.isVisible = p.content.isNotBlank()
         renderPhotos(p.images)
+        renderPoll(p)
         // Moderators still see a blinded post; tell them why others don't.
         binding.blindedNotice.isVisible = s.blinded && p.canEdit
         renderLike(p.liked, s.likeCount)
@@ -134,6 +135,32 @@ class CommunityPostActivity : AppCompatActivity() {
     }
 
     private fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
+
+    private var voting = false
+
+    private fun renderPoll(p: CommunityPost) {
+        val poll = p.poll
+        binding.pollCard.isVisible = poll != null
+        if (poll != null) PollCard.render(binding.pollCard, poll, voting) { choices -> vote(p, choices) }
+    }
+
+    private fun vote(p: CommunityPost, choices: Set<Int>) {
+        if (voting) return
+        voting = true
+        lifecycleScope.launch {
+            runCatching { CommunityRepository.vote(p.summary.id, choices) }
+                .onSuccess { fresh ->
+                    voting = false
+                    val updated = p.copy(poll = fresh ?: p.poll)
+                    post = updated
+                    renderPoll(updated)
+                }
+                .onFailure { e ->
+                    voting = false
+                    handle(e)
+                }
+        }
+    }
 
     /** 댓글 수정: the row turns into a text field with 취소/저장하기 (no popup). */
     private fun showEditor(row: ItemCommunityCommentBinding, c: CommunityComment) {

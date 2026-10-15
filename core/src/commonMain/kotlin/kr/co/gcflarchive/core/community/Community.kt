@@ -39,7 +39,46 @@ data class CommunityPostSummary(
     val imageCount: Int = 0,
     /** Only on /api/community/recent (홈 화면). */
     val boardName: String = "",
+    val hasPoll: Boolean = false,
 )
+
+/** [votes] is null while results are hidden (before you vote, until it closes). */
+data class PollOption(val text: String, val votes: Int?)
+
+/** 투표 on a post (routes/community.py _poll_dict). */
+data class CommunityPoll(
+    val question: String,
+    val options: List<PollOption>,
+    val multiple: Boolean,
+    val closesAt: String,
+    val closed: Boolean,
+    val myChoices: Set<Int>,
+    val voterCount: Int,
+    val showResults: Boolean,
+    val canVote: Boolean,
+) {
+    /** Percent of voters (a 복수 선택 voter counts once per option). */
+    fun percent(index: Int): Int {
+        val v = options.getOrNull(index)?.votes ?: return 0
+        return if (voterCount == 0) 0 else (v * 100 + voterCount / 2) / voterCount
+    }
+}
+
+/** The write form's 투표. [closesAt] is a UTC ISO time or blank for no deadline. */
+data class PollDraft(val question: String, val options: List<String>, val multiple: Boolean, val closesAt: String = "") {
+    /** Same rules as the server: a question, 2–10 distinct non-blank options. */
+    fun error(): String? {
+        val distinct = options.map { it.trim() }.filter { it.isNotEmpty() }.distinct()
+        return when {
+            question.isBlank() -> "투표 질문을 입력해주세요."
+            question.length > 200 -> "투표 질문은 200자까지 쓸 수 있어요."
+            distinct.size < 2 -> "서로 다른 선택지를 2개 이상 입력해주세요."
+            distinct.size > 10 -> "선택지는 10개까지 만들 수 있어요."
+            options.any { it.length > 80 } -> "선택지는 80자까지 쓸 수 있어요."
+            else -> null
+        }
+    }
+}
 
 /** A photo attached to a post; [url] is a site path that needs the session cookie. */
 data class CommunityImage(val id: String, val url: String, val width: Int, val height: Int)
@@ -70,6 +109,7 @@ data class CommunityPost(
     val edited: Boolean,
     val comments: List<CommunityComment>,
     val images: List<CommunityImage> = emptyList(),
+    val poll: CommunityPoll? = null,
 )
 
 enum class CommunitySort(val apiValue: String, val label: String) {
@@ -117,7 +157,27 @@ object CommunityParser {
         isMine = j.optBoolean("isMine"),
         imageCount = j.optInt("imageCount"),
         boardName = j.optString("boardName"),
+        hasPoll = j.optBoolean("hasPoll"),
     )
+
+    fun poll(j: JObject?): CommunityPoll? {
+        if (j == null) return null
+        val options = j.optJSONArray("options").objects().map {
+            PollOption(it.optString("text"), if (it.isNull("votes")) null else it.optInt("votes"))
+        }
+        if (options.isEmpty()) return null
+        return CommunityPoll(
+            question = j.optString("question"),
+            options = options,
+            multiple = j.optBoolean("multiple"),
+            closesAt = j.optString("closesAt"),
+            closed = j.optBoolean("closed"),
+            myChoices = j.optJSONArray("myChoices")?.ints()?.toSet().orEmpty(),
+            voterCount = j.optInt("voterCount"),
+            showResults = j.optBoolean("showResults"),
+            canVote = j.optBoolean("canVote"),
+        )
+    }
 
     fun image(j: JObject) = CommunityImage(j.optString("id"), j.optString("url"), j.optInt("width"), j.optInt("height"))
 
@@ -150,6 +210,7 @@ object CommunityParser {
                 )
             },
             images = j.optJSONArray("images").objects().map(::image).filter { it.id.isNotBlank() },
+            poll = poll(j.optJSONObject("poll")),
         )
     }
 
@@ -195,21 +256,39 @@ class CommunityRepository(private val site: SiteClient) {
         return CommunityParser.image(parseObject(ok(res)).optJSONObject("image") ?: throw CommunityParser.error(res.code, res.body))
     }
 
-    suspend fun write(boardId: String, title: String, content: String, anonymous: Boolean, imageIds: List<String> = emptyList()): Int {
+    suspend fun write(
+        boardId: String, title: String, content: String, anonymous: Boolean,
+        imageIds: List<String> = emptyList(), poll: PollDraft? = null,
+    ): Int {
         val body = buildJsonObject {
             put("title", title); put("content", content); put("anonymous", anonymous)
             put("images", JsonArray(imageIds.map { JsonPrimitive(it) }))
+            if (poll != null) put("poll", pollJson(poll))
         }
         return parseObject(ok(site.exchange("/api/community/boards/${encPath(boardId)}/posts", "POST", body))).optInt("id")
     }
 
-    /** [imageIds] null keeps the photos as they are. */
-    suspend fun edit(id: Int, title: String, content: String, imageIds: List<String>? = null) {
+    /** [imageIds] null keeps the photos as they are; [poll]: null keeps it, [removePoll] takes it off. */
+    suspend fun edit(id: Int, title: String, content: String, imageIds: List<String>? = null, poll: PollDraft? = null, removePoll: Boolean = false) {
         val body = buildJsonObject {
             put("title", title); put("content", content)
             if (imageIds != null) put("images", JsonArray(imageIds.map { JsonPrimitive(it) }))
+            if (poll != null) put("poll", pollJson(poll)) else if (removePoll) put("poll", kotlinx.serialization.json.JsonNull)
         }
         ok(site.exchange("/api/community/posts/$id", "PUT", body))
+    }
+
+    /** 투표하기 (empty = 취소). Returns the poll with fresh counts. */
+    suspend fun vote(postId: Int, choices: Set<Int>): CommunityPoll? {
+        val body = buildJsonObject { put("choices", JsonArray(choices.sorted().map { JsonPrimitive(it) })) }
+        return CommunityParser.poll(parseObject(ok(site.exchange("/api/community/posts/$postId/vote", "POST", body))).optJSONObject("poll"))
+    }
+
+    private fun pollJson(p: PollDraft) = buildJsonObject {
+        put("question", p.question.trim())
+        put("options", JsonArray(p.options.map { JsonPrimitive(it.trim()) }))
+        put("multiple", p.multiple)
+        put("closesAt", p.closesAt)
     }
 
     suspend fun delete(id: Int) {
