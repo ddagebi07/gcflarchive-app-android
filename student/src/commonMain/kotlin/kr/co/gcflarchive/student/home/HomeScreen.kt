@@ -54,6 +54,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import kr.co.gcflarchive.student.school.SchoolTab
+import kr.co.gcflarchive.student.school.TodayTimetableCard
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.contentDescription
@@ -137,6 +138,13 @@ fun HomeScreen() {
                     },
                     style = KrdsText.body,
                 )
+            }
+
+            // 내 시간표 (오늘). Reloads after login and whenever a pushed screen closes.
+            if (app.login is LoginState.LoggedIn) {
+                TodayTimetableCard(app.services, Triple(app.login, app.stack.isEmpty(), app.sessionVersion)) {
+                    app.push(Route.School(SchoolTab.TIMETABLE.name))
+                }
             }
 
             // 학교생활: 시간표 · 연락 · 질문

@@ -54,6 +54,9 @@ class HomeFragment : Fragment() {
         binding.uploadCard.setOnClickListener { pickFiles.launch(arrayOf("*/*")) }
         binding.driveOpen.setOnClickListener { (activity as? MainActivity)?.selectTab(MainActivity.TAB_DRIVE) }
         binding.mealCard.setOnClickListener { (activity as? MainActivity)?.selectTab(MainActivity.TAB_MEAL) }
+        binding.timetableCard.onOpen = {
+            startActivity(kr.co.gcflarchive.student.school.SchoolActivity.intent(requireContext(), tab = "TIMETABLE"))
+        }
         binding.bell.setOnClickListener {
             startActivity(kr.co.gcflarchive.student.school.SchoolActivity.intent(requireContext(), tab = "ALERTS"))
         }
@@ -125,6 +128,7 @@ class HomeFragment : Fragment() {
             b.welcomeRow.isVisible = userId != null
             if (userId != null) {
                 loadAlertCount()
+                b.timetableCard.refresh()
             } else {
                 b.bellCount.isVisible = false
             }

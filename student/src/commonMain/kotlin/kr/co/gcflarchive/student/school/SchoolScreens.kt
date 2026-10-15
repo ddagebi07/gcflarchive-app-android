@@ -239,21 +239,32 @@ fun SchoolScreen(startTab: String? = null) {
 @Composable
 private fun TimetableTab(me: SchoolMe) {
     val app = LocalApp.current
-    var cls by remember { mutableStateOf<ClassRef?>(null) }
+    // 시간표 보기: "" = 내 시간표, "c:2-3" = 반별, "t:<교사ID>" = 교사별 (학생은 공개된 선생님만).
+    var view by remember { mutableStateOf("") }
     var subPanel by remember { mutableStateOf<Pair<String, Int>?>(null) }
     val teacher = me.role == SchoolRole.TEACHER
+    var choices by remember { mutableStateOf<List<Pair<String, String>>>(emptyList()) }
+    LaunchedEffect(Unit) {
+        val classes = runCatching { app.services.school.classes() }.getOrDefault(emptyList())
+        val teachers = runCatching { app.services.school.teachers("") }.getOrDefault(emptyList()).sortedBy { it.name }
+        choices = classes.map { "c:${it.grade}-${it.klass}" to it.label } +
+            teachers.map { "t:${it.teacherId}" to "${teacherLabel(it.name)} 시간표" }
+    }
     // Always this week (on weekends the server already gives the coming week), as one 5×7 table.
-    Loaded(cls to me.role, {
-        val week = if (cls != null) app.services.school.classWeek(cls!!, null) else app.services.school.myWeek(null)
-        val classes = if (teacher) runCatching { app.services.school.classes() }.getOrDefault(emptyList()) else emptyList()
-        val subs = if (teacher && cls == null) runCatching { app.services.school.substitutes() }.getOrNull() else null
-        Triple(week, classes, subs)
-    }) { (week, classes, subs), reload ->
+    Loaded(view to me.role, {
+        val week = when {
+            view.startsWith("c:") -> view.drop(2).split("-").let { (g, k) -> app.services.school.classWeek(ClassRef(g.toInt(), k.toInt()), null) }
+            view.startsWith("t:") -> app.services.school.teacherWeek(view.drop(2), null)
+            else -> app.services.school.myWeek(null)
+        }
+        val subs = if (teacher && view.isEmpty()) runCatching { app.services.school.substitutes() }.getOrNull() else null
+        week to subs
+    }) { (week, subs), reload ->
         var picked by remember(week) { mutableStateOf<Pair<Int, Int>?>(null) }
         Scroll {
             Text(week.title, style = KrdsText.sectionTitle)
-            if (teacher && classes.isNotEmpty()) {
-                KrdsDropdown("시간표 보기", listOf<Pair<ClassRef?, String>>(null to "내 시간표") + classes.map { it to it.label }, cls, { cls = it; subPanel = null })
+            if (choices.isNotEmpty()) {
+                KrdsDropdown("시간표 보기", listOf("" to "내 시간표") + choices, view, { view = it; subPanel = null })
             }
             if (!week.hasTimetable) InfoBox("아직 시간표가 없어요. 관리자가 시간표를 올리면 여기에 보여요.")
             WeekGrid(week, picked) { picked = if (picked == it) null else it }
@@ -263,7 +274,7 @@ private fun TimetableTab(me: SchoolMe) {
                 val (d, pi) = sel
                 val p = week.classPeriods[pi]
                 val c = week.cell(d, p)
-                val mine = teacher && cls == null
+                val mine = teacher && view.isEmpty()
                 PeriodRow("${week.days[d].weekday} ${p.label}", "${p.start}~${p.end}", c,
                     onSub = if (mine && !c.empty && !c.handedOver) ({ subPanel = week.days[d].date to p.key.toInt() }) else null)
             }

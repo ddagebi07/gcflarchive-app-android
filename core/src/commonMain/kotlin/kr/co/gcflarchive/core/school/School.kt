@@ -371,6 +371,9 @@ class SchoolRepository(private val site: SiteClient) {
     suspend fun myWeek(date: String? = null): TtWeek = SchoolParse.week(site.getJson("/api/timetable/me" + (date?.let { "?date=$it" } ?: "")))
     suspend fun classWeek(c: ClassRef, date: String? = null): TtWeek =
         SchoolParse.week(site.getJson("/api/timetable/class/${c.grade}/${c.klass}" + (date?.let { "?date=$it" } ?: "")))
+    /** 교사별 시간표 (학생은 공개된 선생님만). */
+    suspend fun teacherWeek(teacherId: String, date: String? = null): TtWeek =
+        SchoolParse.week(site.getJson("/api/timetable/teacher/${enc(teacherId)}" + (date?.let { "?date=$it" } ?: "")))
     suspend fun classes(): List<ClassRef> = site.getJson("/api/timetable/classes").optJSONArray("classes").objects().map { ClassRef(it.optInt("grade"), it.optInt("klass")) }
 
     suspend fun freeTeachers(date: String, period: Int): FreeTeachers {

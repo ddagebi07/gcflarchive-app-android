@@ -183,6 +183,12 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- 내 시간표 (오늘): the shared Compose card; takes no space when there's nothing to show -->
+        <kr.co.gcflarchive.student.school.TodayTimetableView
+            android:id="@+id/timetableCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
         <!-- 학교생활: 시간표 · 연락 · 질문 (shared screens, SchoolActivity) -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/schoolCard"

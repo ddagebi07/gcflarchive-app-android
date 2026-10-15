@@ -1,0 +1,108 @@
+package kr.co.gcflarchive.student.school
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import kr.co.gcflarchive.core.Services
+import kr.co.gcflarchive.core.school.TtWeek
+import kr.co.gcflarchive.core.school.teacherLabel
+import kr.co.gcflarchive.student.ui.Krds
+import kr.co.gcflarchive.student.ui.KrdsText
+
+/**
+ * 홈의 '내 시간표' 카드: 오늘(주말이면 다음 월요일) 1~7교시를 한 줄로, 지금 교시는 강조해요.
+ * Nothing is drawn when there is no timetable for this account (not logged in, no 시간표 yet, …).
+ * [refreshKey]: change it to reload (e.g. when the home screen comes back).
+ */
+@Composable
+fun TodayTimetableCard(
+    services: Services, refreshKey: Any?, modifier: Modifier = Modifier,
+    /** Card background; the Android home passes its own card color so it matches the cards around it. */
+    containerColor: Color? = null,
+    onOpen: () -> Unit,
+) {
+    var week by remember { mutableStateOf<TtWeek?>(null) }
+    LaunchedEffect(refreshKey) {
+        runCatching { services.school.myWeek(null) }.onSuccess { week = it }.onFailure { week = null }
+    }
+    val w = week?.takeIf { it.hasTimetable && it.days.isNotEmpty() } ?: return
+    val now = Clock.System.now().toLocalDateTime(TimeZone.of("Asia/Seoul"))
+    val day = w.days.indexOfFirst { it.isToday }.takeIf { it >= 0 } ?: 0
+    val isToday = w.days[day].isToday
+    val hm = "${now.hour.toString().padStart(2, '0')}:${now.minute.toString().padStart(2, '0')}"
+    val fullNames = TimetableNames.full(services.prefs)
+    val title = if (isToday) "오늘 시간표" else "${w.days[day].weekday}요일 시간표"
+    Column(
+        modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(containerColor ?: Krds.colors.surfaceRaised)
+            .clickable(onClickLabel = "학교생활 시간표 열기", onClick = onOpen).padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Filled.CalendarMonth, null, tint = Krds.colors.primaryText, modifier = Modifier.size(20.dp))
+            Spacer(Modifier.width(8.dp))
+            Text(title, style = KrdsText.cardTitle, modifier = Modifier.weight(1f))
+            Text(w.days[day].date.takeLast(5).replace('-', '/').trimStart('0'), style = KrdsText.meta)
+            Icon(Icons.Filled.ChevronRight, null, tint = Krds.colors.textSecondary)
+        }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            w.classPeriods.forEach { p ->
+                val c = w.cell(day, p)
+                val current = isToday && p.start <= hm && hm < p.end
+                val name = if (c.empty) "" else c.shortOrFull(fullNames)
+                val small = if (c.empty) "" else c.place.ifBlank { c.teachers.firstOrNull()?.let(::teacherLabel).orEmpty() }
+                Column(
+                    Modifier.weight(1f).heightIn(min = 64.dp).clip(RoundedCornerShape(10.dp))
+                        .background(if (current) Krds.colors.primaryTint else Krds.colors.bg.copy(alpha = 0.35f))
+                        .then(if (current) Modifier.border(1.5.dp, Krds.colors.primary, RoundedCornerShape(10.dp)) else Modifier)
+                        .then(if (c.changed && !current) Modifier.border(1.dp, Krds.colors.danger, RoundedCornerShape(10.dp)) else Modifier)
+                        .semantics { contentDescription = "${p.label} " + (if (c.empty) "수업 없음" else c.title) + (if (current) ", 지금" else "") }
+                        .padding(horizontal = 2.dp, vertical = 6.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    Text(p.key, style = KrdsText.label.copy(fontSize = 11.sp, color = if (current) Krds.colors.primaryText else Krds.colors.textSecondary))
+                    Text(name.ifEmpty { "—" }, maxLines = if (name == c.subject) 1 else 2, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center,
+                        style = KrdsText.label.copy(fontSize = if (name.length <= 3) 14.sp else 11.sp, lineHeight = 13.sp,
+                            fontWeight = FontWeight.Bold, color = if (c.empty) Krds.colors.textSecondary else Krds.colors.textStrong))
+                    if (small.isNotBlank()) Text(small, maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center,
+                        style = KrdsText.label.copy(fontSize = 10.sp))
+                }
+            }
+        }
+    }
+}
