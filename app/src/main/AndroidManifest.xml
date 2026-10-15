@@ -163,5 +163,16 @@
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/ic_notice" />
+        <!-- 홈 화면 위젯: 오늘의 급식 -->
+        <receiver
+            android:name=".widget.MealWidget"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_meal_info" />
+        </receiver>
     </application>
 </manifest>

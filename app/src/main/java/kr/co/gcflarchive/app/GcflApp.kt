@@ -18,5 +18,6 @@ class GcflApp : Application() {
         SchoolNotifier.createChannels(this)
         SchoolNotifier.schedule(this)
         SchoolPushService.refreshToken(this)
+        kr.co.gcflarchive.app.widget.MealWidget.refresh(this)
     }
 }

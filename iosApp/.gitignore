@@ -2,3 +2,4 @@
 *.xcodeproj/
 xcuserdata/
 DerivedData/
+MealWidget/Info.plist

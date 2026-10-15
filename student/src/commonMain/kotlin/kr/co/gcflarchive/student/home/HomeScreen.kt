@@ -167,19 +167,19 @@ fun HomeScreen() {
 
             CommunityCard(recent, onOpen = { app.push(Route.Community) }, onPost = { app.push(Route.CommunityPost(it)) })
 
-            // 극플드라이브 업로드
-            Column(
-                Modifier.fillMaxWidth().background(Krds.colors.primary, RoundedCornerShape(12.dp)).clickable(onClick = pick).padding(18.dp),
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Filled.CloudUpload, null, tint = Krds.colors.onPrimary, modifier = Modifier.size(32.dp))
-                    Spacer(Modifier.width(14.dp))
-                    Column(Modifier.weight(1f)) {
-                        Text("극플드라이브에 파일 올리기", style = KrdsText.cardTitle.copy(color = Krds.colors.onPrimary))
-                        Text("PDF·한글·오피스 문서를 올리면 학교에서 바로 인쇄할 수 있어요.", style = KrdsText.meta.copy(color = Krds.colors.onPrimary.copy(alpha = 0.85f)))
-                    }
-                }
-            }
+            // 극플드라이브 업로드 배너: 잠시 숨김 (주석을 풀면 다시 보여요)
+            // Column(
+            //     Modifier.fillMaxWidth().background(Krds.colors.primary, RoundedCornerShape(12.dp)).clickable(onClick = pick).padding(18.dp),
+            // ) {
+            //     Row(verticalAlignment = Alignment.CenterVertically) {
+            //         Icon(Icons.Filled.CloudUpload, null, tint = Krds.colors.onPrimary, modifier = Modifier.size(32.dp))
+            //         Spacer(Modifier.width(14.dp))
+            //         Column(Modifier.weight(1f)) {
+            //             Text("극플드라이브에 파일 올리기", style = KrdsText.cardTitle.copy(color = Krds.colors.onPrimary))
+            //             Text("PDF·한글·오피스 문서를 올리면 학교에서 바로 인쇄할 수 있어요.", style = KrdsText.meta.copy(color = Krds.colors.onPrimary.copy(alpha = 0.85f)))
+            //         }
+            //     }
+            // }
 
             Text("아카이브", style = KrdsText.sectionTitle, modifier = Modifier.padding(top = 8.dp))
             val tiles = listOf(

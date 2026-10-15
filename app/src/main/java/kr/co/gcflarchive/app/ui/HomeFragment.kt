@@ -51,8 +51,9 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         buildArchiveGrid()
 
-        binding.uploadCard.setOnClickListener { pickFiles.launch(arrayOf("*/*")) }
-        binding.driveOpen.setOnClickListener { (activity as? MainActivity)?.selectTab(MainActivity.TAB_DRIVE) }
+        // 극플드라이브 배너: 잠시 숨김 (fragment_home.xml의 주석과 함께 되살려요)
+        // binding.uploadCard.setOnClickListener { pickFiles.launch(arrayOf("*/*")) }
+        // binding.driveOpen.setOnClickListener { (activity as? MainActivity)?.selectTab(MainActivity.TAB_DRIVE) }
         binding.mealCard.setOnClickListener { (activity as? MainActivity)?.selectTab(MainActivity.TAB_MEAL) }
         binding.timetableCard.onOpen = {
             startActivity(kr.co.gcflarchive.student.school.SchoolActivity.intent(requireContext(), tab = "TIMETABLE"))

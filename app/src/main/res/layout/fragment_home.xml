@@ -305,7 +305,7 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Drive upload -->
+        <!-- 극플드라이브 배너와 '내 드라이브 보기' 버튼: 잠시 숨김 (되살리려면 이 주석을 풀고 HomeFragment의 두 줄도 풀어요)
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/uploadCard"
             android:layout_width="match_parent"
@@ -362,6 +362,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="@string/home_open_drive" />
+        -->
 
         <!-- Archive shortcuts -->
         <TextView

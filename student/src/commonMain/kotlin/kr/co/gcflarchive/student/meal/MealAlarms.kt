@@ -31,18 +31,21 @@ object MealAlarms {
             .filterNot(MealRepository::isWeekend)
             // Today only if the time hasn't passed yet.
             .filter { it != today || prefs.mealNotifyMinuteOfDay > nowMinutes }
+        // One notice per meal (중식, 석식 …) so neither gets cut off.
         val notices = coroutineScope {
             days.map { d ->
                 async {
                     val meals = runCatching { MealRepository.forKinds(services.meals.fetch(d), prefs.mealNotifyKinds) }.getOrDefault(emptyList())
-                    if (meals.isEmpty()) null else ScheduledNotice(
-                        id = MealRepository.neisDate(d),
-                        at = LocalDateTime(d.year, d.monthNumber, d.dayOfMonth, hour, minute),
-                        title = "오늘의 급식",
-                        body = meals.joinToString("\n") { m -> "[${m.kind}] " + m.dishes.joinToString(", ") { it.name } },
-                    )
+                    meals.mapIndexed { i, m ->
+                        ScheduledNotice(
+                            id = "${MealRepository.neisDate(d)}-$i",
+                            at = LocalDateTime(d.year, d.monthNumber, d.dayOfMonth, hour, minute),
+                            title = "오늘의 ${m.kind}" + (m.calories?.let { " · $it" } ?: ""),
+                            body = m.dishes.joinToString("\n") { "· ${it.name}" },
+                        )
+                    }
                 }
-            }.awaitAll().filterNotNull()
+            }.awaitAll().flatten()
         }
         Notifications.replaceMealNotices(notices)
     }

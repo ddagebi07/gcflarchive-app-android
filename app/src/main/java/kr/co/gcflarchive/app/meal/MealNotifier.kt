@@ -72,24 +72,15 @@ object MealNotifier {
             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) &&
             NotificationManagerCompat.from(context).areNotificationsEnabled()
 
-    /** Returns false when there was nothing to show (no meal service that day). */
+    /**
+     * One notification per meal (중식, 석식 …), so each fits and none gets cut off.
+     * Returns false when there was nothing to show (no meal service that day).
+     */
     @SuppressLint("MissingPermission") // checked by canPost()
     fun post(context: Context, meals: List<Meal>, kinds: Set<MealKind>): Boolean {
         val selected = MealKind.filter(meals, kinds)
         if (selected.isEmpty() || !canPost(context)) return false
 
-        val title = if (selected.size == 1) {
-            context.getString(R.string.meal_notify_title_one, selected[0].kind)
-        } else {
-            context.getString(R.string.meal_notify_title_all)
-        }
-        val summary = selected.joinToString("  |  ") { meal ->
-            "${meal.kind}: " + meal.dishes.take(3).joinToString(", ") { it.name }
-        }
-        val full = selected.joinToString("\n\n") { meal ->
-            "[${meal.kind}]" + (meal.calories?.let { " $it" } ?: "") + "\n" +
-                meal.dishes.joinToString("\n") { "· ${it.name}" }
-        }
         val open = PendingIntent.getActivity(
             context,
             0,
@@ -98,21 +89,27 @@ object MealNotifier {
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_meal)
-            .setContentTitle(title)
-            .setContentText(summary)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(full))
-            .setContentIntent(open)
-            .setAutoCancel(true)
-            .setCategory(NotificationCompat.CATEGORY_REMINDER)
-            .build()
-        try {
-            NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, notification)
-        } catch (_: SecurityException) {
-            return false
+        var shown = 0
+        selected.forEachIndexed { i, meal ->
+            val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_meal)
+                .setContentTitle(context.getString(R.string.meal_notify_title_one, meal.kind))
+                .setContentText(meal.dishes.joinToString(" · ") { it.name })
+                .setSubText(meal.calories)
+                .setStyle(NotificationCompat.BigTextStyle().bigText(meal.dishes.joinToString("\n") { "· ${it.name}" }))
+                .setContentIntent(open)
+                .setAutoCancel(true)
+                .setCategory(NotificationCompat.CATEGORY_REMINDER)
+                // 중식 → 석식 순서로 보이게 (같은 시각이면 sortKey 순)
+                .setSortKey("meal-$i")
+                .build()
+            try {
+                NotificationManagerCompat.from(context).notify(NOTIFICATION_ID + i, notification)
+                shown++
+            } catch (_: SecurityException) {
+            }
         }
-        return true
+        return shown > 0
     }
 }
 
