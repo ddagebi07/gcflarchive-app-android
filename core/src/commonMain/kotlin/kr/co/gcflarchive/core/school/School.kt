@@ -29,6 +29,15 @@ data class SchoolMe(
 
 // ── 시간표 ─────────────────────────────────────────────────────────────────
 
+/** 학교생활 화면의 교사 이름 표기: "이혜경" → "이혜경T", 시간표 이름 "이외고(영)" → "이외고T(영)". */
+fun teacherLabel(name: String): String {
+    val n = name.trim()
+    val m = Regex("""^(.*?)\s*(\([^()]*\))?$""").find(n) ?: return n
+    val base = m.groupValues[1]
+    if (base.isEmpty() || base.endsWith("T")) return n
+    return base + "T" + m.groupValues[2]
+}
+
 data class TtPeriod(val key: String, val label: String, val start: String, val end: String, val isClass: Boolean)
 data class TtDay(val date: String, val weekday: String, val isToday: Boolean)
 
@@ -52,8 +61,11 @@ data class TtCell(
     val title: String get() = if (fullName.isNotBlank()) "$fullName ($subject)" else subject
     val trackLabel: String get() = track.takeIf { it.isNotBlank() && it != "전체과" }.orEmpty()
 
-    /** "2-3 · 물리실 · 최과학" */
-    val detail: String get() = listOf(place, room, teachers.joinToString(", ")).filter { it.isNotBlank() }.joinToString(" · ")
+    /** Grid cell text: 줄임말 (심F), or the full name when [full] and there is one. */
+    fun shortOrFull(full: Boolean): String = if (full && fullName.isNotBlank()) fullName else subject
+
+    /** "2-3 · 물리실 · 최과학T" */
+    val detail: String get() = listOf(place, room, teachers.joinToString(", ") { teacherLabel(it) }).filter { it.isNotBlank() }.joinToString(" · ")
 }
 
 data class TtWeek(
@@ -423,6 +435,9 @@ class SchoolRepository(private val site: SiteClient) {
     suspend fun notifications(since: String? = null): List<SchoolNotification> =
         site.getJson("/api/notifications" + (since?.let { "?since=${enc(it)}" } ?: "")).optJSONArray("notifications").objects().map(SchoolParse::notification)
     suspend fun markAllRead() { site.postJson("/api/notifications/read", jsonOf("all" to true)) }
+    /** 안 읽은 알림 개수 (홈의 종 아이콘). */
+    suspend fun unreadCount(): Int = site.getJson("/api/notifications?limit=1").optInt("unread")
+    suspend fun markRead(id: Int) { site.postJson("/api/notifications/read", jsonOf("ids" to listOf(id))) }
 
     /**
      * New alerts since the last check, for platforms without push (or as a fallback). The first

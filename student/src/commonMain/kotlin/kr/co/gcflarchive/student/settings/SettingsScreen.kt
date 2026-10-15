@@ -46,6 +46,7 @@ import kr.co.gcflarchive.core.Config
 import kr.co.gcflarchive.core.auth.LoginState
 import kr.co.gcflarchive.core.meal.MealKind
 import kr.co.gcflarchive.student.LocalApp
+import kr.co.gcflarchive.student.school.TimetableNames
 import kr.co.gcflarchive.student.meal.MealAlarms
 import kr.co.gcflarchive.student.platform.Notifications
 import kr.co.gcflarchive.student.platform.authenticateUser
@@ -154,6 +155,21 @@ fun SettingsScreen() {
             }
             if (enabled && permissionDenied) {
                 InfoBox("알림이 꺼져 있어요. 기기의 설정 앱에서 GCFL 아카이브 알림을 켜주세요.", icon = Icons.Filled.NotificationsOff)
+            }
+
+            Section("학교생활")
+            KrdsCard(padding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
+                Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text("시간표에 과목 전체 이름 보기", style = KrdsText.body)
+                        Text("끄면 줄임말(예: 심F), 켜면 전체 이름(예: 심화영어 Ⅱ)으로 보여요.", style = KrdsText.meta)
+                    }
+                    Switch(
+                        checked = TimetableNames.full(prefs),
+                        onCheckedChange = { TimetableNames.set(prefs, it) },
+                        colors = SwitchDefaults.colors(checkedTrackColor = Krds.colors.primary),
+                    )
+                }
             }
 
             Section("보안")

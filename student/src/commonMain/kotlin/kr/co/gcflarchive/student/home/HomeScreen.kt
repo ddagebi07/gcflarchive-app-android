@@ -53,6 +53,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import kr.co.gcflarchive.student.school.SchoolTab
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.widthIn
 import kr.co.gcflarchive.core.community.CommunityRecent
 import kr.co.gcflarchive.core.Config
 import kr.co.gcflarchive.core.auth.LoginState
@@ -80,6 +89,13 @@ fun HomeScreen() {
     }
     val pick = rememberFilePicker { files -> app.push(Route.Upload(files)) }
     var recent by remember { mutableStateOf<Result<CommunityRecent>?>(null) }
+    // 종 아이콘의 숫자: refreshed on login and whenever a pushed screen closes (e.g. 학교생활 알림).
+    var unreadAlerts by remember { mutableStateOf(0) }
+    LaunchedEffect(app.login, app.stack.size) {
+        if (app.login is LoginState.LoggedIn && app.stack.isEmpty()) {
+            runCatching { app.services.school.unreadCount() }.onSuccess { unreadAlerts = it }
+        }
+    }
     LaunchedEffect(app.sessionVersion, app.contentVersion) {
         recent = runCatching { app.services.community.recent(3) }
     }
@@ -87,14 +103,17 @@ fun HomeScreen() {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         Column(Modifier.contentWidth().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             when (val s = app.login) {
-                is LoginState.LoggedIn -> Text(
-                    buildAnnotatedString {
-                        withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append("${s.userId}님") }
-                        append(", 반가워요!")
-                    },
-                    style = KrdsText.sectionTitle.copy(fontWeight = FontWeight.Normal),
-                    modifier = Modifier.padding(top = 4.dp, bottom = 4.dp),
-                )
+                is LoginState.LoggedIn -> Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        buildAnnotatedString {
+                            withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append("${s.userId}님") }
+                            append(", 반가워요!")
+                        },
+                        style = KrdsText.sectionTitle.copy(fontWeight = FontWeight.Normal),
+                        modifier = Modifier.weight(1f).padding(top = 4.dp, bottom = 4.dp),
+                    )
+                    AlertBell(unreadAlerts) { app.push(Route.School(SchoolTab.ALERTS.name)) }
+                }
                 LoginState.LoggedOut -> LoginBanner { app.requireLogin() }
                 LoginState.Unknown -> Unit
             }
@@ -241,5 +260,28 @@ private fun LoginBanner(onLogin: () -> Unit) {
             shape = RoundedCornerShape(10.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Krds.colors.surface, contentColor = Krds.colors.primaryText),
         ) { Text("학번으로 로그인", fontWeight = FontWeight.Bold) }
+    }
+}
+
+/** 알림 종: a red count (99+) on its top right when there are unread 학교생활 alerts. */
+@Composable
+private fun AlertBell(count: Int, onClick: () -> Unit) {
+    val label = if (count > 0) "알림, 안 읽은 알림 ${count}개" else "알림"
+    Box(
+        Modifier.size(48.dp).clip(CircleShape).clickable(onClickLabel = "알림 보기", onClick = onClick)
+            .semantics { contentDescription = label },
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(Icons.Filled.Notifications, null, tint = Krds.colors.textStrong, modifier = Modifier.size(26.dp))
+        if (count > 0) {
+            Box(
+                Modifier.align(Alignment.TopEnd).padding(top = 6.dp, end = 4.dp)
+                    .heightIn(min = 18.dp).widthIn(min = 18.dp)
+                    .background(Krds.colors.danger, RoundedCornerShape(9.dp)).padding(horizontal = 5.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(if (count > 99) "99+" else count.toString(), color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold, lineHeight = 14.sp)
+            }
+        }
     }
 }

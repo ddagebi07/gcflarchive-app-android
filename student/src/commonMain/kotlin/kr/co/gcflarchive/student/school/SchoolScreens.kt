@@ -95,6 +95,7 @@ import kr.co.gcflarchive.core.school.TtWeek
 import kr.co.gcflarchive.core.school.Visit
 import kr.co.gcflarchive.core.school.VisitOptions
 import kr.co.gcflarchive.core.school.parseTarget
+import kr.co.gcflarchive.core.school.teacherLabel
 import kr.co.gcflarchive.student.AppState
 import kr.co.gcflarchive.student.LocalApp
 import kr.co.gcflarchive.student.Route
@@ -289,6 +290,8 @@ private fun TimetableTab(me: SchoolMe) {
 @Composable
 private fun WeekGrid(week: TtWeek, picked: Pair<Int, Int>?, onPick: (Pair<Int, Int>) -> Unit) {
     val line = Krds.colors.border
+    // 설정 > 시간표 과목 이름: 줄임말(심F) or 전체 이름(심화영어 Ⅱ).
+    val fullNames = TimetableNames.full(LocalApp.current.services.prefs)
     val periods = week.classPeriods
     Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).border(1.dp, line, RoundedCornerShape(10.dp))) {
         Row(Modifier.fillMaxWidth().background(Krds.colors.surfaceRaised)) {
@@ -330,10 +333,12 @@ private fun WeekGrid(week: TtWeek, picked: Pair<Int, Int>?, onPick: (Pair<Int, I
                     ) {
                         if (c.empty) Text("", style = KrdsText.label)
                         else {
-                            Text(c.subject, maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center,
-                                style = KrdsText.label.copy(fontSize = 14.sp, fontWeight = FontWeight.Bold, color = fg,
+                            val name = c.shortOrFull(fullNames)
+                            Text(name, maxLines = if (name == c.subject) 1 else 3, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center,
+                                style = KrdsText.label.copy(fontSize = if (name == c.subject) 14.sp else 11.sp, lineHeight = 13.sp,
+                                    fontWeight = FontWeight.Bold, color = fg,
                                     textDecoration = if (c.handedOver) TextDecoration.LineThrough else null))
-                            val small = c.place.ifBlank { c.teachers.firstOrNull().orEmpty() }
+                            val small = c.place.ifBlank { c.teachers.firstOrNull()?.let(::teacherLabel).orEmpty() }
                             if (small.isNotBlank()) Text(small, maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center,
                                 style = KrdsText.label.copy(fontSize = 11.sp, color = sub))
                         }
@@ -394,7 +399,7 @@ private fun SubstitutePanel(date: String, period: Int, onClose: () -> Unit, onSe
                 free.teachers.forEach { t ->
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
-                            Text(t.name, style = KrdsText.body.copy(fontWeight = FontWeight.Bold))
+                            Text(teacherLabel(t.name), style = KrdsText.body.copy(fontWeight = FontWeight.Bold))
                             if (t.department.isNotBlank()) Text(t.department, style = KrdsText.meta)
                         }
                         if (t.asked) Badge("답을 기다려요", BadgeTone.NEUTRAL)
@@ -461,7 +466,7 @@ private fun MessageRow(m: SchoolMessage, teacher: Boolean, onClick: () -> Unit) 
             Text(m.title, style = KrdsText.cardTitle, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
         val meta = if (teacher) "${m.audience} · 읽음 ${m.readCount}${if (m.byClass) "" else "/${m.recipientCount}"} · ${time(m.createdAt)}"
-        else "${m.senderName} 선생님 · ${time(m.createdAt)}${if (m.fileCount > 0) " · 파일 ${m.fileCount}개" else ""}"
+        else "${teacherLabel(m.senderName)} · ${time(m.createdAt)}${if (m.fileCount > 0) " · 파일 ${m.fileCount}개" else ""}"
         Text(meta, style = KrdsText.meta)
     }
 }
@@ -556,7 +561,7 @@ fun SchoolMessageScreen(id: Int) {
             var busy by remember { mutableStateOf(false) }
             Scroll {
                 Text(m.summary.title, style = KrdsText.pageTitle)
-                Text("${m.summary.senderName} 선생님 · ${time(m.summary.createdAt)}", style = KrdsText.meta)
+                Text("${teacherLabel(m.summary.senderName)} · ${time(m.summary.createdAt)}", style = KrdsText.meta)
                 Text("받는 사람: ${m.summary.audience}", style = KrdsText.meta)
                 Hairline()
                 if (m.body.isNotBlank()) Text(m.body, style = KrdsText.body)
@@ -663,7 +668,7 @@ private fun ThreadsTab(me: SchoolMe) {
                         if (t.unread) Badge("새 글", BadgeTone.DANGER)
                         Text(t.subject, style = KrdsText.cardTitle, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
-                    val who = if (me.role == SchoolRole.TEACHER) "${t.studentKey} 학생" else "${t.teacherName} 선생님"
+                    val who = if (me.role == SchoolRole.TEACHER) "${t.studentKey} 학생" else teacherLabel(t.teacherName)
                     Text("$who · ${t.lastPost}", style = KrdsText.meta, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
@@ -690,7 +695,8 @@ fun SchoolThreadScreen(id: Int) {
                                 .border(1.dp, Krds.colors.border, RoundedCornerShape(12.dp)).padding(12.dp),
                             verticalArrangement = Arrangement.spacedBy(4.dp),
                         ) {
-                            Text("${if (p.mine) "나" else p.authorName} · ${time(p.createdAt)}", style = KrdsText.label)
+                            val author = if (p.authorName == t.summary.teacherName) teacherLabel(p.authorName) else p.authorName
+                            Text("${if (p.mine) "나" else author} · ${time(p.createdAt)}", style = KrdsText.label)
                             if (p.body.isNotBlank()) Text(p.body, style = KrdsText.body)
                             FileChips(p.files)
                         }
@@ -722,7 +728,7 @@ private fun VisitRow(v: Visit, teacher: Boolean, onClick: () -> Unit) {
             Badge(v.statusLabel, when (v.status) { "pending" -> BadgeTone.INFO; "accepted" -> BadgeTone.SUCCESS; "answered" -> BadgeTone.PURPLE; else -> BadgeTone.NEUTRAL })
             Text(v.purpose, style = KrdsText.cardTitle, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
-        val who = if (teacher) "${v.studentKey}${if (v.studentName.isNotBlank()) " ${v.studentName}" else ""} 학생" else "${v.teacherName} 선생님"
+        val who = if (teacher) "${v.studentKey}${if (v.studentName.isNotBlank()) " ${v.studentName}" else ""} 학생" else teacherLabel(v.teacherName)
         Text("$who · ${time(v.createdAt)}", style = KrdsText.meta)
     }
 }
@@ -751,7 +757,7 @@ private fun TeacherSearch(placeholder: String, exclude: String = "", action: Str
             KrdsCard {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Text(t.name, style = KrdsText.cardTitle)
+                        Text(teacherLabel(t.name), style = KrdsText.cardTitle)
                         Text(listOf(t.department, t.location).filter { it.isNotBlank() }.joinToString(" · "), style = KrdsText.meta)
                         if (t.duties.isNotEmpty()) Text("담당: ${t.duties.joinToString(", ")}", style = KrdsText.meta)
                     }
@@ -790,7 +796,7 @@ fun SchoolAskScreen(teacherId: String) {
             val days = remember { schoolDays(10) }
             Scroll {
                 KrdsCard {
-                    Text("${first.teacher.name} 선생님", style = KrdsText.cardTitle)
+                    Text(teacherLabel(first.teacher.name), style = KrdsText.cardTitle)
                     Text(listOf(first.teacher.department, first.teacher.location).filter { it.isNotBlank() }.joinToString(" · "), style = KrdsText.meta)
                 }
                 Field("찾아가는 이유 (필수)", purpose, { purpose = it }, 500, lines = 3, placeholder = "예: 전학 서류를 어디서 받는지 궁금해요.")
@@ -880,7 +886,7 @@ fun SchoolVisitScreen(id: Int) {
                 KrdsCard {
                     Row2 { Badge(v.statusLabel, if (v.status == "accepted") BadgeTone.SUCCESS else BadgeTone.INFO) }
                     Text(if (teacher) "${v.studentKey}${if (v.studentName.isNotBlank()) " ${v.studentName}" else ""} 학생 · ${time(v.createdAt)}"
-                    else "${v.teacherName} 선생님${if (v.location.isNotBlank()) " · ${v.location}" else ""}", style = KrdsText.meta)
+                    else "${teacherLabel(v.teacherName)}${if (v.location.isNotBlank()) " · ${v.location}" else ""}", style = KrdsText.meta)
                     Text(v.purpose, style = KrdsText.body)
                     v.slots.forEachIndexed { i, s ->
                         Text("${i + 1}지망 · ${s.label}${if (v.acceptedIndex == i) " ✓ 수락" else ""}",
@@ -1034,7 +1040,11 @@ private fun AlertsTab(me: SchoolMe) {
             SecondaryButton("모두 읽음", { scope.launch { runCatching { app.services.school.markAllRead() }; reload() } })
             if (list.isEmpty()) Text("아직 알림이 없어요.", style = KrdsText.meta)
             list.forEach { n ->
-                KrdsCard(onClick = { app.openSchoolTarget(n.target, me.role) }, modifier = Modifier.semantics { contentDescription = "${if (n.read) "" else "새 알림, "}${n.title}, ${n.body}" }) {
+                KrdsCard(onClick = {
+                    // Opening an alert reads it (no need to press 모두 읽음).
+                    if (!n.read) scope.launch { runCatching { app.services.school.markRead(n.id) }; reload() }
+                    app.openSchoolTarget(n.target, me.role)
+                }, modifier = Modifier.semantics { contentDescription = "${if (n.read) "" else "새 알림, "}${n.title}, ${n.body}" }) {
                     Row2 {
                         if (!n.read) Badge("새 알림", BadgeTone.DANGER)
                         Text(n.title, style = KrdsText.cardTitle, maxLines = 2, overflow = TextOverflow.Ellipsis)

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Red pill behind an unread count (a circle for 1 digit, wider for more). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/krds_danger" />
+    <corners android:radius="9dp" />
+</shape>

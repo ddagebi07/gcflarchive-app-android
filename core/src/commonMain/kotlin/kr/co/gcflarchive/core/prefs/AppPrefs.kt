@@ -51,6 +51,11 @@ class AppPrefs(private val settings: Settings = Settings()) {
         get() = settings.getBoolean(KEY_SIGNED_IN, false)
         set(value) = settings.putBoolean(KEY_SIGNED_IN, value)
 
+    /** 시간표 칸에 과목 전체 이름(심화영어 Ⅱ)을 보여줘요. 기본은 줄임말(심F). */
+    var timetableFullNames: Boolean
+        get() = settings.getBoolean(KEY_TT_FULL, false)
+        set(value) = settings.putBoolean(KEY_TT_FULL, value)
+
     /** 학교생활 알림함(/api/notifications)에서 마지막으로 본 시각 (서버 UTC ISO). */
     var schoolAlertSince: String?
         get() = settings.getStringOrNull(KEY_SCHOOL_SINCE)
@@ -71,6 +76,7 @@ class AppPrefs(private val settings: Settings = Settings()) {
 
     private companion object {
         const val KEY_SIGNED_IN = "signed_in"
+        const val KEY_TT_FULL = "timetable_full_names"
         const val KEY_ENABLED = "meal_notify_enabled"
         const val KEY_TIME = "meal_notify_minute"
         const val KEY_KIND = "meal_notify_kind" // legacy single choice

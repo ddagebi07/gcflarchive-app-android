@@ -22,12 +22,14 @@ import kr.co.gcflarchive.app.community.CommunityParser
 import kr.co.gcflarchive.app.community.CommunityPostActivity
 import kr.co.gcflarchive.app.community.CommunityRepository
 import kr.co.gcflarchive.app.data.LoginState
+import kr.co.gcflarchive.app.data.SiteApi
 import kr.co.gcflarchive.app.data.SiteSession
 import kr.co.gcflarchive.app.databinding.FragmentHomeBinding
 import kr.co.gcflarchive.app.databinding.ItemArchiveTileBinding
 import kr.co.gcflarchive.app.meal.MealRepository
 import kr.co.gcflarchive.app.share.ShareReceiverActivity
 import kr.co.gcflarchive.app.util.Links
+import org.json.JSONObject
 
 class HomeFragment : Fragment() {
     private var _binding: FragmentHomeBinding? = null
@@ -52,6 +54,9 @@ class HomeFragment : Fragment() {
         binding.uploadCard.setOnClickListener { pickFiles.launch(arrayOf("*/*")) }
         binding.driveOpen.setOnClickListener { (activity as? MainActivity)?.selectTab(MainActivity.TAB_DRIVE) }
         binding.mealCard.setOnClickListener { (activity as? MainActivity)?.selectTab(MainActivity.TAB_MEAL) }
+        binding.bell.setOnClickListener {
+            startActivity(kr.co.gcflarchive.student.school.SchoolActivity.intent(requireContext(), tab = "ALERTS"))
+        }
         binding.schoolCard.setOnClickListener { startActivity(kr.co.gcflarchive.student.school.SchoolActivity.intent(requireContext())) }
         binding.communityCard.setOnClickListener { startActivity(CommunityActivity.intent(requireContext())) }
         binding.loginBanner.setOnClickListener { login.launch(LoginActivity.intent(requireContext())) }
@@ -117,7 +122,12 @@ class HomeFragment : Fragment() {
             val state = SiteSession.state()
             val b = _binding ?: return@launch
             val userId = (state as? LoginState.LoggedIn)?.userId
-            b.welcome.isVisible = userId != null
+            b.welcomeRow.isVisible = userId != null
+            if (userId != null) {
+                loadAlertCount()
+            } else {
+                b.bellCount.isVisible = false
+            }
             // Only a definite "not logged in" shows the banner; offline (Unknown) keeps it hidden.
             b.loginBanner.isVisible = state == LoginState.LoggedOut
             if (userId != null) {
@@ -126,6 +136,18 @@ class HomeFragment : Fragment() {
                     append(getString(R.string.home_welcome_suffix))
                 }
             }
+        }
+    }
+
+    /** 종 아이콘의 빨간 숫자: 학교생활 알림 중 안 읽은 것 (99개 넘으면 99+). */
+    private fun loadAlertCount() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val unread = runCatching { JSONObject(SiteApi.get("/api/notifications?limit=1")).optInt("unread") }.getOrNull()
+            val b = _binding ?: return@launch
+            if (unread == null) return@launch  // offline: keep what was shown
+            b.bellCount.isVisible = unread > 0
+            b.bellCount.text = if (unread > 99) "99+" else unread.toString()
+            b.bell.contentDescription = if (unread > 0) getString(R.string.home_alerts_count, unread) else getString(R.string.home_alerts)
         }
     }
 

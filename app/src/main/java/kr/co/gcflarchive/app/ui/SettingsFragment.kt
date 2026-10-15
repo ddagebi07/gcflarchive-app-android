@@ -81,6 +81,12 @@ class SettingsFragment : Fragment() {
             NoticeNotifier.schedule(requireContext(), replace = true)
             if (checked) ensurePermission()
         }
+        // Shared with 학교생활 (student module): same settings store as its timetable.
+        val corePrefs = kr.co.gcflarchive.core.prefs.AppPrefs()
+        binding.switchTimetableFull.isChecked = kr.co.gcflarchive.student.school.TimetableNames.full(corePrefs)
+        binding.switchTimetableFull.setOnCheckedChangeListener { _, checked ->
+            kr.co.gcflarchive.student.school.TimetableNames.set(corePrefs, checked)
+        }
         binding.rowTime.setOnClickListener { pickTime() }
         binding.rowKind.setOnClickListener { pickKind() }
         binding.rowTest.setOnClickListener { sendTest() }

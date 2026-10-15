@@ -139,6 +139,37 @@
             android:paddingHorizontal="20dp"
             android:paddingTop="8dp"
             android:paddingBottom="4dp"
+            android:text="@string/settings_school_section"
+            android:textAppearance="@style/TextAppearance.Gcfl.Section" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switchTimetableFull"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="56dp"
+            android:paddingHorizontal="20dp"
+            android:text="@string/settings_timetable_full"
+            android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="20dp"
+            android:paddingBottom="8dp"
+            android:text="@string/settings_timetable_full_desc"
+            android:textAppearance="@style/TextAppearance.Krds.Meta" />
+
+        <com.google.android.material.divider.MaterialDivider
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="20dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="4dp"
             android:text="@string/settings_security_section"
             android:textAppearance="@style/TextAppearance.Gcfl.Section" />
 

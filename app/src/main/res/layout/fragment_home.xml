@@ -10,16 +10,60 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- Logged in: "<학번>님, 환영합니다!" (no fixed logo/title header) -->
-        <TextView
-            android:id="@+id/welcome"
+        <!-- Logged in: "<학번>님, 반가워요!" and, on the right, the 알림 bell with its unread count. -->
+        <LinearLayout
+            android:id="@+id/welcomeRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="4dp"
-            android:paddingBottom="12dp"
-            android:textAppearance="?attr/textAppearanceTitleMedium"
-            android:textColor="@color/krds_text_strong"
-            android:visibility="gone" />
+            android:layout_marginBottom="4dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/welcome"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="@color/krds_text_strong" />
+
+            <FrameLayout
+                android:id="@+id/bell"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginEnd="-8dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:contentDescription="@string/home_alerts"
+                android:focusable="true">
+
+                <ImageView
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
+                    android:layout_gravity="center"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_notifications"
+                    app:tint="@color/krds_text_strong" />
+
+                <TextView
+                    android:id="@+id/bellCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="18dp"
+                    android:layout_gravity="top|end"
+                    android:layout_marginTop="6dp"
+                    android:layout_marginEnd="4dp"
+                    android:background="@drawable/bg_count_badge"
+                    android:gravity="center"
+                    android:importantForAccessibility="no"
+                    android:minWidth="18dp"
+                    android:paddingHorizontal="5dp"
+                    android:textColor="@android:color/white"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
+            </FrameLayout>
+        </LinearLayout>
 
         <!-- Logged out: large call to log in (hidden once a session exists) -->
         <com.google.android.material.card.MaterialCardView
