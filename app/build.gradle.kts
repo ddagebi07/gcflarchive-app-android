@@ -6,6 +6,10 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
+// FCM needs the Firebase config file; without it the app builds as before and checks the
+// 학교생활 inbox every 15 minutes instead (PUSH_SETUP.md on the server repo).
+if (file("google-services.json").exists()) apply(plugin = "com.google.gms.google-services")
+
 val gcflVersion = providers.gradleProperty("gcflVersion").get()
 val gcflVersionCode = gcflVersion.split(".").map(String::toInt).let { (major, minor, patch) -> major * 10000 + minor * 100 + patch }
 
@@ -66,6 +70,10 @@ android {
     // KRDS tokens, font and component styles shared with the admin app.
     sourceSets["main"].res.srcDirs("src/main/res", "../shared/res")
 
+    packaging {
+        resources.excludes += setOf("/META-INF/{AL2.0,LGPL2.1}", "/META-INF/INDEX.LIST", "/META-INF/io.netty.versions.properties")
+    }
+
     buildFeatures {
         viewBinding = true
         buildConfig = true
@@ -91,6 +99,10 @@ dependencies {
     // Map tiles for 지도 (OpenStreetMap; no API key needed).
     implementation("org.osmdroid:osmdroid-android:6.1.20")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
+    // 학교생활 (시간표·연락·질문): the shared Compose screens also used on iPhone/iPad.
+    implementation(project(":student"))
+    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
+    implementation("com.google.firebase:firebase-messaging")
 
     testImplementation("junit:junit:4.13.2")
     // android.jar's org.json is a stub in local unit tests; use the real implementation.

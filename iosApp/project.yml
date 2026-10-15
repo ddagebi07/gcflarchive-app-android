@@ -14,6 +14,11 @@ settings:
     # Your Apple ID team (Xcode ▸ Settings ▸ Accounts). A free Apple ID works for your own iPhone.
     DEVELOPMENT_TEAM: ""
     CODE_SIGN_STYLE: Automatic
+packages:
+  # 학교생활 푸시 (FCM → APNs). Firebase starts only when Student/GoogleService-Info.plist exists (PUSH_SETUP.md).
+  Firebase:
+    url: https://github.com/firebase/firebase-ios-sdk
+    from: 11.6.0
 targets:
   Student:
     type: application
@@ -21,6 +26,13 @@ targets:
     scheme: {}                                # shared scheme "Student" (needed by xcodebuild / CI)
     sources:
       - path: Student
+    dependencies:
+      - package: Firebase
+        product: FirebaseMessaging
+    entitlements:
+      path: Student/Student.entitlements
+      properties:
+        aps-environment: development
     settings:
       base:
         PRODUCT_NAME: GCFLArchive

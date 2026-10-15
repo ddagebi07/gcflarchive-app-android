@@ -45,6 +45,7 @@ class MainActivity : AppCompatActivity() {
             binding.bottomNav.selectedItemId = start
             if (supportFragmentManager.findFragmentByTag(tagFor(start)) == null) showTab(start)
             openPathFromIntent(intent)
+            openPushTarget(intent)
             AppUpdate.checkOnLaunch(this)
         }
 
@@ -57,10 +58,19 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /** A 학교생활 push tapped in the tray (app in the background) arrives here with its data as extras. */
+    private fun openPushTarget(intent: Intent?) {
+        val target = intent?.getStringExtra("target") ?: return
+        if (intent.getStringExtra("google.message_id") == null && intent.getStringExtra("kind") == null) return
+        intent.removeExtra("target")
+        startActivity(kr.co.gcflarchive.student.school.SchoolActivity.intent(this, target = target))
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         tabFromIntent(intent)?.let { binding.bottomNav.selectedItemId = it }
         openPathFromIntent(intent)
+        openPushTarget(intent)
     }
 
     /** Launcher shortcuts and shared links can deep-link to a site page (e.g. /past-exams). */

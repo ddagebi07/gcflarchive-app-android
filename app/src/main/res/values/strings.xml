@@ -129,4 +129,14 @@
     <string name="shortcut_meal">오늘 급식</string>
     <string name="shortcut_drive">극플드라이브</string>
     <string name="shortcut_exams">기출문제</string>
+    <!-- 학교생활 (시간표 · 연락 · 질문) -->
+    <string name="school_title">학교생활</string>
+    <string name="school_home_desc">내 시간표, 선생님 연락, 질문·방문 신청</string>
+    <string name="school_more_value">시간표 · 연락 · 질문</string>
+    <string name="school_channel_name">학교생활 알림</string>
+    <string name="school_channel_desc">선생님 연락, 질문 답변, 대화 알림이에요.</string>
+    <string name="substitute_channel_name">보강 부탁</string>
+    <string name="substitute_channel_desc">다른 선생님이 보강을 부탁하거나 답했을 때 알려드려요.</string>
+    <string name="next_period_channel_name">다음 교시 예고</string>
+    <string name="next_period_channel_desc">이동수업이나 바뀐 수업이 있으면 쉬는 시간에 알려드려요.</string>
 </resources>

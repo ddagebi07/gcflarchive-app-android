@@ -46,6 +46,7 @@ class MoreFragment : Fragment() {
         fun tab(name: String) = (activity as? MainActivity)?.selectTab(name)
 
         section(R.string.more_section_community, listOf(
+            Entry(R.drawable.ic_event, R.string.school_title, ctx.getString(R.string.school_more_value)) { start(kr.co.gcflarchive.student.school.SchoolActivity.intent(ctx)) },
             Entry(R.drawable.ic_forum, R.string.more_community) { start(CommunityActivity.intent(ctx)) },
             Entry(R.drawable.ic_assignment, R.string.survey_title) { start(kr.co.gcflarchive.app.survey.SurveyListActivity.intent(ctx)) },
             Entry(R.drawable.ic_notice, R.string.link_notice) { start(Intent(ctx, NoticeListActivity::class.java)) },

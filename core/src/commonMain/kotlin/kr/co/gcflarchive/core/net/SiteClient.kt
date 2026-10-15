@@ -36,7 +36,7 @@ class UploadFile(val name: String, val bytes: ByteArray, val mimeType: String?)
  * by every screen (and by every platform).
  */
 class SiteClient(
-    val cookies: PersistentCookies = PersistentCookies(Settings()),
+    val cookies: SiteCookies = PersistentCookies(Settings()),
     val http: HttpClient = defaultHttpClient(cookies),
 ) {
     /** Status + body without throwing on HTTP errors (for APIs whose error bodies carry flags). */
@@ -104,7 +104,7 @@ class SiteClient(
     }
 
     companion object {
-        fun defaultHttpClient(cookies: PersistentCookies): HttpClient = HttpClient {
+        fun defaultHttpClient(cookies: SiteCookies): HttpClient = HttpClient {
             install(HttpCookies) { storage = cookies }
             install(HttpTimeout) {
                 connectTimeoutMillis = 15_000

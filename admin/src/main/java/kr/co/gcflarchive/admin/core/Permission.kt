@@ -13,13 +13,14 @@ enum class Permission(val key: String, val label: String) {
     GRADE("grade", "등급컷 서비스"),
     REVIEWS("manage_reviews", "지도 요청·리뷰"),
     COMMUNITY("community", "커뮤니티 관리"),
+    SCHOOL("school", "시간표·연락 관리"),
     ULTIMATE("Ultimate", "최고 관리자 (모든 권한)");
 
     companion object {
         fun of(key: String): Permission? = entries.firstOrNull { it.key == key }
 
         /** Choices shown in the admin-account editor (matches the web admin page). */
-        val ASSIGNABLE = listOf(PDFS, VIDEOS, PHOTOS, POPUP, BLOCKED_HAKBUNS, BLOCKED_IPS, AUDITS, CREDENTIALS, GRADE, REVIEWS, COMMUNITY, ULTIMATE)
+        val ASSIGNABLE = listOf(PDFS, VIDEOS, PHOTOS, POPUP, BLOCKED_HAKBUNS, BLOCKED_IPS, AUDITS, CREDENTIALS, GRADE, REVIEWS, COMMUNITY, SCHOOL, ULTIMATE)
     }
 }
 

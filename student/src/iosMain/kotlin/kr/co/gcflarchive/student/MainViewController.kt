@@ -20,7 +20,18 @@ fun openIncomingLink(url: String) = IncomingLinks.open(url)
  */
 fun checkNoticePushes(completion: (Boolean) -> Unit) {
     kotlinx.coroutines.MainScope().launch {
-        val ok = runCatching { NoticeAlerts.check(sharedServices) }.isSuccess
+        val ok = runCatching {
+            NoticeAlerts.check(sharedServices)
+            kr.co.gcflarchive.student.school.SchoolAlerts.check(sharedServices)
+        }.isSuccess
         completion(ok)
     }
 }
+
+/** Called from Swift when Firebase Messaging hands over the device's FCM token (PUSH_SETUP.md). */
+fun registerPushToken(token: String) {
+    kotlinx.coroutines.MainScope().launch { kr.co.gcflarchive.student.school.SchoolAlerts.onPushToken(sharedServices, token) }
+}
+
+/** Called from Swift when the user taps a push: opens what it points at (e.g. "visit:12"). */
+fun openPushTarget(target: String) = IncomingLinks.open("/school?target=" + target)

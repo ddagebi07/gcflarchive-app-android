@@ -14,6 +14,7 @@ import kr.co.gcflarchive.core.Config
 import kr.co.gcflarchive.core.Services
 import kr.co.gcflarchive.core.auth.LoginState
 import kr.co.gcflarchive.core.net.UploadFile
+import kr.co.gcflarchive.student.school.openSchoolTarget
 
 enum class Tab(val label: String) { HOME("홈"), SEARCH("통합검색"), MEAL("급식"), DRIVE("극플드라이브"), MORE("더보기") }
 
@@ -49,6 +50,15 @@ sealed interface Route {
         val images: List<kr.co.gcflarchive.core.community.CommunityImage> = emptyList(),
         val poll: kr.co.gcflarchive.core.community.CommunityPoll? = null,
     ) : Route
+    /** 학교생활 (시간표·연락·질문). [tab] = SchoolTab name. */
+    data class School(val tab: String = "TIMETABLE") : Route
+    data class SchoolMessage(val id: Int) : Route
+    data class SchoolThread(val id: Int) : Route
+    data class SchoolVisit(val id: Int) : Route
+    data class SchoolAsk(val teacherId: String) : Route
+    data object SchoolCompose : Route
+    /** id 0 = new list. */
+    data class SchoolGroup(val id: Int) : Route
     /** 통합검색 첨부파일 미리보기 (pdf / image / text). */
     data class Preview(val api: String, val kind: String, val filename: String, val downloadUrl: String) : Route
 }
@@ -138,6 +148,8 @@ class AppState(val services: Services, private val scope: CoroutineScope) {
                 val idx = query["share_idx"] ?: shared?.substringAfter(':', "")
                 if (!board.isNullOrBlank() && !idx.isNullOrBlank()) push(Route.PostDetail(board, idx))
             }
+            "/school" -> query["target"]?.let { openSchoolTarget(decodeQuery(it), kr.co.gcflarchive.core.school.SchoolRole.OTHER) }
+                ?: push(Route.School(query["tab"]?.uppercase() ?: "TIMETABLE"))
             "/community" -> push(Route.Community)
             "/survey", "/surveys" -> query["id"]?.toIntOrNull()?.let { push(Route.Survey(it)) } ?: push(Route.Surveys)
             "/meal" -> { stack.clear(); tab = Tab.MEAL }

@@ -144,5 +144,19 @@
             </intent-filter>
         </activity>
 
+        <!-- 학교생활 푸시 (FCM). Without app/google-services.json Firebase stays off and this never runs. -->
+        <service
+            android:name=".school.SchoolPushService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="school" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_notice" />
     </application>
 </manifest>

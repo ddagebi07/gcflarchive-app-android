@@ -46,6 +46,21 @@ class AppPrefs(private val settings: Settings = Settings()) {
         get() = settings.getBoolean(KEY_APP_LOCK, false)
         set(value) = settings.putBoolean(KEY_APP_LOCK, value)
 
+    /** 학교생활 알림함(/api/notifications)에서 마지막으로 본 시각 (서버 UTC ISO). */
+    var schoolAlertSince: String?
+        get() = settings.getStringOrNull(KEY_SCHOOL_SINCE)
+        set(value) = if (value == null) settings.remove(KEY_SCHOOL_SINCE) else settings.putString(KEY_SCHOOL_SINCE, value)
+
+    /** FCM token of this device once push is set up; null = the app checks the inbox instead. */
+    var pushToken: String?
+        get() = settings.getStringOrNull(KEY_PUSH_TOKEN)
+        set(value) = if (value == null) settings.remove(KEY_PUSH_TOKEN) else settings.putString(KEY_PUSH_TOKEN, value)
+
+    /** Random id for this install ("inbox:<id>" device when there is no FCM token). */
+    val installId: String
+        get() = settings.getStringOrNull(KEY_INSTALL_ID) ?: (1..24).map { "abcdefghijklmnopqrstuvwxyz0123456789".random() }
+            .joinToString("").also { settings.putString(KEY_INSTALL_ID, it) }
+
     val mealNotifyTimeLabel: String
         get() = "${(mealNotifyMinuteOfDay / 60).toString().padStart(2, '0')}:${(mealNotifyMinuteOfDay % 60).toString().padStart(2, '0')}"
 
@@ -58,6 +73,9 @@ class AppPrefs(private val settings: Settings = Settings()) {
         const val KEY_GRADE_MODE = "grade_access_mode"
         const val KEY_APP_LOCK = "app_lock_enabled"
         const val KEY_NOTICE = "notice_notify_enabled"
+        const val KEY_SCHOOL_SINCE = "school_alert_since"
+        const val KEY_PUSH_TOKEN = "push_token"
+        const val KEY_INSTALL_ID = "install_id"
         const val KEY_NOTICE_SINCE = "notice_push_since"
     }
 }

@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
@@ -117,6 +118,18 @@ fun HomeScreen() {
                     },
                     style = KrdsText.body,
                 )
+            }
+
+            // 학교생활: 시간표 · 연락 · 질문
+            KrdsCard(onClick = { app.push(Route.School()) }) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Filled.Event, null, tint = Krds.colors.primaryText, modifier = Modifier.size(20.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text("학교생활", style = KrdsText.cardTitle)
+                        Text("내 시간표, 선생님 연락, 질문·방문 신청", style = KrdsText.meta)
+                    }
+                }
             }
 
             CommunityCard(recent, onOpen = { app.push(Route.Community) }, onPost = { app.push(Route.CommunityPost(it)) })

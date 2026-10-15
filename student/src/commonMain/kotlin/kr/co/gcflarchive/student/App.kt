@@ -95,9 +95,15 @@ fun StudentApp(services: Services = sharedServices, startLink: String? = null) {
                 app.refreshLogin()
                 MealAlarms.reschedule(services)
                 NoticeAlerts.check(services)
+                kr.co.gcflarchive.student.school.SchoolAlerts.check(services)
             }
             // 새 공지 알림: also check whenever the app comes back to the front.
-            AppForegroundEffect(onForeground = { scope.launch { NoticeAlerts.check(services) } }, onBackground = {})
+            AppForegroundEffect(onForeground = {
+                scope.launch {
+                    NoticeAlerts.check(services)
+                    kr.co.gcflarchive.student.school.SchoolAlerts.check(services)
+                }
+            }, onBackground = {})
             val uri = androidx.compose.ui.platform.LocalUriHandler.current
             LaunchedEffect(startLink) { startLink?.let { link -> app.openLink(link) { uri.openUri(it) } } }
             // Links handed over later by the platform (universal links, 공유 → 앱).
@@ -168,7 +174,7 @@ private fun MainTabs(app: AppState) {
 }
 
 @Composable
-private fun RouteScreen(route: Route) {
+internal fun RouteScreen(route: Route) {
     when (route) {
         Route.Login -> LoginScreen()
         is Route.PostDetail -> PostDetailScreen(route.board, route.idx)
@@ -192,5 +198,12 @@ private fun RouteScreen(route: Route) {
         is Route.CommunityPost -> CommunityPostScreen(route.id)
         is Route.CommunityWrite -> CommunityWriteScreen(route)
         is Route.Preview -> PreviewScreen(route.api, route.kind, route.filename, route.downloadUrl)
+        is Route.School -> kr.co.gcflarchive.student.school.SchoolScreen(route.tab)
+        is Route.SchoolMessage -> kr.co.gcflarchive.student.school.SchoolMessageScreen(route.id)
+        is Route.SchoolThread -> kr.co.gcflarchive.student.school.SchoolThreadScreen(route.id)
+        is Route.SchoolVisit -> kr.co.gcflarchive.student.school.SchoolVisitScreen(route.id)
+        is Route.SchoolAsk -> kr.co.gcflarchive.student.school.SchoolAskScreen(route.teacherId)
+        Route.SchoolCompose -> kr.co.gcflarchive.student.school.SchoolComposeScreen()
+        is Route.SchoolGroup -> kr.co.gcflarchive.student.school.SchoolGroupScreen(route.id)
     }
 }

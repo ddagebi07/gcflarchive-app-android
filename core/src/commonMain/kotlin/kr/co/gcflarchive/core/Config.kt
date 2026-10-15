@@ -8,7 +8,7 @@ object Config {
     const val HOST = "gcflarchive.co.kr"
 
     /** Appended to the user agent so the server can tell app traffic apart. */
-    const val USER_AGENT = "GCFLArchiveApp/2.0"
+    const val USER_AGENT = "GCFLArchiveApp/1.0.5"  // gradle.properties gcflVersion와 같게
 
     // Same values meal.html uses for the NEIS open API.
     const val NEIS_API_KEY = "2087d61d2897469dbd2619d96224bbd0"

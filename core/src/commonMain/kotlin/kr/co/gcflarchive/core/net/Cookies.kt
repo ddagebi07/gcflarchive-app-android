@@ -15,7 +15,13 @@ import kr.co.gcflarchive.core.Config
  * platform key-value store so "로그인 유지" survives restarts. Only cookies for our own
  * host are kept or sent; thumbnails on other hosts never see the session.
  */
-class PersistentCookies(private val settings: Settings, private val key: String = "site_cookies") : CookiesStorage {
+/** The site session's cookie store. Android's user app plugs in its WebKit cookie store so one login covers both. */
+interface SiteCookies : CookiesStorage {
+    /** 로그아웃: forget every site cookie. */
+    suspend fun clear()
+}
+
+class PersistentCookies(private val settings: Settings, private val key: String = "site_cookies") : SiteCookies {
     @Serializable
     private data class Stored(val name: String, val value: String, val expiresAt: Long?, val path: String)
 
@@ -56,7 +62,7 @@ class PersistentCookies(private val settings: Settings, private val key: String 
     }
 
     /** 로그아웃: forget every site cookie. */
-    suspend fun clear() = mutex.withLock {
+    override suspend fun clear() = mutex.withLock {
         cache = mutableListOf()
         persist(emptyList())
     }

@@ -52,6 +52,7 @@ class HomeFragment : Fragment() {
         binding.uploadCard.setOnClickListener { pickFiles.launch(arrayOf("*/*")) }
         binding.driveOpen.setOnClickListener { (activity as? MainActivity)?.selectTab(MainActivity.TAB_DRIVE) }
         binding.mealCard.setOnClickListener { (activity as? MainActivity)?.selectTab(MainActivity.TAB_MEAL) }
+        binding.schoolCard.setOnClickListener { startActivity(kr.co.gcflarchive.student.school.SchoolActivity.intent(requireContext())) }
         binding.communityCard.setOnClickListener { startActivity(CommunityActivity.intent(requireContext())) }
         binding.loginBanner.setOnClickListener { login.launch(LoginActivity.intent(requireContext())) }
         binding.btnBannerLogin.setOnClickListener { login.launch(LoginActivity.intent(requireContext())) }
