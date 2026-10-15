@@ -22,6 +22,6 @@ object SchoolAlerts {
     /** iOS: Firebase handed us a (new) FCM token. */
     suspend fun onPushToken(services: Services, token: String) {
         services.prefs.pushToken = token
-        runCatching { services.school.registerDevice(token, "ios") }
+        runCatching { services.prefs.serverPushes = services.school.registerDevice(token, "ios") }
     }
 }

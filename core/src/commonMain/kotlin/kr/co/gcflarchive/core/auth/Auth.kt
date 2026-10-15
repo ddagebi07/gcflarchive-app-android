@@ -6,7 +6,11 @@ import kr.co.gcflarchive.core.net.jsonOf
 
 /** Website login state, read from /api/verify-status with the shared session cookie. */
 sealed interface LoginState {
-    data class LoggedIn(val userId: String, val userType: String, val scoreConsent: Boolean, val hakbunConsent: Boolean, val isAdmin: Boolean) : LoginState
+    /** [displayName]: a teacher's 성명 for the home greeting (blank for students). */
+    data class LoggedIn(
+        val userId: String, val userType: String, val scoreConsent: Boolean, val hakbunConsent: Boolean, val isAdmin: Boolean,
+        val displayName: String = "",
+    ) : LoginState
     data object LoggedOut : LoginState
     /** Offline / server error: don't nag the user to log in. */
     data object Unknown : LoginState
@@ -26,7 +30,7 @@ class AuthApi(private val site: SiteClient) {
     suspend fun state(): LoginState = runCatching {
         val j = site.exchange("/api/verify-status").also { if (!it.isSuccessful) error("HTTP ${it.code}") }.json
         if (j.optBoolean("verified") && j.optString("userId").isNotBlank()) {
-            LoginState.LoggedIn(j.optString("userId"), j.optString("userType"), j.optBoolean("scoreConsentGranted"), j.optBoolean("hakbunConsentGranted"), j.optBoolean("isAdmin"))
+            LoginState.LoggedIn(j.optString("userId"), j.optString("userType"), j.optBoolean("scoreConsentGranted"), j.optBoolean("hakbunConsentGranted"), j.optBoolean("isAdmin"), j.optString("displayName"))
         } else {
             LoginState.LoggedOut
         }

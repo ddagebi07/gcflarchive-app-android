@@ -106,9 +106,15 @@ fun HomeScreen() {
             when (val s = app.login) {
                 is LoginState.LoggedIn -> Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
+                        // 학생: '30512님, 반가워요!' / 교사: '이혜경 선생님, 안녕하세요!'
                         buildAnnotatedString {
-                            withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append("${s.userId}님") }
-                            append(", 반가워요!")
+                            if (s.userType == "teacher") {
+                                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append("${s.displayName.ifBlank { s.userId }} 선생님") }
+                                append(", 안녕하세요!")
+                            } else {
+                                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append("${s.userId}님") }
+                                append(", 반가워요!")
+                            }
                         },
                         style = KrdsText.sectionTitle.copy(fontWeight = FontWeight.Normal),
                         modifier = Modifier.weight(1f).padding(top = 4.dp, bottom = 4.dp),

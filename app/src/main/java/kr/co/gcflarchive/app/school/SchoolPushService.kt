@@ -50,7 +50,7 @@ class SchoolPushService : FirebaseMessagingService() {
         private fun register(context: Context, token: String) {
             val services = SchoolActivity.services(context)
             services.prefs.pushToken = token
-            scope.launch { runCatching { services.school.registerDevice(token, "android") } }
+            scope.launch { runCatching { services.prefs.serverPushes = services.school.registerDevice(token, "android") } }
         }
     }
 }

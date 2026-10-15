@@ -4,7 +4,8 @@ import org.json.JSONObject
 
 /** Website login state, read with the shared session cookie. */
 sealed interface LoginState {
-    data class LoggedIn(val userId: String, val userType: String) : LoginState
+    /** [displayName]: a teacher's 성명 (blank for students). */
+    data class LoggedIn(val userId: String, val userType: String, val displayName: String = "") : LoginState
     data object LoggedOut : LoginState
     /** Offline or server error: don't nag the user to log in. */
     data object Unknown : LoginState
@@ -14,7 +15,7 @@ object SiteSession {
     suspend fun state(): LoginState = runCatching {
         val json = JSONObject(SiteApi.get("/api/verify-status"))
         if (json.optBoolean("verified") && json.optString("userId").isNotBlank()) {
-            LoginState.LoggedIn(json.optString("userId"), json.optString("userType"))
+            LoginState.LoggedIn(json.optString("userId"), json.optString("userType"), json.optString("displayName"))
         } else {
             LoginState.LoggedOut
         }

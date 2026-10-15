@@ -66,6 +66,14 @@ class AppPrefs(private val settings: Settings = Settings()) {
         get() = settings.getStringOrNull(KEY_PUSH_TOKEN)
         set(value) = if (value == null) settings.remove(KEY_PUSH_TOKEN) else settings.putString(KEY_PUSH_TOKEN, value)
 
+    /**
+     * The server said it can push (FCM set up there) when this device last registered. Only then does
+     * the app leave 학교생활 alerts to push; otherwise it shows them itself from the inbox.
+     */
+    var serverPushes: Boolean
+        get() = settings.getBoolean(KEY_SERVER_PUSHES, false)
+        set(value) = settings.putBoolean(KEY_SERVER_PUSHES, value)
+
     /** Random id for this install ("inbox:<id>" device when there is no FCM token). */
     val installId: String
         get() = settings.getStringOrNull(KEY_INSTALL_ID) ?: (1..24).map { "abcdefghijklmnopqrstuvwxyz0123456789".random() }
@@ -76,6 +84,7 @@ class AppPrefs(private val settings: Settings = Settings()) {
 
     private companion object {
         const val KEY_SIGNED_IN = "signed_in"
+        const val KEY_SERVER_PUSHES = "server_pushes"
         const val KEY_TT_FULL = "timetable_full_names"
         const val KEY_ENABLED = "meal_notify_enabled"
         const val KEY_TIME = "meal_notify_minute"

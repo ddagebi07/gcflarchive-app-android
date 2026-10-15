@@ -88,8 +88,15 @@ internal fun TodayTimetableContent(w: TtWeek, hm: String, fullNames: Boolean, mo
             w.classPeriods.forEach { p ->
                 val c = w.cell(day, p)
                 val current = isToday && p.start <= hm && hm < p.end
-                val name = if (c.empty) "" else c.shortOrFull(fullNames)
-                val small = if (c.empty) "" else c.place.ifBlank { c.teachers.firstOrNull()?.let(::teacherLabel).orEmpty() }
+                val subject = if (c.empty) "" else c.shortOrFull(fullNames)
+                // 교사 시간표(칸에 반이 있음): 반(2-3)을 크게, 과목은 작게. 학생: 과목을 크게, 선생님은 작게.
+                val teacherView = c.place.isNotBlank()
+                val name = if (teacherView) c.place else subject
+                val small = when {
+                    c.empty -> ""
+                    teacherView -> subject
+                    else -> c.teachers.firstOrNull()?.let(::teacherLabel).orEmpty()
+                }
                 Column(
                     Modifier.weight(1f).heightIn(min = 64.dp).clip(RoundedCornerShape(12.dp))
                         .background(if (current) Krds.colors.primaryTint else Krds.colors.surfaceRaised)
@@ -101,8 +108,8 @@ internal fun TodayTimetableContent(w: TtWeek, hm: String, fullNames: Boolean, mo
                     verticalArrangement = Arrangement.spacedBy(2.dp),
                 ) {
                     Text(p.key, style = KrdsText.label.copy(fontSize = 11.sp, color = if (current) Krds.colors.primaryText else Krds.colors.textSecondary))
-                    Text(name.ifEmpty { "—" }, maxLines = if (name == c.subject) 1 else 2, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center,
-                        style = KrdsText.label.copy(fontSize = if (name.length <= 3) 14.sp else 11.sp, lineHeight = 13.sp,
+                    Text(name.ifEmpty { "—" }, maxLines = if (teacherView || name == c.subject) 1 else 2, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center,
+                        style = KrdsText.label.copy(fontSize = if (name.length <= 4) 14.sp else 11.sp, lineHeight = 13.sp,
                             fontWeight = FontWeight.Bold, color = if (c.empty) Krds.colors.textSecondary else Krds.colors.textStrong))
                     if (small.isNotBlank()) Text(small, maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center,
                         style = KrdsText.label.copy(fontSize = 10.sp))

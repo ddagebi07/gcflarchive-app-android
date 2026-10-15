@@ -135,9 +135,17 @@ class HomeFragment : Fragment() {
             // Only a definite "not logged in" shows the banner; offline (Unknown) keeps it hidden.
             b.loginBanner.isVisible = state == LoginState.LoggedOut
             if (userId != null) {
+                // 학생: '30512님, 반가워요!' / 교사: '이혜경 선생님, 안녕하세요!'
+                val teacher = (state as LoginState.LoggedIn).userType == "teacher"
+                val name = state.displayName.ifBlank { userId }
                 b.welcome.text = buildSpannedString {
-                    bold { append(getString(R.string.home_welcome_name, userId)) }
-                    append(getString(R.string.home_welcome_suffix))
+                    if (teacher) {
+                        bold { append(getString(R.string.home_welcome_teacher_name, name)) }
+                        append(getString(R.string.home_welcome_teacher_suffix))
+                    } else {
+                        bold { append(getString(R.string.home_welcome_name, userId)) }
+                        append(getString(R.string.home_welcome_suffix))
+                    }
                 }
             }
         }

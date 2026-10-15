@@ -469,18 +469,19 @@ class SchoolRepository(private val site: SiteClient) {
             if (list.isEmpty()) prefs.schoolAlertSince = kotlinx.datetime.Clock.System.now().toString()
             return emptyList()
         }
-        return if (prefs.pushToken != null) emptyList() else list.filter { !it.read }.take(max)
+        // Leave it to push only when this device has a token AND the server can actually send (FCM set up).
+        // A token alone isn't enough: without FCM on the server nothing would ever arrive (보강 부탁 등).
+        return if (prefs.pushToken != null && prefs.serverPushes) emptyList() else list.filter { !it.read }.take(max)
     }
 
     /** Tells the server this device wants alerts: its FCM token, or "inbox:<install id>". */
     suspend fun registerThisDevice(prefs: kr.co.gcflarchive.core.prefs.AppPrefs, platform: String) {
-        registerDevice(prefs.pushToken ?: "inbox:${prefs.installId}", platform)
+        prefs.serverPushes = registerDevice(prefs.pushToken ?: "inbox:${prefs.installId}", platform)
     }
 
-    /** FCM token, or "inbox:<install id>" when the device has no push. */
-    suspend fun registerDevice(token: String, platform: String) {
-        site.postJson("/api/push/register", jsonOf("token" to token, "platform" to platform, "app" to "student"))
-    }
+    /** FCM token, or "inbox:<install id>" when the device has no push. Returns whether the server can push. */
+    suspend fun registerDevice(token: String, platform: String): Boolean =
+        site.postForJson("/api/push/register", jsonOf("token" to token, "platform" to platform, "app" to "student")).optBoolean("fcm")
 }
 
 /** Exchange that throws like get/post for PUT/DELETE. */
