@@ -26,6 +26,7 @@ class GcflApp : Application() {
         super.onCreate()
         applyThemeMode(kr.co.gcflarchive.core.prefs.AppPrefs().themeMode)
         AppLock.install(this)
+        kr.co.gcflarchive.app.util.I18nViews.install(this)  // 선생님 화면 언어 (설정 > 화면 언어)
         MealNotifier.createChannel(this)
         MealNotifier.schedule(this, replace = false)
         NoticeNotifier.createChannel(this)

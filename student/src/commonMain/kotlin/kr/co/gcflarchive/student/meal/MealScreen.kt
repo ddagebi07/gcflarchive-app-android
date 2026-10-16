@@ -1,10 +1,23 @@
 package kr.co.gcflarchive.student.meal
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChevronLeft
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.pager.HorizontalPager
@@ -30,7 +43,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -56,18 +68,19 @@ import kr.co.gcflarchive.core.Config
 import kr.co.gcflarchive.core.meal.Meal
 import kr.co.gcflarchive.core.meal.MealRepository
 import kr.co.gcflarchive.student.LocalApp
-import kr.co.gcflarchive.student.ui.Badge
-import kr.co.gcflarchive.student.ui.BadgeTone
 import kr.co.gcflarchive.student.ui.Krds
 import kr.co.gcflarchive.student.ui.KrdsCard
 import kr.co.gcflarchive.student.ui.KrdsText
 import kr.co.gcflarchive.student.ui.PageHeader
-import kr.co.gcflarchive.student.ui.StateMessage
+import kr.co.gcflarchive.student.ui.tr
 import kr.co.gcflarchive.student.ui.contentWidth
 
 /**
- * 급식 tab: a swipeable 월~금 strip (one page per week, same weekday kept when
- * swiping), 오늘로, and the selected day's meals from NEIS.
+ * 급식 tab, the same as the Android app's MealFragment:
+ * - 주 범위 (누르면 날짜 고르기) + 오늘 보기
+ * - ‹ 월~금 ›: 옆으로 밀거나 ‹ ›를 누르면 한 주씩, 같은 요일이 그대로 골라져요
+ * - 고른 날: 파란 둥근 사각형, 오늘: 같은 사각형의 테두리
+ * - 끼니 카드 (끼니 이름 · 칼로리 · 메뉴(알레르기 번호) · 학교 이름) + 알레르기 번호 안내
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,6 +94,7 @@ fun MealScreen() {
     var meals by remember { mutableStateOf<Result<List<Meal>>?>(null) }
     var refreshing by remember { mutableStateOf(false) }
     var reload by remember { mutableIntStateOf(0) }
+    var picking by remember { mutableStateOf(false) }
 
     fun pageOf(d: LocalDate) = (CENTER + MealWeek.weekIndex(baseMonday, d)).coerceIn(0, PAGES - 1)
     fun mondayOf(page: Int) = MealWeek.plusWeeks(baseMonday, page - CENTER)
@@ -104,110 +118,145 @@ fun MealScreen() {
 
     LaunchedEffect(dateDays, reload) {
         refreshing = true
+        meals = null
         meals = runCatching { app.services.meals.fetch(LocalDate.fromEpochDays(dateDays)) }
         refreshing = false
     }
 
-    PullToRefreshBox(isRefreshing = refreshing, onRefresh = { reload++ }, modifier = Modifier.fillMaxSize()) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
-            Column(Modifier.contentWidth().verticalScroll(rememberScrollState()).padding(vertical = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                PageHeader("급식", Config.SCHOOL_NAME, Modifier.padding(horizontal = 16.dp))
+    val k = Krds.colors
+    Column(Modifier.fillMaxSize()) {
+        // Android shows '급식' in its top bar; iPhone·iPad have no top bar on tabs, so the title goes here.
+        PageHeader("급식", modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp))
+        // Week header: range (tap = 날짜 고르기) + 오늘 보기 (kept in place so the row never jumps).
+        val onToday = date == MealWeek.schoolDay(today)
+        Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(start = 16.dp, end = 12.dp, top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                Modifier.weight(1f).clip(RoundedCornerShape(8.dp)).clickable(onClickLabel = tr("날짜 고르기")) { picking = true }.padding(vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(MealWeek.label(MealWeek.monday(date), today), style = KrdsText.sectionTitle.copy(fontSize = 22.sp))
+                Icon(Icons.Filled.KeyboardArrowDown, null, tint = k.textSecondary, modifier = Modifier.padding(start = 4.dp).size(20.dp))
+            }
+            OutlinedButton(onClick = { setDate(today) }, enabled = !onToday, modifier = Modifier.alpha(if (onToday) 0f else 1f)) { Text(tr("오늘 보기")) }
+        }
 
-                // Week header: range + 오늘로 (kept in place so the row never jumps).
-                val onToday = date == MealWeek.schoolDay(today)
-                Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text(MealWeek.label(MealWeek.monday(date), today), style = KrdsText.sectionTitle.copy(fontSize = 20.sp), modifier = Modifier.weight(1f))
-                    OutlinedButton(
-                        onClick = { setDate(today) },
-                        enabled = !onToday,
-                        modifier = Modifier.alpha(if (onToday) 0f else 1f),
-                    ) { Text("오늘로") }
-                }
-
-                HorizontalPager(state = pager, modifier = Modifier.fillMaxWidth().height(88.dp), beyondViewportPageCount = 1) { page ->
-                    Row(Modifier.fillMaxSize().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        MealWeek.days(mondayOf(page)).forEachIndexed { i, day ->
-                            DayCell(MealWeek.WEEKDAYS[i], day, selected = day == date, isToday = day == today, Modifier.weight(1f)) { setDate(day) }
-                        }
-                    }
-                }
-                Hairline()
-
-                Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    // The chosen day, large: the first thing people check on this tab.
-                    Text(MealWeek.dayTitle(date, today), style = KrdsText.pageTitle)
-                    when (val r = meals) {
-                        null -> Unit
-                        else -> r.fold(
-                            onSuccess = { list ->
-                                if (list.isEmpty()) StateMessage("급식이 없는 날이에요.", "공휴일·방학에는 급식이 없어요.")
-                                list.forEach { MealCard(it) }
-                            },
-                            onFailure = { StateMessage("급식 정보를 불러오지 못했어요.", "인터넷 연결을 확인하고 다시 시도해주세요.", "다시 불러오기", { reload++ }) },
-                        )
+        // ‹ 월~금 › : the arrows move a week, like swiping.
+        Row(Modifier.fillMaxWidth().height(80.dp).padding(bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = { scope.launch { pager.animateScrollToPage((pager.currentPage - 1).coerceAtLeast(0)) } }, modifier = Modifier.width(36.dp)) {
+                Icon(Icons.Filled.ChevronLeft, tr("지난주"), tint = k.textSecondary)
+            }
+            HorizontalPager(state = pager, modifier = Modifier.weight(1f).fillMaxHeight(), beyondViewportPageCount = 1) { page ->
+                Row(Modifier.fillMaxSize()) {
+                    MealWeek.days(mondayOf(page)).forEachIndexed { i, day ->
+                        DayCell(MealWeek.WEEKDAYS[i], day, selected = day == date, isToday = day == today, Modifier.weight(1f).padding(horizontal = 3.dp)) { setDate(day) }
                     }
                 }
             }
+            IconButton(onClick = { scope.launch { pager.animateScrollToPage((pager.currentPage + 1).coerceAtMost(PAGES - 1)) } }, modifier = Modifier.width(36.dp)) {
+                Icon(Icons.Filled.ChevronRight, tr("다음 주"), tint = k.textSecondary)
+            }
         }
+        Hairline()
+
+        PullToRefreshBox(isRefreshing = refreshing, onRefresh = { reload++ }, modifier = Modifier.fillMaxSize()) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+                Column(Modifier.contentWidth().verticalScroll(rememberScrollState()).padding(16.dp)) {
+                    // The chosen day, large: the first thing people check on this tab.
+                    Text(MealWeek.dayTitle(date, today), style = KrdsText.pageTitle, modifier = Modifier.padding(bottom = 12.dp))
+                    when (val r = meals) {
+                        null -> MealState("급식을 불러오고 있어요", null)
+                        else -> r.fold(
+                            onSuccess = { list ->
+                                if (list.isEmpty()) MealState("이날은 급식이 없어요.", "주말·공휴일·방학에는 급식이 없어요.")
+                                list.forEach { MealCard(it) }
+                            },
+                            onFailure = { MealState("급식을 불러오지 못했어요.", "인터넷 연결을 확인하고 화면을 아래로 당겨주세요.") },
+                        )
+                    }
+                    Text(tr(ALLERGY_GUIDE), style = KrdsText.meta.copy(lineHeight = 21.sp), modifier = Modifier.padding(top = 12.dp))
+                }
+            }
+        }
+    }
+
+    if (picking) {
+        val state = rememberDatePickerState(initialSelectedDateMillis = date.toEpochDays() * MILLIS_PER_DAY)
+        DatePickerDialog(
+            onDismissRequest = { picking = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    state.selectedDateMillis?.let { setDate(LocalDate.fromEpochDays((it / MILLIS_PER_DAY).toInt())) }
+                    picking = false
+                }) { Text(tr("확인")) }
+            },
+            dismissButton = { TextButton(onClick = { picking = false }) { Text(tr("닫기")) } },
+        ) { DatePicker(state) }
     }
 }
 
 private const val CENTER = 520
 private const val PAGES = CENTER * 2 + 1
+private const val MILLIS_PER_DAY = 86_400_000L
+private const val ALLERGY_GUIDE = "알레르기 정보: ①난류 ②우유 ③메밀 ④땅콩 ⑤대두 ⑥밀 ⑦고등어 ⑧게 ⑨새우 ⑩돼지고기 ⑪복숭아 ⑫토마토 ⑬아황산류 ⑭호두 ⑮닭고기 ⑯쇠고기 ⑰오징어 ⑱조개류 ⑲잣"
 
 @Composable
-private fun DayCell(weekday: String, day: LocalDate, selected: Boolean, isToday: Boolean, modifier: Modifier, onClick: () -> Unit) {
-    val k = Krds.colors
-    val onSel = k.onPrimary
-    Column(
-        modifier
-            .fillMaxHeight()
-            .clip(RoundedCornerShape(14.dp))
-            .background(if (selected) k.primary else Color.Transparent)
-            .clickable(onClick = onClick)
-            .semantics { this.selected = selected }
-            .padding(vertical = 6.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text(weekday, style = KrdsText.body.copy(fontSize = 14.sp, color = if (selected) onSel else k.textSecondary))
-        // Today: thin outlined circle (white on the selected fill).
-        Box(
-            Modifier
-                .padding(top = 2.dp)
-                .size(40.dp)
-                .then(if (isToday) Modifier.border(1.5.dp, if (selected) onSel else k.primaryText, CircleShape) else Modifier),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                day.dayOfMonth.toString(),
-                style = KrdsText.sectionTitle.copy(fontSize = 20.sp, color = when {
-                    selected -> onSel
-                    isToday -> k.primaryText
-                    else -> k.textStrong
-                }),
-            )
-        }
+private fun MealState(title: String, desc: String?) {
+    Column(Modifier.fillMaxWidth().padding(vertical = 48.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(tr(title), style = KrdsText.sectionTitle, textAlign = TextAlign.Center)
+        if (desc != null) Text(tr(desc), style = KrdsText.meta, textAlign = TextAlign.Center, modifier = Modifier.padding(top = 6.dp))
     }
 }
 
+/** Selected: filled rounded square. Today: the same square as an outline, so when today is selected they overlap. */
+@Composable
+private fun DayCell(weekday: String, day: LocalDate, selected: Boolean, isToday: Boolean, modifier: Modifier, onClick: () -> Unit) {
+    val k = Krds.colors
+    val shape = RoundedCornerShape(14.dp)
+    Column(
+        modifier
+            .fillMaxHeight()
+            .clip(shape)
+            .background(if (selected) k.primary else Color.Transparent)
+            .then(if (isToday && !selected) Modifier.border(2.dp, k.primary, shape) else Modifier)
+            .clickable(onClick = onClick)
+            .semantics {
+                this.selected = selected
+                contentDescription = "${day.monthNumber}월 ${day.dayOfMonth}일 ${weekday}요일" + (if (isToday) ", 오늘" else "") + (if (selected) ", 선택됨" else "")
+            },
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Text(weekday, style = KrdsText.label.copy(fontSize = 14.sp, fontWeight = FontWeight.Medium, color = if (selected) k.onPrimary else k.textSecondary))
+        Text(
+            day.dayOfMonth.toString(),
+            modifier = Modifier.padding(top = 4.dp),
+            style = KrdsText.sectionTitle.copy(color = when {
+                selected -> k.onPrimary
+                isToday -> k.primaryText
+                else -> k.textStrong
+            }),
+        )
+    }
+}
+
+/** 끼니 이름(파랑) · 칼로리 배지 / 메뉴 (알레르기 번호) / 학교 이름 — as the Android card. */
 @Composable
 private fun MealCard(meal: Meal) {
-    KrdsCard {
+    val k = Krds.colors
+    KrdsCard(Modifier.padding(bottom = 12.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Badge(meal.kind)
-            Spacer(Modifier.width(8.dp))
-            Spacer(Modifier.weight(1f))
-            meal.calories?.let { Text(it, style = KrdsText.meta) }
+            Text(meal.kind, style = KrdsText.sectionTitle.copy(color = k.primaryText), modifier = Modifier.weight(1f))
+            Text(meal.calories ?: "-", style = KrdsText.label.copy(fontSize = 14.sp, fontWeight = FontWeight.Medium, color = k.primaryText),
+                modifier = Modifier.clip(RoundedCornerShape(50)).background(k.primaryTint).padding(horizontal = 10.dp, vertical = 2.dp))
         }
-        Column(Modifier.padding(top = 10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Column(Modifier.padding(top = 12.dp)) {
             meal.dishes.forEach { d ->
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.Bottom) {
                     Text(d.name, style = KrdsText.body, modifier = Modifier.weight(1f))
-                    d.allergens?.let { Badge("알레르기 $it", BadgeTone.NEUTRAL) }
+                    d.allergens?.let { Text("($it)", style = KrdsText.meta, modifier = Modifier.padding(start = 8.dp)) }
                 }
             }
         }
-        if (meal.dishes.isNotEmpty()) Text("알레르기 번호는 교육청 표기를 따라요.", style = KrdsText.meta, modifier = Modifier.padding(top = 8.dp))
+        Text(Config.SCHOOL_NAME, style = KrdsText.meta, modifier = Modifier.padding(top = 10.dp))
     }
 }

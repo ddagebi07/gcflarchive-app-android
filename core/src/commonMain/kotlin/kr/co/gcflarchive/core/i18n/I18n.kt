@@ -1,6 +1,12 @@
 package kr.co.gcflarchive.core.i18n
 
 import com.russhwolf.settings.Settings
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
@@ -30,9 +36,13 @@ object I18n {
     private var strings: Map<String, String> = emptyMap()
     private var loaded = false
 
-    /** The language in use now. */
-    var lang: String = DEFAULT
-        private set
+    /** The language in use now (read from the device on first use). */
+    val lang: String
+        get() {
+            ensureLoaded()
+            return current
+        }
+    private var current: String = DEFAULT
 
     /** Languages to choose from (한국어 first); filled after [sync]. */
     var languages: List<Language> = emptyList()
@@ -49,21 +59,51 @@ object I18n {
         if (loaded) return
         loaded = true
         runCatching {
-            lang = settings.getString(KEY_LANG, DEFAULT)
-            strings = if (lang == DEFAULT) emptyMap() else decode(settings.getStringOrNull(KEY_STRINGS + lang))
+            current = settings.getString(KEY_LANG, DEFAULT)
+            strings = if (current == DEFAULT) emptyMap() else decode(settings.getStringOrNull(KEY_STRINGS + current))
         }
+    }
+
+    /** The translation of [text] in the current language, or null (no reporting: for texts that may be data). */
+    fun translationOf(text: String): String? {
+        ensureLoaded()
+        return if (lang == DEFAULT) null else strings[text]
     }
 
     fun tr(text: String, vararg params: Pair<String, Any?>): String {
         ensureLoaded()
-        var out = strings[text] ?: text.substringBefore('|')
+        val hit = strings[text]
+        if (hit == null && lang != DEFAULT) noteMissing(text)
+        var out = hit ?: text.substringBefore('|')
         for ((k, v) in params) out = out.replace("{$k}", v?.toString() ?: "")
         return out
+    }
+
+    // ── 번역이 없던 문구 알리기: 관리자 '번역 관리' 화면(/admin/i18n)의 '번역 필요'에 떠요 ──
+    private var site: SiteClient? = null
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val reported = mutableSetOf<String>()
+    private var pending = mutableListOf<String>()
+    private var reportJob: Job? = null
+
+    private fun noteMissing(text: String) {
+        if (text.none { it in '가'..'힣' } || !reported.add(text)) return
+        pending.add(text)
+        if (reportJob?.isActive == true) return
+        reportJob = scope.launch {
+            delay(5_000)
+            val batch = pending
+            pending = mutableListOf()  // swap, so tr() on the UI thread never touches the list being sent
+            val keys = batch.take(100)
+            val s = site ?: return@launch
+            runCatching { s.exchange("/api/i18n/missing", "POST", jsonOf("lang" to lang, "keys" to keys, "source" to "app")) }
+        }
     }
 
     /** After login / on app start: this user's language from the server, and its strings if they changed. */
     suspend fun sync(site: SiteClient) {
         ensureLoaded()
+        this.site = site
         val res = runCatching { site.exchange("/api/i18n/me") }.getOrNull() ?: return  // offline: keep the cache
         if (res.code == 401) { use(DEFAULT, emptyMap()); canChoose = false; return }
         if (!res.isSuccessful) return
@@ -75,6 +115,7 @@ object I18n {
 
     /** 설정 > 화면 언어. Throws the server's message when it refuses. */
     suspend fun choose(site: SiteClient, code: String) {
+        this.site = site
         val res = site.exchange("/api/i18n/me", "PUT", jsonOf("lang" to code))
         if (!res.isSuccessful) throw ApiException(res.code, res.error ?: "처리하지 못했어요. 잠시 후 다시 시도해주세요.")
         val o = res.json
@@ -106,8 +147,8 @@ object I18n {
     internal fun useForTest(code: String, map: Map<String, String>) = use(code, map)
 
     private fun use(code: String, map: Map<String, String>) {
-        val changed = code != lang || map != strings
-        lang = code
+        val changed = code != current || map != strings
+        current = code
         strings = map
         settings.putString(KEY_LANG, code)
         if (changed) onChange?.invoke()

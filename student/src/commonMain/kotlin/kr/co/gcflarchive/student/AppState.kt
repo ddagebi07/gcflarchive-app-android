@@ -1,6 +1,7 @@
 package kr.co.gcflarchive.student
 
 import kr.co.gcflarchive.core.i18n.I18n
+import kr.co.gcflarchive.student.ui.tr
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
@@ -157,6 +158,7 @@ class AppState(val services: Services, private val scope: CoroutineScope) {
 
     /** A short message (2s). A new one replaces the one on screen instead of queuing behind it. */
     fun toast(message: String) {
+        val message = tr(message)  // 화면 언어 (I18n)
         toastJob?.cancel()
         snackbar.currentSnackbarData?.dismiss()
         toastJob = scope.launch {

@@ -1,5 +1,6 @@
 package kr.co.gcflarchive.student.more
 
+import kr.co.gcflarchive.student.ui.tr
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -63,35 +64,35 @@ fun MoreScreen() {
     val app = LocalApp.current
     val uri = LocalUriHandler.current
     val sections = listOf(
-        "소통" to listOf(
-            Entry(Icons.Filled.Event, "학교생활", "시간표 · 연락 · 질문") { app.push(Route.School()) },
-            Entry(Icons.Filled.Forum, "커뮤니티") { app.push(Route.Community) },
-            Entry(Icons.Filled.Assignment, "설문조사") { app.push(Route.Surveys) },
-            Entry(Icons.Filled.Notifications, "공지") { app.push(Route.Notices) },
+        tr("소통") to listOf(
+            Entry(Icons.Filled.Event, tr("학교생활"), tr("시간표 · 연락 · 질문")) { app.push(Route.School()) },
+            Entry(Icons.Filled.Forum, tr("커뮤니티")) { app.push(Route.Community) },
+            Entry(Icons.Filled.Assignment, tr("설문조사")) { app.push(Route.Surveys) },
+            Entry(Icons.Filled.Notifications, tr("공지")) { app.push(Route.Notices) },
         ),
-        "공부" to listOf(
-            Entry(Icons.Filled.Assessment, "등급컷 계산기") { app.push(Route.Grade) },
-            Entry(Icons.Filled.Leaderboard, "내 점수 기록") { app.push(Route.MyScores) },
-            Entry(Icons.Filled.Quiz, "기출문제") { app.push(Route.PastExams) },
-            Entry(Icons.Filled.PictureAsPdf, "문서 자료실") { app.push(Route.Documents) },
+        tr("공부") to listOf(
+            Entry(Icons.Filled.Assessment, tr("등급컷 계산기")) { app.push(Route.Grade) },
+            Entry(Icons.Filled.Leaderboard, tr("내 점수 기록")) { app.push(Route.MyScores) },
+            Entry(Icons.Filled.Quiz, tr("기출문제")) { app.push(Route.PastExams) },
+            Entry(Icons.Filled.PictureAsPdf, tr("문서 자료실")) { app.push(Route.Documents) },
         ),
-        "학교생활" to listOf(
-            Entry(Icons.Filled.Restaurant, "급식") { app.tab = Tab.MEAL },
-            Entry(Icons.Filled.Map, "맛집 지도") { app.push(Route.Map()) },
-            Entry(Icons.Filled.PhotoLibrary, "사진") { app.push(Route.Photos) },
-            Entry(Icons.Filled.SmartDisplay, "영상") { app.push(Route.Videos) },
-            Entry(Icons.Filled.Search, "통합검색") { app.tab = Tab.SEARCH },
-            Entry(Icons.Filled.CloudUpload, "극플드라이브") { app.tab = Tab.DRIVE },
+        tr("학교생활") to listOf(
+            Entry(Icons.Filled.Restaurant, tr("급식")) { app.tab = Tab.MEAL },
+            Entry(Icons.Filled.Map, tr("맛집 지도")) { app.push(Route.Map()) },
+            Entry(Icons.Filled.PhotoLibrary, tr("사진")) { app.push(Route.Photos) },
+            Entry(Icons.Filled.SmartDisplay, tr("영상")) { app.push(Route.Videos) },
+            Entry(Icons.Filled.Search, tr("통합검색")) { app.tab = Tab.SEARCH },
+            Entry(Icons.Filled.CloudUpload, tr("극플드라이브")) { app.tab = Tab.DRIVE },
         ),
-        "앱" to listOf(
-            Entry(Icons.Filled.Settings, "설정") { app.push(Route.Settings) },
-            Entry(Icons.AutoMirrored.Filled.OpenInNew, "웹사이트에서 보기") { uri.openUri(Config.BASE_URL) },
+        tr("앱") to listOf(
+            Entry(Icons.Filled.Settings, tr("설정")) { app.push(Route.Settings) },
+            Entry(Icons.AutoMirrored.Filled.OpenInNew, tr("웹사이트에서 보기")) { uri.openUri(Config.BASE_URL) },
             Entry(Icons.Filled.Info, "앱 버전", "$APP_VERSION · $platformName", null),
         ),
     )
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         Column(Modifier.contentWidth().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            PageHeader("더보기")
+            PageHeader(tr("더보기"))
             sections.forEach { (title, entries) ->
                 Text(title, style = KrdsText.label, modifier = Modifier.padding(top = 8.dp, start = 4.dp))
                 KrdsCard(padding = PaddingValues(0.dp)) {

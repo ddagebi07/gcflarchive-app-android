@@ -64,6 +64,7 @@ import androidx.compose.ui.unit.sp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun KrdsTopBar(title: String, onBack: (() -> Unit)?, actions: @Composable RowScope.() -> Unit = {}) {
+    val title = tr(title)
     TopAppBar(
         title = { Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis, style = KrdsText.sectionTitle) },
         navigationIcon = {
@@ -77,6 +78,8 @@ fun KrdsTopBar(title: String, onBack: (() -> Unit)?, actions: @Composable RowSco
 /** Page title + description (.tit-page / .tit-page-desc). */
 @Composable
 fun PageHeader(title: String, desc: String? = null, modifier: Modifier = Modifier) {
+    val title = tr(title)
+    val desc = desc?.let { tr(it) }
     Column(modifier) {
         Text(title, style = KrdsText.pageTitle)
         if (desc != null) Text(desc, style = KrdsText.pageDesc, modifier = Modifier.padding(top = 4.dp))
@@ -89,6 +92,7 @@ enum class BadgeTone { INFO, SUCCESS, WARNING, NEUTRAL, DANGER }
 /** .tag-badge */
 @Composable
 fun Badge(text: String, tone: BadgeTone = BadgeTone.INFO, modifier: Modifier = Modifier) {
+    val text = tr(text)
     val k = Krds.colors
     val (bg, fg) = when (tone) {
         BadgeTone.INFO -> k.infoBg to k.infoFg
@@ -128,6 +132,7 @@ fun KrdsCard(modifier: Modifier = Modifier, onClick: (() -> Unit)? = null, paddi
 /** Shaded note (.info-box). */
 @Composable
 fun InfoBox(text: String, modifier: Modifier = Modifier, icon: ImageVector? = null) {
+    val text = tr(text)
     Row(
         modifier.fillMaxWidth().background(Krds.colors.primaryTint, RoundedCornerShape(14.dp)).padding(14.dp),
         verticalAlignment = Alignment.Top,
@@ -151,6 +156,7 @@ fun Hairline(modifier: Modifier = Modifier) = HorizontalDivider(modifier, thickn
 
 @Composable
 fun PrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, icon: ImageVector? = null, color: Color? = null) {
+    val text = tr(text)
     Button(
         onClick = onClick,
         enabled = enabled,
@@ -165,6 +171,7 @@ fun PrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifi
 
 @Composable
 fun SecondaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, icon: ImageVector? = null, danger: Boolean = false) {
+    val text = tr(text)
     // TDS 'weak' button: tinted fill, colored text, no outline.
     val c = if (danger) Krds.colors.danger else Krds.colors.primaryText
     val fill = if (danger) Krds.colors.dangerTint else Krds.colors.primaryTint
@@ -187,6 +194,7 @@ fun SecondaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modi
 /** Horizontally scrolling single-choice chips (.filter-opt). */
 @Composable
 fun <T> ChoiceChips(options: List<Pair<T, String>>, selected: T, onSelect: (T) -> Unit, modifier: Modifier = Modifier) {
+    val options = options.map { (k, v) -> k to tr(v) }  // 화면 언어 (I18n): 한국어 문구는 그대로 키예요
     Row(modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         options.forEach { (value, label) -> KrdsChip(label, value == selected) { onSelect(value) } }
     }
@@ -198,6 +206,8 @@ fun <T> ChoiceChips(options: List<Pair<T, String>>, selected: T, onSelect: (T) -
  */
 @Composable
 fun <T> KrdsDropdown(label: String, options: List<Pair<T, String>>, selected: T, onSelect: (T) -> Unit, modifier: Modifier = Modifier) {
+    val label = tr(label)
+    val options = options.map { (k, v) -> k to tr(v) }  // 화면 언어 (I18n): 한국어 문구는 그대로 키예요
     var open by remember { mutableStateOf(false) }
     val current = options.firstOrNull { it.first == selected }?.second ?: options.firstOrNull()?.second.orEmpty()
     Box(modifier) {
@@ -219,6 +229,8 @@ fun <T> KrdsDropdown(label: String, options: List<Pair<T, String>>, selected: T,
 /** The closed look of [KrdsDropdown]: small label, value, ▾. Also for pickers that open a dialog (날짜). */
 @Composable
 fun KrdsPickerBox(label: String, value: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    val label = tr(label)
+    val value = tr(value)
     Column(
         modifier.fillMaxWidth()
             .heightIn(min = 52.dp)
@@ -238,6 +250,7 @@ fun KrdsPickerBox(label: String, value: String, modifier: Modifier = Modifier, o
 
 @Composable
 fun KrdsChip(label: String, selected: Boolean, onClick: () -> Unit) {
+    val label = tr(label)
     FilterChip(
         selected = selected,
         onClick = onClick,
@@ -261,6 +274,9 @@ fun Loading(modifier: Modifier = Modifier) {
 /** Empty / error / login-needed state with an optional action. */
 @Composable
 fun StateMessage(title: String, desc: String? = null, action: String? = null, onAction: (() -> Unit)? = null, modifier: Modifier = Modifier, locked: Boolean = false) {
+    val title = tr(title)
+    val desc = desc?.let { tr(it) }
+    val action = action?.let { tr(it) }
     Column(modifier.fillMaxWidth().padding(horizontal = 32.dp, vertical = 48.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         if (locked) Icon(Icons.Filled.Lock, null, tint = Krds.colors.primaryText, modifier = Modifier.size(40.dp).padding(bottom = 8.dp))
         Text(title, style = KrdsText.cardTitle, textAlign = TextAlign.Center)
@@ -275,6 +291,7 @@ fun FullScreen(content: @Composable () -> Unit) = Box(Modifier.fillMaxSize().bac
 /** Meta tile (.meta-tile): small label/value box. */
 @Composable
 fun MetaTile(label: String, value: String, modifier: Modifier = Modifier) {
+    val label = tr(label)
     Column(modifier.background(Krds.colors.surfaceRaised, RoundedCornerShape(8.dp)).padding(horizontal = 10.dp, vertical = 8.dp)) {
         Text(label, style = KrdsText.meta)
         Text(value, style = MaterialTheme.typography.labelLarge.copy(color = Krds.colors.textStrong), maxLines = 1)

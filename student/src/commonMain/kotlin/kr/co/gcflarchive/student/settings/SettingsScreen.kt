@@ -106,35 +106,35 @@ fun SettingsScreen() {
     @Suppress("UNUSED_VARIABLE") val v = version
     val enabled = prefs.mealNotifyEnabled
 
-    ScreenScaffold("설정") {
+    ScreenScaffold(tr("설정")) {
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
 
-            Section("계정")
+            Section(tr("계정"))
             KrdsCard(padding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
                 when (val s = app.login) {
                     is LoginState.LoggedIn -> {
-                        SettingRow("로그인됨", s.userId)
+                        SettingRow(tr("로그인됨"), s.userId)
                         Hairline()
                         // 지도 후기와 커뮤니티가 함께 쓰는 닉네임.
-                        SettingRow("닉네임", nickname?.nickname?.ifBlank { null } ?: "정하지 않음", onClick = { editNickname = true })
+                        SettingRow(tr("닉네임"), nickname?.nickname?.ifBlank { null } ?: tr("정하지 않음"), onClick = { editNickname = true })
                         Hairline()
-                        SettingRow("로그아웃하기", danger = true, onClick = { app.logout() })
+                        SettingRow(tr("로그아웃하기"), danger = true, onClick = { app.logout() })
                     }
-                    else -> SettingRow("학번으로 로그인하기", "기출 정답지·드라이브·사진", onClick = { app.requireLogin() })
+                    else -> SettingRow(tr("학번으로 로그인하기"), tr("기출 정답지·드라이브·사진"), onClick = { app.requireLogin() })
                 }
             }
 
-            Section("화면")
+            Section(tr("화면"))
             KrdsCard(padding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
-                SettingRow("화면 모드", AppPrefs.themeLabel(ThemeMode.mode), onClick = { pickTheme = true })
+                SettingRow(tr("화면 모드"), AppPrefs.themeLabel(ThemeMode.mode), onClick = { pickTheme = true })
             }
 
-            Section("공지 알림")
+            Section(tr("공지 알림"))
             KrdsCard(padding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
-                        Text("새 공지 알림 받기", style = KrdsText.body)
-                        Text("관리자가 알림을 보낸 공지가 올라오면 알려 드려요. 조금 늦게 올 수 있어요.", style = KrdsText.meta)
+                        Text(tr("새 공지 알림 받기"), style = KrdsText.body)
+                        Text(tr("관리자가 알림을 보낸 공지가 올라오면 알려 드려요. 조금 늦게 올 수 있어요."), style = KrdsText.meta)
                     }
                     Switch(
                         checked = prefs.noticeNotifyEnabled,
@@ -147,12 +147,12 @@ fun SettingsScreen() {
                 }
             }
 
-            Section("급식 알림")
+            Section(tr("급식 알림"))
             KrdsCard(padding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
-                        Text("매일 급식 알림 받기", style = KrdsText.body)
-                        Text("학교 가는 날 정한 시간에 메뉴를 알려드려요.", style = KrdsText.meta)
+                        Text(tr("매일 급식 알림 받기"), style = KrdsText.body)
+                        Text(tr("학교 가는 날 정한 시간에 메뉴를 알려드려요."), style = KrdsText.meta)
                     }
                     Switch(
                         checked = enabled,
@@ -170,12 +170,12 @@ fun SettingsScreen() {
                     )
                 }
                 Hairline()
-                SettingRow("알림 시간", prefs.mealNotifyTimeLabel, enabled = enabled, onClick = { pickTime = true })
+                SettingRow(tr("알림 시간"), prefs.mealNotifyTimeLabel, enabled = enabled, onClick = { pickTime = true })
                 Hairline()
-                SettingRow("알림 받을 식사", MealKind.label(prefs.mealNotifyKinds), enabled = enabled, onClick = { pickKind = true })
+                SettingRow(tr("알림 받을 식사"), MealKind.label(prefs.mealNotifyKinds), enabled = enabled, onClick = { pickKind = true })
             }
             if (enabled && permissionDenied) {
-                InfoBox("알림이 꺼져 있어요. 기기의 설정 앱에서 GCFL 아카이브 알림을 켜주세요.", icon = Icons.Filled.NotificationsOff)
+                InfoBox(tr("알림이 꺼져 있어요. 기기의 설정 앱에서 GCFL 아카이브 알림을 켜주세요."), icon = Icons.Filled.NotificationsOff)
             }
 
             Section(tr("학교생활"))
@@ -197,28 +197,28 @@ fun SettingsScreen() {
                 }
             }
 
-            Section("보안")
+            Section(tr("보안"))
             KrdsCard(padding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
-                        Text("앱을 열 때 생체 인증", style = KrdsText.body)
-                        Text("앱을 열거나 1분 넘게 다른 앱을 쓰다 돌아오면 Face ID·Touch ID나 기기 암호로 확인해요.", style = KrdsText.meta)
+                        Text(tr("앱을 열 때 생체 인증"), style = KrdsText.body)
+                        Text(tr("앱을 열거나 1분 넘게 다른 앱을 쓰다 돌아오면 Face ID·Touch ID나 기기 암호로 확인해요."), style = KrdsText.meta)
                     }
                     Switch(
                         checked = prefs.appLockEnabled,
                         onCheckedChange = { on ->
                             // Turning it on or off both need the device owner, so nobody else can switch it off.
                             if (!canAuthenticateUser()) {
-                                lockMessage = "기기에 Face ID·Touch ID나 암호를 먼저 설정해주세요."
+                                lockMessage = tr("기기에 Face ID·Touch ID나 암호를 먼저 설정해주세요.")
                                 return@Switch
                             }
                             scope.launch {
-                                if (authenticateUser(if (on) "앱 잠금을 켜요" else "앱 잠금을 꺼요")) {
+                                if (authenticateUser(if (on) tr("앱 잠금을 켜요") else tr("앱 잠금을 꺼요"))) {
                                     prefs.appLockEnabled = on
                                     AppLock.markUnlocked()
                                     lockMessage = null
                                     version++
-                                    app.toast(if (on) "앱 잠금을 켰어요." else "앱 잠금을 껐어요.")
+                                    app.toast(if (on) tr("앱 잠금을 켰어요.") else tr("앱 잠금을 껐어요."))
                                 }
                             }
                         },
@@ -228,9 +228,9 @@ fun SettingsScreen() {
             }
             lockMessage?.let { InfoBox(it) }
 
-            Section("정보")
+            Section(tr("정보"))
             KrdsCard(padding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
-                SettingRow("웹사이트에서 보기", Config.HOST, onClick = { uri.openUri(Config.BASE_URL) })
+                SettingRow(tr("웹사이트에서 보기"), Config.HOST, onClick = { uri.openUri(Config.BASE_URL) })
                 Hairline()
                 SettingRow("버전", "$APP_VERSION · $platformName")
             }
@@ -248,7 +248,7 @@ fun SettingsScreen() {
     if (pickTheme) {
         AlertDialog(
             onDismissRequest = { pickTheme = false },
-            title = { Text("화면 모드") },
+            title = { Text(tr("화면 모드")) },
             text = {
                 Column {
                     AppPrefs.THEME_MODES.forEach { m ->
@@ -265,7 +265,7 @@ fun SettingsScreen() {
                     }
                 }
             },
-            confirmButton = { TextButton(onClick = { pickTheme = false }) { Text("닫기") } },
+            confirmButton = { TextButton(onClick = { pickTheme = false }) { Text(tr("닫기")) } },
         )
     }
     if (pickLanguage) {
@@ -302,23 +302,23 @@ fun SettingsScreen() {
         val state = rememberTimePickerState(prefs.mealNotifyMinuteOfDay / 60, prefs.mealNotifyMinuteOfDay % 60, is24Hour = true)
         AlertDialog(
             onDismissRequest = { pickTime = false },
-            title = { Text("알림 시간") },
+            title = { Text(tr("알림 시간")) },
             text = { TimePicker(state) },
             confirmButton = {
                 TextButton(onClick = {
                     prefs.mealNotifyMinuteOfDay = state.hour * 60 + state.minute
                     pickTime = false
                     changed()
-                }) { Text("저장하기") }
+                }) { Text(tr("저장하기")) }
             },
-            dismissButton = { TextButton(onClick = { pickTime = false }) { Text("닫기") } },
+            dismissButton = { TextButton(onClick = { pickTime = false }) { Text(tr("닫기")) } },
         )
     }
     if (pickKind) {
         var kinds by remember { mutableStateOf(prefs.mealNotifyKinds) }
         AlertDialog(
             onDismissRequest = { pickKind = false },
-            title = { Text("알림 받을 식사") },
+            title = { Text(tr("알림 받을 식사")) },
             text = {
                 // 중복 선택: none, either or both.
                 Column {
@@ -337,11 +337,11 @@ fun SettingsScreen() {
                         }
                     }
                     if (kinds.isEmpty()) {
-                        Text("고른 식사가 없으면 급식 알림이 오지 않아요.", style = KrdsText.meta, modifier = Modifier.padding(top = 4.dp))
+                        Text(tr("고른 식사가 없으면 급식 알림이 오지 않아요."), style = KrdsText.meta, modifier = Modifier.padding(top = 4.dp))
                     }
                 }
             },
-            confirmButton = { TextButton(onClick = { pickKind = false }) { Text("닫기") } },
+            confirmButton = { TextButton(onClick = { pickKind = false }) { Text(tr("닫기")) } },
         )
     }
 }
@@ -385,7 +385,7 @@ private fun NicknameEditor(status: NicknameStatus?, onDismiss: () -> Unit, onSav
     val locked = status != null && status.nickname.isNotBlank() && !status.canChange
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (status?.nickname.isNullOrBlank()) "닉네임을 정해주세요" else "닉네임 바꾸기") },
+        title = { Text(if (status?.nickname.isNullOrBlank()) tr("닉네임을 정해주세요") else tr("닉네임 바꾸기")) },
         text = {
             Column {
                 Text(
@@ -399,13 +399,13 @@ private fun NicknameEditor(status: NicknameStatus?, onDismiss: () -> Unit, onSav
                     enabled = !locked,
                     singleLine = true,
                     isError = error != null,
-                    label = { Text("닉네임") },
+                    label = { Text(tr("닉네임")) },
                     modifier = Modifier.padding(top = 12.dp),
                 )
                 error?.let { Text(it, style = KrdsText.meta.copy(color = Krds.colors.danger), modifier = Modifier.padding(top = 4.dp)) }
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("닫기") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("닫기")) } },
         confirmButton = {
             if (!locked) TextButton(enabled = !saving, onClick = {
                 val n = name.trim()
@@ -415,10 +415,10 @@ private fun NicknameEditor(status: NicknameStatus?, onDismiss: () -> Unit, onSav
                 scope.launch {
                     runCatching { app.services.map.setNickname(n) }
                         .onSuccess { onSaved(n) }
-                        .onFailure { error = it.message ?: "닉네임을 저장하지 못했어요. 잠시 후 다시 시도해주세요." }
+                        .onFailure { error = it.message ?: tr("닉네임을 저장하지 못했어요. 잠시 후 다시 시도해주세요.") }
                     saving = false
                 }
-            }) { Text("저장하기") }
+            }) { Text(tr("저장하기")) }
         },
     )
 }

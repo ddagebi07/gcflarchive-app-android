@@ -119,10 +119,10 @@ fun HomeScreen() {
                                 append(greeting.substring(at + name.length))
                             } else if (s.userType == "teacher") {
                                 withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append("$name 선생님") }
-                                append(", 안녕하세요!")
+                                append(tr(", 안녕하세요!"))
                             } else {
                                 withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append("${s.userId}님") }
-                                append(", 반가워요!")
+                                append(tr(", 반가워요!"))
                             }
                         },
                         style = KrdsText.sectionTitle.copy(fontWeight = FontWeight.Normal),
@@ -139,16 +139,16 @@ fun HomeScreen() {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Filled.Restaurant, null, tint = Krds.colors.primaryText, modifier = Modifier.size(20.dp))
                     Spacer(Modifier.width(8.dp))
-                    Text("오늘의 급식", style = KrdsText.cardTitle, modifier = Modifier.weight(1f))
+                    Text(tr("오늘의 급식"), style = KrdsText.cardTitle, modifier = Modifier.weight(1f))
                     meal?.getOrNull()?.let { Badge(it.kind) }
                 }
                 Spacer(Modifier.height(10.dp))
                 Text(
                     when (val r = meal) {
-                        null -> "불러오는 중…"
+                        null -> tr("불러오는 중…")
                         else -> r.fold(
-                            onSuccess = { m -> m?.dishes?.joinToString(" · ") { it.name } ?: "오늘은 급식이 없어요." },
-                            onFailure = { "급식 정보를 불러오지 못했어요." },
+                            onSuccess = { m -> m?.dishes?.joinToString(" · ") { it.name } ?: tr("오늘은 급식이 없어요.") },
+                            onFailure = { tr("급식 정보를 불러오지 못했어요.") },
                         )
                     },
                     style = KrdsText.body,
@@ -168,8 +168,8 @@ fun HomeScreen() {
                     Icon(Icons.Filled.Event, null, tint = Krds.colors.primaryText, modifier = Modifier.size(20.dp))
                     Spacer(Modifier.width(8.dp))
                     Column(Modifier.weight(1f)) {
-                        Text("학교생활", style = KrdsText.cardTitle)
-                        Text("내 시간표, 선생님 연락, 질문·방문 신청", style = KrdsText.meta)
+                        Text(tr("학교생활"), style = KrdsText.cardTitle)
+                        Text(tr("내 시간표, 선생님 연락, 질문·방문 신청"), style = KrdsText.meta)
                     }
                 }
             }
@@ -190,16 +190,16 @@ fun HomeScreen() {
             //     }
             // }
 
-            Text("아카이브", style = KrdsText.sectionTitle, modifier = Modifier.padding(top = 8.dp))
+            Text(tr("아카이브"), style = KrdsText.sectionTitle, modifier = Modifier.padding(top = 8.dp))
             val tiles = listOf(
-                Tile("기출", Icons.Filled.Description) { app.push(Route.PastExams) },
+                Tile(tr("기출"), Icons.Filled.Description) { app.push(Route.PastExams) },
                 Tile("PDF", Icons.Filled.PictureAsPdf) { app.push(Route.Documents) },
-                Tile("사진", Icons.Filled.Photo) { app.push(Route.Photos) },
-                Tile("영상", Icons.Filled.PlayCircle) { app.push(Route.Videos) },
-                Tile("통합 검색", Icons.Filled.Search) { app.tab = Tab.SEARCH },
-                Tile("등급컷", Icons.Filled.BarChart) { app.push(Route.Grade) },
-                Tile("맛집 지도", Icons.Filled.Place) { app.push(Route.Map()) },
-                Tile("공지", Icons.Filled.Campaign) { app.push(Route.Notices) },
+                Tile(tr("사진"), Icons.Filled.Photo) { app.push(Route.Photos) },
+                Tile(tr("영상"), Icons.Filled.PlayCircle) { app.push(Route.Videos) },
+                Tile(tr("통합 검색"), Icons.Filled.Search) { app.tab = Tab.SEARCH },
+                Tile(tr("등급컷"), Icons.Filled.BarChart) { app.push(Route.Grade) },
+                Tile(tr("맛집 지도"), Icons.Filled.Place) { app.push(Route.Map()) },
+                Tile(tr("공지"), Icons.Filled.Campaign) { app.push(Route.Notices) },
             )
             // Rows of four equal tiles with fixed gaps.
             tiles.chunked(4).forEach { row ->
@@ -210,7 +210,7 @@ fun HomeScreen() {
             }
 
             TextButton(onClick = { uri.openUri(Config.BASE_URL) }, modifier = Modifier.fillMaxWidth()) {
-                Text("브라우저에서 웹사이트 열기", color = Krds.colors.primaryText)
+                Text(tr("브라우저에서 웹사이트 열기"), color = Krds.colors.primaryText)
             }
         }
     }
@@ -223,16 +223,16 @@ private fun CommunityCard(recent: Result<CommunityRecent>?, onOpen: () -> Unit, 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Filled.Forum, null, tint = Krds.colors.primaryText, modifier = Modifier.size(20.dp))
             Spacer(Modifier.width(8.dp))
-            Text("커뮤니티", style = KrdsText.cardTitle, modifier = Modifier.weight(1f))
-            Text("전체 보기 ›", style = KrdsText.label.copy(color = Krds.colors.primaryText))
+            Text(tr("커뮤니티"), style = KrdsText.cardTitle, modifier = Modifier.weight(1f))
+            Text(tr("전체 보기 ›"), style = KrdsText.label.copy(color = Krds.colors.primaryText))
         }
         Spacer(Modifier.height(6.dp))
         val posts = recent?.getOrNull()?.posts.orEmpty()
         when {
-            recent == null -> Text("불러오는 중…", style = KrdsText.meta)
-            recent.isFailure -> Text("최근 글을 불러오지 못했어요. 눌러서 커뮤니티로 가요.", style = KrdsText.meta)
-            recent.getOrNull()?.loggedIn == false -> Text("로그인하면 친구들이 올린 글을 볼 수 있어요.", style = KrdsText.meta)
-            posts.isEmpty() -> Text("아직 글이 없어요. 첫 글을 올려보세요.", style = KrdsText.meta)
+            recent == null -> Text(tr("불러오는 중…"), style = KrdsText.meta)
+            recent.isFailure -> Text(tr("최근 글을 불러오지 못했어요. 눌러서 커뮤니티로 가요."), style = KrdsText.meta)
+            recent.getOrNull()?.loggedIn == false -> Text(tr("로그인하면 친구들이 올린 글을 볼 수 있어요."), style = KrdsText.meta)
+            posts.isEmpty() -> Text(tr("아직 글이 없어요. 첫 글을 올려보세요."), style = KrdsText.meta)
             else -> posts.forEach { p ->
                 Row(
                     Modifier.fillMaxWidth().heightIn(min = 44.dp).clickable { onPost(p.id) }.padding(vertical = 6.dp),
@@ -275,9 +275,9 @@ private fun ArchiveTile(t: Tile, modifier: Modifier) {
 private fun LoginBanner(onLogin: () -> Unit) {
     Column(Modifier.fillMaxWidth().background(Krds.colors.primary, RoundedCornerShape(16.dp)).padding(20.dp)) {
         Icon(Icons.Filled.Lock, null, tint = Krds.colors.onPrimary, modifier = Modifier.size(36.dp))
-        Text("로그인하고 GCFL 아카이브를 모두 써보세요", style = KrdsText.sectionTitle.copy(color = Krds.colors.onPrimary), modifier = Modifier.padding(top = 12.dp))
+        Text(tr("로그인하고 GCFL 아카이브를 모두 써보세요"), style = KrdsText.sectionTitle.copy(color = Krds.colors.onPrimary), modifier = Modifier.padding(top = 12.dp))
         Text(
-            "기출 정답지·즐겨찾기, 사진 아카이브, 극플드라이브 업로드는 재학생 인증 후 이용할 수 있어요.",
+            tr("기출 정답지·즐겨찾기, 사진 아카이브, 극플드라이브 업로드는 재학생 인증 후 이용할 수 있어요."),
             style = KrdsText.meta.copy(color = Krds.colors.onPrimary.copy(alpha = 0.85f)),
             modifier = Modifier.padding(top = 6.dp),
         )
@@ -286,7 +286,7 @@ private fun LoginBanner(onLogin: () -> Unit) {
             modifier = Modifier.fillMaxWidth().padding(top = 16.dp).height(52.dp),
             shape = RoundedCornerShape(10.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Krds.colors.surface, contentColor = Krds.colors.primaryText),
-        ) { Text("학번으로 로그인", fontWeight = FontWeight.Bold) }
+        ) { Text(tr("학번으로 로그인"), fontWeight = FontWeight.Bold) }
     }
 }
 
@@ -295,7 +295,7 @@ private fun LoginBanner(onLogin: () -> Unit) {
 private fun AlertBell(count: Int, onClick: () -> Unit) {
     val label = if (count > 0) "알림, 안 읽은 알림 ${count}개" else "알림"
     Box(
-        Modifier.size(48.dp).clip(CircleShape).clickable(onClickLabel = "알림 보기", onClick = onClick)
+        Modifier.size(48.dp).clip(CircleShape).clickable(onClickLabel = tr("알림 보기"), onClick = onClick)
             .semantics { contentDescription = label },
         contentAlignment = Alignment.Center,
     ) {

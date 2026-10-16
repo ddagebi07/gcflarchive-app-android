@@ -1,5 +1,6 @@
 package kr.co.gcflarchive.student
 
+import kr.co.gcflarchive.student.ui.tr
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -153,7 +154,7 @@ private fun MainTabs(app: AppState) {
                                 contentDescription = null,
                             )
                         },
-                        label = { Text(t.label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                        label = { Text(tr(t.label), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = Krds.colors.primaryText,
                             selectedTextColor = Krds.colors.primaryText,
