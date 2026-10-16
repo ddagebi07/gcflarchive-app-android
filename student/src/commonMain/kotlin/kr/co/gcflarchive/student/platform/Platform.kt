@@ -65,6 +65,9 @@ expect object Notifications {
  */
 expect fun applySystemTheme(mode: String)
 
+/** The device's language ("ko", "en", …): 첫 실행 때 한국어가 아니면 한국어/English를 물어봐요. */
+expect val deviceLanguage: String
+
 /** "iOS 18.1" / "Android 15" — shown in 설정. */
 expect val platformName: String
 

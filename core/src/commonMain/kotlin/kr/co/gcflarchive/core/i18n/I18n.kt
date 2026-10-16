@@ -10,7 +10,6 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
-import kr.co.gcflarchive.core.net.ApiException
 import kr.co.gcflarchive.core.net.SiteClient
 import kr.co.gcflarchive.core.net.jsonOf
 import kr.co.gcflarchive.core.net.objects
@@ -48,7 +47,7 @@ object I18n {
     var languages: List<Language> = emptyList()
         private set
 
-    /** Only teachers may pick another language. */
+    /** The 화면 언어 row is shown (everyone can pick a language for this device). */
     var canChoose: Boolean = false
         private set
 
@@ -100,33 +99,65 @@ object I18n {
         }
     }
 
-    /** After login / on app start: this user's language from the server, and its strings if they changed. */
+    // ── 어떤 언어를 쓸지: 기기마다 고른 언어 (처음 실행할 때 기기 언어가 한국어가 아니면 물어봐요) ──
+
+    /** The language picked on this device (첫 실행 질문 or 설정 > 화면 언어); null = not asked yet. */
+    val chosen: String?
+        get() = runCatching { settings.getStringOrNull(KEY_CHOSEN) }.getOrNull()
+
+    /**
+     * First launch: a Korean device just uses 한국어; any other device language returns true so the app asks
+     * 한국어 / English once (설정에서 다시 바꿀 수 있다고 안내). Later launches return false.
+     */
+    fun needsFirstChoice(deviceLanguage: String): Boolean {
+        ensureLoaded()
+        if (chosen != null) return false
+        if (deviceLanguage.lowercase().startsWith(DEFAULT)) {
+            runCatching { settings.putString(KEY_CHOSEN, DEFAULT) }
+            return false
+        }
+        return true
+    }
+
+    /** Languages for the first-launch question before the server answers. */
+    val fallbackLanguages = listOf(Language(DEFAULT, "한국어"), Language("en", "English"))
+
+    /**
+     * On app start and after login: the language list, and the chosen language's strings when they changed.
+     * Teachers: the server keeps the same language for their 알림 (a choice made on the website is used
+     * here only when this device hasn't picked one).
+     */
     suspend fun sync(site: SiteClient) {
         ensureLoaded()
         this.site = site
-        val res = runCatching { site.exchange("/api/i18n/me") }.getOrNull() ?: return  // offline: keep the cache
-        if (res.code == 401) { use(DEFAULT, emptyMap()); canChoose = false; return }
-        if (!res.isSuccessful) return
-        val o = res.json
-        languages = o.optJSONArray("languages").objects().map { Language(it.optString("code"), it.optString("name")) }
-        canChoose = o.optBoolean("canChoose")
-        load(site, o.optString("lang", DEFAULT), o.optLong("version"))
+        val list = runCatching { site.exchange("/api/i18n") }.getOrNull()?.takeIf { it.isSuccessful }?.json ?: return  // offline: keep the cache
+        languages = list.optJSONArray("languages").objects().map { Language(it.optString("code"), it.optString("name")) }
+        val versions = list.optJSONObject("versions")
+        val me = runCatching { site.exchange("/api/i18n/me") }.getOrNull()?.takeIf { it.isSuccessful }?.json
+        val serverLang = me?.optString("lang", DEFAULT) ?: DEFAULT
+        val teacher = me?.optBoolean("canChoose") == true
+        canChoose = true
+        val target = chosen ?: serverLang.takeIf { teacher && it != DEFAULT }?.also { runCatching { settings.putString(KEY_CHOSEN, it) } } ?: DEFAULT
+        if (languages.none { it.code == target }) return use(DEFAULT, emptyMap())
+        load(site, target, versions?.optLong(target) ?: 0L)
+        if (teacher && serverLang != target) runCatching { site.exchange("/api/i18n/me", "PUT", jsonOf("lang" to target)) }
     }
 
-    /** 설정 > 화면 언어. Throws the server's message when it refuses. */
+    /** 첫 실행 질문 / 설정 > 화면 언어: this device's language (teachers: also the server's, for 알림). */
     suspend fun choose(site: SiteClient, code: String) {
+        ensureLoaded()
         this.site = site
-        val res = site.exchange("/api/i18n/me", "PUT", jsonOf("lang" to code))
-        if (!res.isSuccessful) throw ApiException(res.code, res.error ?: "처리하지 못했어요. 잠시 후 다시 시도해주세요.")
-        val o = res.json
-        load(site, o.optString("lang", DEFAULT), o.optLong("version"))
+        runCatching { settings.putString(KEY_CHOSEN, code) }
+        val version = runCatching { site.exchange("/api/i18n") }.getOrNull()?.takeIf { it.isSuccessful }?.json
+            ?.optJSONObject("versions")?.optLong(code) ?: -1L
+        load(site, code, version)
+        // Students can't keep a non-Korean language on the server (403): only this device changes, which is fine.
+        runCatching { site.exchange("/api/i18n/me", "PUT", jsonOf("lang" to code)) }
     }
 
-    /** 로그아웃: back to 한국어. */
+    /** 로그아웃: the device keeps its language; only the teacher-only extras go. */
     fun reset() {
         ensureLoaded()
-        canChoose = false
-        use(DEFAULT, emptyMap())
     }
 
     private suspend fun load(site: SiteClient, code: String, version: Long) {
@@ -161,6 +192,7 @@ object I18n {
     }
 
     private const val KEY_LANG = "i18n_lang"
+    private const val KEY_CHOSEN = "i18n_chosen"
     private const val KEY_STRINGS = "i18n_strings_"
     private const val KEY_VERSION = "i18n_version_"
 }

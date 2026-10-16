@@ -89,13 +89,13 @@ fun SettingsScreen() {
     LaunchedEffect(app.login) {
         nickname = if (app.login is LoginState.LoggedIn) runCatching { app.services.map.nickname() }.getOrNull() else null
     }
-    // 화면 언어: only teachers can choose (the server says so), and only when there is more than 한국어.
-    var languages by remember { mutableStateOf<List<Language>>(emptyList()) }
+    // 화면 언어: anyone can pick a language for this device (선생님은 알림도 그 언어로 와요).
+    var languages by remember { mutableStateOf(I18n.languages.ifEmpty { I18n.fallbackLanguages }) }
     var pickLanguage by remember { mutableStateOf(false) }
     var pickTheme by remember { mutableStateOf(false) }
     LaunchedEffect(app.login) {
-        if (app.login is LoginState.LoggedIn) I18n.sync(app.services.site)
-        languages = if (I18n.canChoose && I18n.languages.size > 1) I18n.languages else emptyList()
+        I18n.sync(app.services.site)
+        languages = I18n.languages.ifEmpty { I18n.fallbackLanguages }
     }
 
     fun changed() {
@@ -126,7 +126,10 @@ fun SettingsScreen() {
 
             Section(tr("화면"))
             KrdsCard(padding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
-                SettingRow(tr("화면 모드"), AppPrefs.themeLabel(ThemeMode.mode), onClick = { pickTheme = true })
+                // 화면 언어: 첫 실행 때 고른 언어를 여기서 다시 바꿔요.
+                SettingRow(tr("화면 언어"), languages.firstOrNull { it.code == I18n.lang }?.name ?: I18n.lang, onClick = { pickLanguage = true })
+                Hairline()
+                SettingRow(tr("화면 모드"), tr(AppPrefs.themeLabel(ThemeMode.mode)), onClick = { pickTheme = true })
             }
 
             Section(tr("공지 알림"))
@@ -180,10 +183,6 @@ fun SettingsScreen() {
 
             Section(tr("학교생활"))
             KrdsCard(padding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
-                if (languages.isNotEmpty()) {
-                    SettingRow(tr("화면 언어"), languages.firstOrNull { it.code == I18n.lang }?.name ?: I18n.lang, onClick = { pickLanguage = true })
-                    Hairline()
-                }
                 Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text(tr("시간표에 과목 전체 이름 보기"), style = KrdsText.body)
@@ -260,7 +259,7 @@ fun SettingsScreen() {
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             RadioButton(selected = m == ThemeMode.mode, onClick = null, colors = RadioButtonDefaults.colors(selectedColor = Krds.colors.primary))
-                            Text(AppPrefs.themeLabel(m), style = KrdsText.body, modifier = Modifier.padding(start = 12.dp))
+                            Text(tr(AppPrefs.themeLabel(m)), style = KrdsText.body, modifier = Modifier.padding(start = 12.dp))
                         }
                     }
                 }
@@ -275,7 +274,7 @@ fun SettingsScreen() {
             title = { Text(tr("화면 언어")) },
             text = {
                 Column {
-                    Text(tr("학교생활의 선생님 화면과 알림에 쓰여요."), style = KrdsText.meta, modifier = Modifier.padding(bottom = 8.dp))
+                    Text(tr("앱 화면에 쓰여요. 선생님 계정이면 학교생활 알림도 이 언어로 와요."), style = KrdsText.meta, modifier = Modifier.padding(bottom = 8.dp))
                     languages.forEach { l ->
                         Row(
                             Modifier.fillMaxWidth().heightIn(min = 48.dp).selectable(selected = l.code == I18n.lang, enabled = !busy, role = Role.RadioButton) {

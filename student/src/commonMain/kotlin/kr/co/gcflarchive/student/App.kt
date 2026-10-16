@@ -126,6 +126,8 @@ fun StudentApp(services: Services = sharedServices, startLink: String? = null) {
                     Box(Modifier.fillMaxSize().background(Krds.colors.bg)) { LoginScreen(gate = true) }
                 }
                 AppLockGate(services.prefs)
+                // 첫 실행: 기기 언어가 한국어가 아니면 한국어 / English를 물어봐요 (로그인 화면보다 먼저).
+                kr.co.gcflarchive.student.settings.FirstLanguageQuestion(services)
             }
         }
     }

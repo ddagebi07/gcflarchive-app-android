@@ -147,9 +147,9 @@ class SettingsFragment : Fragment() {
                 else -> {}  // offline, or just redraw
             }
             val b = _binding ?: return@launch
-            b.rowLanguage.isVisible = I18n.canChoose && I18n.languages.size > 1
+            b.rowLanguage.isVisible = true  // 누구나: 이 기기의 화면 언어 (선생님은 알림도 그 언어로)
             b.languageLabel.text = I18n.tr("화면 언어")
-            b.languageValue.text = I18n.languages.firstOrNull { it.code == I18n.lang }?.name ?: I18n.lang
+            b.languageValue.text = I18n.languages.ifEmpty { I18n.fallbackLanguages }.firstOrNull { it.code == I18n.lang }?.name ?: I18n.lang
         }
     }
 
@@ -169,7 +169,7 @@ class SettingsFragment : Fragment() {
     }
 
     private fun pickLanguage() {
-        val langs = I18n.languages
+        val langs = I18n.languages.ifEmpty { I18n.fallbackLanguages }
         val current = langs.indexOfFirst { it.code == I18n.lang }
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(I18n.tr("화면 언어"))
@@ -179,7 +179,10 @@ class SettingsFragment : Fragment() {
                     val site = SchoolActivity.services(requireContext()).site
                     runCatching { I18n.choose(site, langs[which].code) }
                         .onFailure { e -> context?.let { Toast.makeText(it, e.message, Toast.LENGTH_SHORT).show() } }
-                    renderLanguage()
+                    // Every screen (and the tabs behind) is redrawn in the new language: restart from 홈.
+                    val ctx = context ?: return@launch
+                    startActivity(android.content.Intent(ctx, kr.co.gcflarchive.app.MainActivity::class.java)
+                        .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK))
                 }
             }
             .setNegativeButton(I18n.tr("닫기"), null)

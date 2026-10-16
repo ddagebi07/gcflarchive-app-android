@@ -176,6 +176,8 @@ actual object Notifications {
 
 actual fun applySystemTheme(mode: String) {}
 
+actual val deviceLanguage: String get() = java.util.Locale.getDefault().language
+
 actual val platformName: String get() = "Android ${Build.VERSION.RELEASE}"
 
 /**

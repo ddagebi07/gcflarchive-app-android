@@ -144,8 +144,8 @@ class MealWidget : AppWidgetProvider() {
             val meal = shown?.meals?.getOrNull(shown.index)
             val title = listOfNotNull(dayLabel(day), meal?.kind?.let { I18n.tr(it) }).joinToString(" ")
             val body = when {
-                shown == null -> context.getString(R.string.widget_meal_offline)
-                meal == null -> context.getString(R.string.widget_meal_none)
+                shown == null -> I18n.tr(context.getString(R.string.widget_meal_offline))  // 화면 언어 (설정)
+                meal == null -> I18n.tr(context.getString(R.string.widget_meal_none))
                 else -> meal.dishes.joinToString(" · ") { it.name }
             }
             val views = RemoteViews(context.packageName, R.layout.widget_meal).apply {
@@ -164,7 +164,7 @@ class MealWidget : AppWidgetProvider() {
         private fun showLoading(context: Context) {
             val views = RemoteViews(context.packageName, R.layout.widget_meal).apply {
                 setTextViewText(R.id.widgetMealTitle, dayLabel(defaultSlot().first))
-                setTextViewText(R.id.widgetMealBody, context.getString(R.string.widget_meal_loading))
+                setTextViewText(R.id.widgetMealBody, I18n.tr(context.getString(R.string.widget_meal_loading)))
             }
             val manager = AppWidgetManager.getInstance(context)
             ids(context).forEach { manager.partiallyUpdateAppWidget(it, views) }

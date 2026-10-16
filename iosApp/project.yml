@@ -9,8 +9,8 @@ options:
   createIntermediateGroups: true
 settings:
   base:
-    MARKETING_VERSION: "1.0.25"
-    CURRENT_PROJECT_VERSION: "10025"
+    MARKETING_VERSION: "1.0.26"
+    CURRENT_PROJECT_VERSION: "10026"
     # Your Apple ID team (Xcode ▸ Settings ▸ Accounts). A free Apple ID works for your own iPhone.
     DEVELOPMENT_TEAM: ""
     CODE_SIGN_STYLE: Automatic
@@ -85,6 +85,8 @@ targets:
       path: MealWidget/Info.plist
       properties:
         CFBundleDisplayName: 오늘의 급식
+        CFBundleDevelopmentRegion: ko
+        CFBundleLocalizations: [ko, en]   # 위젯 문구는 기기 언어를 따라요 (MealWidget.swift의 L)
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         NSExtension:

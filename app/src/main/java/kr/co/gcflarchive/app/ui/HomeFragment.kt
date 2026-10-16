@@ -142,12 +142,13 @@ class HomeFragment : Fragment() {
                 val teacher = (state as LoginState.LoggedIn).userType == "teacher"
                 val name = state.displayName.ifBlank { userId }
                 // 선생님 화면 언어 (설정 > 화면 언어): English → 'Hello, 이혜경!'
-                if (teacher) I18n.sync(SchoolActivity.services(requireContext()).site)
-                val english = teacher && I18n.lang != I18n.DEFAULT
+                val english = I18n.lang != I18n.DEFAULT
                 val b2 = _binding ?: return@launch
                 b2.welcome.text = buildSpannedString {
                     if (english) {
-                        val text = I18n.tr("{name} 선생님, 안녕하세요!", "name" to name)
+                        val shown = if (teacher) name else userId
+                        val text = if (teacher) I18n.tr("{name} 선생님, 안녕하세요!", "name" to name) else I18n.tr("{name}님, 반가워요!", "name" to userId)
+                        val name = shown
                         val at = text.indexOf(name)
                         if (at < 0) append(text)
                         else { append(text.substring(0, at)); bold { append(name) }; append(text.substring(at + name.length)) }

@@ -110,9 +110,11 @@ fun HomeScreen() {
                     Text(
                         // 학생: '30512님, 반가워요!' / 교사: '이혜경 선생님, 안녕하세요!'
                         buildAnnotatedString {
-                            val name = s.displayName.ifBlank { s.userId }
-                            val greeting = tr("{name} 선생님, 안녕하세요!", "name" to name)  // 교사 화면 언어 (English: 'Hello, 이혜경!')
-                            if (s.userType == "teacher" && greeting.indexOf(name) >= 0 && I18n.lang != I18n.DEFAULT) {
+                            val teacher = s.userType == "teacher"
+                            val name = if (teacher) s.displayName.ifBlank { s.userId } else s.userId
+                            // 다른 화면 언어: 'Hello, 이혜경!' / 'Hi, 30512!'
+                            val greeting = if (teacher) tr("{name} 선생님, 안녕하세요!", "name" to name) else tr("{name}님, 반가워요!", "name" to name)
+                            if (greeting.indexOf(name) >= 0 && I18n.lang != I18n.DEFAULT) {
                                 val at = greeting.indexOf(name)
                                 append(greeting.substring(0, at))
                                 withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(name) }

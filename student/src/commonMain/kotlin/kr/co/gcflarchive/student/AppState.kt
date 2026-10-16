@@ -116,11 +116,8 @@ class AppState(val services: Services, private val scope: CoroutineScope) {
             }
             login = state
             // 화면 언어 (교사만 고를 수 있어요): the server's choice for this account, strings cached on the device.
-            when (state) {
-                is LoginState.LoggedIn -> I18n.sync(services.site)
-                LoginState.LoggedOut -> I18n.reset()
-                LoginState.Unknown -> {}
-            }
+            // 화면 언어: 이 기기에서 고른 언어 (선생님은 알림도 같은 언어로).
+            if (state != LoginState.Unknown) I18n.sync(services.site)
         }
     }
 

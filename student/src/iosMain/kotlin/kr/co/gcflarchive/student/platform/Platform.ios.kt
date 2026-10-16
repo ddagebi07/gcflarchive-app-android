@@ -24,6 +24,8 @@ import kr.co.gcflarchive.core.net.UploadFile
 import platform.CoreGraphics.CGRectMake
 import platform.CoreLocation.CLLocationCoordinate2DMake
 import platform.Foundation.NSData
+import platform.Foundation.NSLocale
+import platform.Foundation.preferredLanguages
 import platform.Foundation.NSDateComponents
 import platform.Foundation.NSNotificationCenter
 import platform.Foundation.NSOperationQueue
@@ -297,6 +299,10 @@ actual object Notifications {
         }
     }
 }
+
+/** First of 설정 > 일반 > 언어 및 지역's preferred languages, e.g. "ko-KR" → "ko". */
+actual val deviceLanguage: String
+    get() = (NSLocale.preferredLanguages.firstOrNull() as? String)?.substringBefore('-') ?: "ko"
 
 actual fun applySystemTheme(mode: String) {
     val style = when (mode) {

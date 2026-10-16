@@ -59,6 +59,8 @@ actual object Notifications {
 
 actual fun applySystemTheme(mode: String) {}
 
+actual val deviceLanguage: String get() = java.util.Locale.getDefault().language
+
 actual val platformName: String get() = "Desktop ${System.getProperty("os.name")}"
 
 /** Desktop preview only. */

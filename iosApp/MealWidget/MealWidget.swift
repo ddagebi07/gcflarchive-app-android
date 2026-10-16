@@ -8,6 +8,29 @@ import AppIntents
 /// The ‹ › buttons (iOS 17+) step through meals and days; after an hour it goes back to the default.
 /// It reads the menu straight from the NEIS open API (no login, nothing shared with the app).
 
+/// 위젯 문구: 기기 언어(설정 > 일반 > 언어 및 지역)가 한국어면 한국어, 아니면 영어.
+/// (위젯은 앱과 따로 돌아서 앱의 '화면 언어' 설정을 읽지 못해요 — 무료 Apple ID로는 App Group을 못 써요.)
+enum L {
+    static let korean: Bool = (Locale.preferredLanguages.first ?? "ko").hasPrefix("ko")
+
+    static func s(_ ko: String, _ en: String) -> String { korean ? ko : en }
+
+    static let months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]
+    static let weekdaysKo = ["일", "월", "화", "수", "목", "금", "토"]
+    static let weekdaysEn = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+
+    /// 중식 → Lunch … (NEIS gives the Korean name).
+    static func kind(_ k: String) -> String {
+        if korean { return k }
+        switch k {
+        case "조식": return "Breakfast"
+        case "중식": return "Lunch"
+        case "석식": return "Dinner"
+        default: return "Meal"
+        }
+    }
+}
+
 struct MealItem {
     let kind: String      // 중식, 석식 …
     let calories: String?
@@ -61,7 +84,7 @@ enum NEIS {
               let info = root["mealServiceDietInfo"] as? [[String: Any]],
               let rows = info.compactMap({ $0["row"] as? [[String: Any]] }).first else { return [] }
         return rows.map { row in
-            let kind = (row["MMEAL_SC_NM"] as? String).flatMap { $0.isEmpty ? nil : $0 } ?? "급식"
+            let kind = (row["MMEAL_SC_NM"] as? String).flatMap { $0.isEmpty ? nil : $0 } ?? "급식"  // Korean; shown via L.kind
             let cal = (row["CAL_INFO"] as? String).flatMap { $0.isEmpty ? nil : $0 }
             let dishes = ((row["DDISH_NM"] as? String) ?? "")
                 .components(separatedBy: "<br/>")
@@ -142,7 +165,7 @@ enum MealNav {
 /// 불러오지 못했을 때 위젯을 누르면: 앱을 여는 대신 다시 불러와요 (WidgetKit reloads after the intent).
 @available(iOS 17.0, *)
 struct MealRetryIntent: AppIntent {
-    static var title: LocalizedStringResource = "급식 다시 불러오기"
+    static var title: LocalizedStringResource = "급식 다시 불러오기 / Reload meals"
     static var isDiscoverable: Bool = false
 
     init() {}
@@ -154,7 +177,7 @@ struct MealRetryIntent: AppIntent {
 
 @available(iOS 17.0, *)
 struct MealStepIntent: AppIntent {
-    static var title: LocalizedStringResource = "급식 넘기기"
+    static var title: LocalizedStringResource = "급식 넘기기 / Next meal"
     static var isDiscoverable: Bool = false
 
     @Parameter(title: "다음") var forward: Bool
@@ -192,12 +215,12 @@ struct MealProvider: TimelineProvider {
 
     private func load() async -> MealEntry {
         guard let shown = await MealNav.resolve() else {
-            var retry = "인터넷에 연결되면 다시 보여요."
-            if #available(iOSApplicationExtension 17.0, *) { retry = "눌러서 다시 시도해 보세요." }
+            var retry = L.s("인터넷에 연결되면 다시 보여요.", "It will show again once you're online.")
+            if #available(iOSApplicationExtension 17.0, *) { retry = L.s("눌러서 다시 시도해 보세요.", "Tap to try again.") }
             return MealEntry(date: Date(), day: MealNav.defaultSlot().day, meal: nil,
-                             message: "급식 정보를 불러오지 못했어요.\n" + retry, failed: true)
+                             message: L.s("급식 정보를 불러오지 못했어요.", "Couldn't load the meal menu.") + "\n" + retry, failed: true)
         }
-        if shown.meals.isEmpty { return MealEntry(date: Date(), day: shown.day, meal: nil, message: "이날은 급식이 없어요.") }
+        if shown.meals.isEmpty { return MealEntry(date: Date(), day: shown.day, meal: nil, message: L.s("이날은 급식이 없어요.", "No school meal on this day.")) }
         return MealEntry(date: Date(), day: shown.day, meal: shown.meals[shown.index], message: nil)
     }
 }
@@ -208,14 +231,18 @@ struct MealWidgetView: View {
 
     private var small: Bool { family == .systemSmall }
 
-    /// '오늘 중식' / '내일 석식' / '10/20(월) 중식'
+    /// '오늘 중식' / '내일 석식' / '10/20(월) 중식' — English: 'Today Lunch' / 'Tue, OCT 20 Lunch'
     private var title: String {
         let cal = NEIS.calendar
         let days = cal.dateComponents([.day], from: cal.startOfDay(for: Date()), to: cal.startOfDay(for: entry.day)).day ?? 0
         let c = cal.dateComponents([.month, .day, .weekday], from: entry.day)
-        let dow = ["일", "월", "화", "수", "목", "금", "토"][(c.weekday ?? 1) - 1]
-        let when = days == 0 ? "오늘" : days == 1 ? "내일" : "\(c.month ?? 0)/\(c.day ?? 0)(\(dow))"
-        return [when, entry.meal?.kind].compactMap { $0 }.joined(separator: " ")
+        let w = (c.weekday ?? 1) - 1
+        let when: String
+        if days == 0 { when = L.s("오늘", "Today") }
+        else if days == 1 { when = L.s("내일", "Tomorrow") }
+        else if L.korean { when = "\(c.month ?? 0)/\(c.day ?? 0)(\(L.weekdaysKo[w]))" }
+        else { when = "\(L.weekdaysEn[w]), \(L.months[max(0, min(11, (c.month ?? 1) - 1))]) \(c.day ?? 0)" }
+        return [when, entry.meal.map { L.kind($0.kind) }].compactMap { $0 }.joined(separator: " ")
     }
 
     var body: some View {
@@ -267,7 +294,7 @@ struct MealWidgetView: View {
             .foregroundStyle(.secondary)
             .frame(width: 26, height: 26)
             .background(Circle().fill(Color(UIColor.secondarySystemBackground)))
-            .accessibilityLabel(name == "chevron.left" ? "이전 끼니" : "다음 끼니")
+            .accessibilityLabel(name == "chevron.left" ? L.s("이전 끼니", "Previous meal") : L.s("다음 끼니", "Next meal"))
     }
 }
 
@@ -288,8 +315,8 @@ struct MealWidget: Widget {
         StaticConfiguration(kind: "MealWidget", provider: MealProvider()) { entry in
             MealWidgetView(entry: entry)
         }
-        .configurationDisplayName("급식")
-        .description("한 끼씩 급식 메뉴를 보고, ‹ ›로 다른 끼니와 날짜로 넘겨요.")
+        .configurationDisplayName(L.s("급식", "School meals"))
+        .description(L.s("한 끼씩 급식 메뉴를 보고, ‹ ›로 다른 끼니와 날짜로 넘겨요.", "See one meal at a time; ‹ › moves to other meals and days."))
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
     }
 }

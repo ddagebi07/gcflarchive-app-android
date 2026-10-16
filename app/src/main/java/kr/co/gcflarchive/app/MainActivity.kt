@@ -46,15 +46,45 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /** 첫 실행 언어 질문이 떠 있는 동안은 로그인 화면을 띄우지 않아요 (질문이 가려지지 않게). */
+    private var askingLanguage = false
+
+    /**
+     * 처음 실행할 때 한 번: 기기 언어가 한국어면 한국어, 아니면 한국어 / English를 물어봐요 (두 언어로 안내,
+     * 설정 > 화면 언어에서 바꿀 수 있다고 알려요). Returns true while the question is showing.
+     */
+    private fun askLanguageOnFirstRun(): Boolean {
+        if (!kr.co.gcflarchive.core.i18n.I18n.needsFirstChoice(java.util.Locale.getDefault().language)) return false
+        askingLanguage = true
+        val site = kr.co.gcflarchive.student.school.SchoolActivity.services(this).site
+        val pick = { code: String ->
+            lifecycleScope.launch {
+                runCatching { kr.co.gcflarchive.core.i18n.I18n.choose(site, code) }
+                askingLanguage = false
+                // Re-create so every label is drawn in the chosen language, then the login comes up if needed.
+                recreate()
+            }
+            Unit
+        }
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setTitle("언어 / Language")
+            .setMessage("앱에서 쓸 언어를 골라주세요.\nChoose the language for the app.\n\n설정 > 화면 언어에서 언제든 바꿀 수 있어요.\nYou can change it anytime in Settings > Display language.")
+            .setCancelable(false)
+            .setPositiveButton("English") { _, _ -> pick("en") }
+            .setNegativeButton("한국어") { _, _ -> pick(kr.co.gcflarchive.core.i18n.I18n.DEFAULT) }
+            .show()
+        return true
+    }
+
     private fun openLoginGate() {
-        if (gateOpen || isFinishing) return
+        if (gateOpen || isFinishing || askingLanguage) return
         gateOpen = true
         loginGate.launch(LoginActivity.intent(this, gate = true))
     }
 
     /** Re-checks on every return: the session can expire, or the user logged out in 설정. */
     private fun checkLogin() {
-        if (gateOpen) return
+        if (gateOpen || askingLanguage) return
         lifecycleScope.launch {
             when (SiteSession.state()) {
                 is LoginState.LoggedIn -> AppPrefs(this@MainActivity).signedIn = true
@@ -94,6 +124,9 @@ class MainActivity : AppCompatActivity() {
         }
 
         gateOpen = savedInstanceState?.getBoolean(STATE_GATE) == true
+        askLanguageOnFirstRun()
+        // 화면 언어: the list and the chosen language's strings (teachers: the same language for 알림).
+        lifecycleScope.launch { runCatching { kr.co.gcflarchive.core.i18n.I18n.sync(kr.co.gcflarchive.student.school.SchoolActivity.services(this@MainActivity).site) } }
         // Never logged in on this device: the login comes first, before the tabs load anything.
         if (!mayBeSignedIn()) openLoginGate()
 
