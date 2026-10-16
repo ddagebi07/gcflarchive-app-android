@@ -437,7 +437,7 @@ private fun PlacePicker(date: String, period: Int, current: String, onSaved: () 
     val app = LocalApp.current
     val scope = rememberCoroutineScope()
     var busy by remember { mutableStateOf(false) }
-    val presets = listOf("강당", "운동장", "체육관", "교실")
+    val presets = listOf("체육관", "운동장", "교실")
     var custom by remember(current) { mutableStateOf(if (current.isNotBlank() && current !in presets) current else "") }
     fun save(place: String) {
         busy = true
