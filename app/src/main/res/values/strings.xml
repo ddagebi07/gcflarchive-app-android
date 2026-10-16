@@ -155,5 +155,5 @@
     <string name="widget_meal_next">다음 끼니</string>
     <string name="widget_meal_loading">불러오고 있어요</string>
     <string name="widget_meal_none">이날은 급식이 없어요.</string>
-    <string name="widget_meal_offline">급식 정보를 불러오지 못했어요. 인터넷에 연결되면 다시 보여요.</string>
+    <string name="widget_meal_offline">급식 정보를 불러오지 못했어요.\n눌러서 다시 시도해 보세요.</string>
 </resources>

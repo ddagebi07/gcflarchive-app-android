@@ -24,7 +24,7 @@ import java.time.ZoneId
  * 홈 화면 위젯: 급식, 한 번에 한 끼 (메뉴가 잘리지 않게, 가운뎃점으로 이어 쓴 줄글).
  * 기본은 중식, 13:30(점심시간 뒤)부터 석식; 주말이면 다음 월요일 중식. ‹ › 로 끼니와 날짜를
  * 넘기고, 한 시간 동안 안 누르면 기본으로 돌아가요. Fetches NEIS itself (no login).
- * Tapping the menu opens the 급식 tab.
+ * Tapping the menu opens the 급식 tab; when loading failed, tapping tries again instead.
  */
 class MealWidget : AppWidgetProvider() {
     override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) {
@@ -39,6 +39,18 @@ class MealWidget : AppWidgetProvider() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action == ACTION_RETRY) {
+            val pending = goAsync()
+            scope.launch {
+                try {
+                    showLoading(context.applicationContext)
+                    update(context.applicationContext)
+                } finally {
+                    pending.finish()
+                }
+            }
+            return
+        }
         val forward = when (intent.action) {
             ACTION_NEXT -> true
             ACTION_PREV -> false
@@ -61,6 +73,7 @@ class MealWidget : AppWidgetProvider() {
         private const val PREFS = "meal_widget"
         private const val ACTION_NEXT = "kr.co.gcflarchive.app.widget.MEAL_NEXT"
         private const val ACTION_PREV = "kr.co.gcflarchive.app.widget.MEAL_PREV"
+        private const val ACTION_RETRY = "kr.co.gcflarchive.app.widget.MEAL_RETRY"
         private const val TTL_MS = 60 * 60 * 1000L  // back to the default an hour after the last tap
         private val AFTER_LUNCH: LocalTime = LocalTime.of(13, 30)
 
@@ -136,12 +149,23 @@ class MealWidget : AppWidgetProvider() {
             val views = RemoteViews(context.packageName, R.layout.widget_meal).apply {
                 setTextViewText(R.id.widgetMealTitle, title)
                 setTextViewText(R.id.widgetMealBody, body)
-                setOnClickPendingIntent(R.id.widgetMealRoot, open(context))
+                // 불러오지 못했으면 누를 때 앱을 여는 대신 다시 불러와요.
+                setOnClickPendingIntent(R.id.widgetMealRoot, if (shown == null) stepIntent(context, ACTION_RETRY, 7004) else open(context))
                 setOnClickPendingIntent(R.id.widgetMealPrev, stepIntent(context, ACTION_PREV, 7002))
                 setOnClickPendingIntent(R.id.widgetMealNext, stepIntent(context, ACTION_NEXT, 7003))
             }
             val manager = AppWidgetManager.getInstance(context)
             ids(context).forEach { manager.updateAppWidget(it, views) }
+        }
+
+        /** Retry tapped: say so right away (the fetch can take a few seconds). */
+        private fun showLoading(context: Context) {
+            val views = RemoteViews(context.packageName, R.layout.widget_meal).apply {
+                setTextViewText(R.id.widgetMealTitle, dayLabel(defaultSlot().first))
+                setTextViewText(R.id.widgetMealBody, context.getString(R.string.widget_meal_loading))
+            }
+            val manager = AppWidgetManager.getInstance(context)
+            ids(context).forEach { manager.partiallyUpdateAppWidget(it, views) }
         }
 
         /** '오늘' / '내일' / '10/20(월)' */

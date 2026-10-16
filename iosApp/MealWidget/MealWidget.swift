@@ -20,6 +20,8 @@ struct MealEntry: TimelineEntry {
     let meal: MealItem?
     /// Shown instead of a menu: no 급식 that day, or offline.
     let message: String?
+    /// Loading failed: tapping the widget tries again instead of opening the app (iOS 17+).
+    var failed: Bool = false
 }
 
 enum NEIS {
@@ -137,6 +139,19 @@ enum MealNav {
     }
 }
 
+/// 불러오지 못했을 때 위젯을 누르면: 앱을 여는 대신 다시 불러와요 (WidgetKit reloads after the intent).
+@available(iOS 17.0, *)
+struct MealRetryIntent: AppIntent {
+    static var title: LocalizedStringResource = "급식 다시 불러오기"
+    static var isDiscoverable: Bool = false
+
+    init() {}
+
+    func perform() async throws -> some IntentResult {
+        .result()
+    }
+}
+
 @available(iOS 17.0, *)
 struct MealStepIntent: AppIntent {
     static var title: LocalizedStringResource = "급식 넘기기"
@@ -177,8 +192,10 @@ struct MealProvider: TimelineProvider {
 
     private func load() async -> MealEntry {
         guard let shown = await MealNav.resolve() else {
+            var retry = "인터넷에 연결되면 다시 보여요."
+            if #available(iOSApplicationExtension 17.0, *) { retry = "눌러서 다시 시도해 보세요." }
             return MealEntry(date: Date(), day: MealNav.defaultSlot().day, meal: nil,
-                             message: "급식 정보를 불러오지 못했어요. 인터넷에 연결되면 다시 보여요.")
+                             message: "급식 정보를 불러오지 못했어요.\n" + retry, failed: true)
         }
         if shown.meals.isEmpty { return MealEntry(date: Date(), day: shown.day, meal: nil, message: "이날은 급식이 없어요.") }
         return MealEntry(date: Date(), day: shown.day, meal: shown.meals[shown.index], message: nil)
@@ -203,25 +220,12 @@ struct MealWidgetView: View {
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
-            VStack(alignment: .leading, spacing: small ? 4 : 6) {
-                HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    Text(title).font(.system(size: small ? 14 : 15, weight: .bold)).lineLimit(1)
-                    if !small, let cal = entry.meal?.calories {
-                        Text(cal).font(.system(size: 12)).foregroundStyle(.secondary).lineLimit(1)
-                    }
-                }
-                if let message = entry.message {
-                    Text(message).font(.system(size: 13)).foregroundStyle(.secondary)
-                } else if let meal = entry.meal {
-                    // One meal as running text: dishes joined with '·', wrapping naturally.
-                    Text(meal.dishes.joined(separator: " · "))
-                        .font(.system(size: small ? 13 : 14))
-                        .lineSpacing(2)
-                        .minimumScaleFactor(0.8)
-                }
-                Spacer(minLength: 0)
+            if #available(iOSApplicationExtension 17.0, *), entry.failed {
+                // The whole widget is the retry button (instead of opening the app).
+                Button(intent: MealRetryIntent()) { content }.buttonStyle(.plain)
+            } else {
+                content
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
 
             if #available(iOSApplicationExtension 17.0, *) {
                 HStack(spacing: 4) {
@@ -230,8 +234,31 @@ struct MealWidgetView: View {
                 }
             }
         }
-        .widgetURL(URL(string: "gcflarchive://meal"))
+        .widgetURL(entry.failed ? nil : URL(string: "gcflarchive://meal"))
         .widgetBackground()
+    }
+
+    private var content: some View {
+        VStack(alignment: .leading, spacing: small ? 4 : 6) {
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text(title).font(.system(size: small ? 14 : 15, weight: .bold)).lineLimit(1)
+                if !small, let cal = entry.meal?.calories {
+                    Text(cal).font(.system(size: 12)).foregroundStyle(.secondary).lineLimit(1)
+                }
+            }
+            if let message = entry.message {
+                Text(message).font(.system(size: 13)).foregroundStyle(.secondary)
+            } else if let meal = entry.meal {
+                // One meal as running text: dishes joined with '·', wrapping naturally.
+                Text(meal.dishes.joined(separator: " · "))
+                    .font(.system(size: small ? 13 : 14))
+                    .lineSpacing(2)
+                    .minimumScaleFactor(0.8)
+            }
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .contentShape(Rectangle())
     }
 
     private func arrow(_ name: String) -> some View {
