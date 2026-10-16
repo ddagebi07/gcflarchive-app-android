@@ -26,6 +26,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AttachFile
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
@@ -272,7 +273,7 @@ private fun TimetableTab(me: SchoolMe) {
                 KrdsDropdown(tr("시간표 보기"), listOf("" to tr("내 시간표")) + choices, view, { view = it; subPanel = null })
             }
             if (!week.hasTimetable) InfoBox(tr("아직 시간표가 없어요. 관리자가 시간표를 올리면 여기에 보여요."))
-            WeekGrid(week, picked) { picked = if (picked == it) null else it }
+            // 고른 칸의 자세한 내용: 표 바로 위에 (표를 내리지 않아도 보이게).
             val sel = picked
             if (sel == null) Text(tr("칸을 누르면 과목 이름과 장소를 자세히 볼 수 있어요."), style = KrdsText.meta)
             else {
@@ -280,9 +281,17 @@ private fun TimetableTab(me: SchoolMe) {
                 val p = week.classPeriods[pi]
                 val c = week.cell(d, p)
                 val mine = teacher && view.isEmpty()
+                // 학생: 공개된 선생님이면 '이 선생님께 연락하기' (선생님께 질문 화면으로).
+                val contactId = if (!teacher && !c.empty) c.teacherIds.firstOrNull() else null
                 PeriodRow("${week.days[d].weekday} ${p.label}", "${p.start}~${p.end}", c,
-                    onSub = if (mine && !c.empty && !c.handedOver) ({ subPanel = week.days[d].date to p.key.toInt() }) else null)
+                    onSub = if (mine && !c.empty && !c.handedOver) ({ subPanel = week.days[d].date to p.key.toInt() }) else null,
+                    onContact = contactId?.let { id -> { app.push(Route.SchoolAsk(id)) } })
+                // 체육처럼 장소가 매번 바뀌는 수업: 선생님이 그날 장소를 정해요.
+                if (mine && c.placeSubject && !c.handedOver && week.days[d].date >= Clock.System.todayIn(SEOUL).toString()) {
+                    PlacePicker(week.days[d].date, p.key.toInt(), if (c.placeSet) c.room else "", onSaved = reload)
+                }
             }
+            WeekGrid(week, picked) { picked = if (picked == it) null else it }
             subPanel?.let { (d, per) -> SubstitutePanel(d, per, onClose = { subPanel = null }, onSent = { reload() }) }
             if (subs != null) SubstituteLists(subs, onChanged = reload)
             Box(Modifier.heightIn(min = 24.dp))
@@ -383,7 +392,7 @@ internal fun WeekGridContent(week: TtWeek, picked: Pair<Int, Int>?, fullNames: B
 }
 
 @Composable
-private fun PeriodRow(label: String, time: String, c: TtCell, onSub: (() -> Unit)?) {
+private fun PeriodRow(label: String, time: String, c: TtCell, onSub: (() -> Unit)?, onContact: (() -> Unit)? = null) {
     KrdsCard {
         Row(verticalAlignment = Alignment.Top) {
             Column(Modifier.widthIn(min = 64.dp)) {
@@ -404,6 +413,53 @@ private fun PeriodRow(label: String, time: String, c: TtCell, onSub: (() -> Unit
                 }
             }
             if (onSub != null) TextButton(onClick = onSub) { Text(tr("보강 부탁"), color = Krds.colors.primaryText) }
+            if (onContact != null) {
+                Row(
+                    Modifier.align(Alignment.CenterVertically).widthIn(max = 132.dp).clip(RoundedCornerShape(12.dp))
+                        .clickable(onClick = onContact).padding(start = 8.dp, top = 6.dp, bottom = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(tr("이 선생님께 연락하기"), style = KrdsText.label.copy(fontWeight = FontWeight.Bold, color = Krds.colors.primaryText),
+                        textAlign = TextAlign.End, modifier = Modifier.weight(1f, fill = false))
+                    Icon(Icons.Filled.ChevronRight, null, tint = Krds.colors.primaryText)
+                }
+            }
+        }
+        if (c.placeSubject && !c.placeSet && !c.empty) Text(tr("장소는 아직 안내 전이에요. 수업 전 쉬는 시간에 알림이 가요."), style = KrdsText.meta,
+            modifier = Modifier.padding(top = 8.dp))
+    }
+}
+
+/** 체육 등: 그날 그 교시 수업 장소. 고르면 바로 저장되고, 학생에게는 수업 전 쉬는 시간 알림에 장소가 가요. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun PlacePicker(date: String, period: Int, current: String, onSaved: () -> Unit) {
+    val app = LocalApp.current
+    val scope = rememberCoroutineScope()
+    var busy by remember { mutableStateOf(false) }
+    val presets = listOf("강당", "운동장", "체육관", "교실")
+    var custom by remember(current) { mutableStateOf(if (current.isNotBlank() && current !in presets) current else "") }
+    fun save(place: String) {
+        busy = true
+        scope.launch {
+            runCatching { app.services.school.setClassPlace(date, period, place) }
+                .onSuccess { app.toast(if (place.isBlank()) tr("장소를 지웠어요.") else tr("장소를 '{place}'(으)로 정했어요.", "place" to place)); onSaved() }
+                .onFailure { app.toast(messageOf(it)) }
+            busy = false
+        }
+    }
+    KrdsCard {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(tr("수업 장소"), style = KrdsText.cardTitle)
+            Text(if (current.isBlank()) tr("아직 정하지 않았어요. 정하면 수업 전 쉬는 시간에 학생들에게 장소를 알려요.")
+                 else tr("지금 장소: {place}", "place" to current), style = KrdsText.meta)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                presets.forEach { p -> KrdsChip(tr(p), current == p) { if (!busy) save(if (current == p) "" else p) } }
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.weight(1f)) { Field(tr("직접 입력"), custom, { custom = it }, 40, placeholder = tr("예: 다목적실")) }
+                PrimaryButton(tr("저장"), { save(custom.trim()) }, Modifier.padding(start = 8.dp), enabled = !busy && custom.isNotBlank())
+            }
         }
     }
 }

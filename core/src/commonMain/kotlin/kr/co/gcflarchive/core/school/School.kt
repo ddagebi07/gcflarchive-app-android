@@ -59,6 +59,11 @@ data class TtCell(
     val fullName: String = "",
     /** 수업 교과 (예: 영어과); "" or 전체과 when it's for everyone. */
     val track: String = "",
+    /** 로그인ID of this class's teachers who take questions (공개된 선생님): '이 선생님께 연락하기'. */
+    val teacherIds: List<String> = emptyList(),
+    /** 체육처럼 장소가 매번 바뀌는 과목; [placeSet] = the teacher chose today's place (it's in [room]). */
+    val placeSubject: Boolean = false,
+    val placeSet: Boolean = false,
 ) {
     /** "심화영어 Ⅱ (심F)" or just "문학". */
     val title: String get() = if (fullName.isNotBlank()) "$fullName ($subject)" else subject
@@ -284,6 +289,8 @@ object SchoolParse {
                     changed = j.optBoolean("changed"), empty = j.optBoolean("empty", true), note = j.optString("note"),
                     handedOver = j.optBoolean("handedOver"),
                     fullName = j.optString("fullName"), track = j.optString("track"),
+                    teacherIds = j.optJSONArray("teacherIds").strings(),
+                    placeSubject = j.optBoolean("placeSubject"), placeSet = j.optBoolean("placeSet"),
                 )
             }
         }
@@ -397,6 +404,11 @@ class SchoolRepository(private val site: SiteClient) {
 
     /** action: accept | decline | cancel */
     suspend fun substituteAction(id: Int, action: String) { site.postJson("/api/timetable/substitutes/$id/$action") }
+
+    /** 체육 등: 그날 그 교시 수업 장소 정하기 ("" = 지우기). */
+    suspend fun setClassPlace(date: String, period: Int, place: String) {
+        site.checkedExchange("/api/timetable/places", "PUT", jsonOf("date" to date, "period" to period, "place" to place))
+    }
 
     suspend fun messages(): List<SchoolMessage> = site.getJson("/api/school/messages").optJSONArray("messages").objects().map(SchoolParse::message)
     suspend fun message(id: Int): MessageDetail = SchoolParse.messageDetail(site.getJson("/api/school/messages/$id"))
