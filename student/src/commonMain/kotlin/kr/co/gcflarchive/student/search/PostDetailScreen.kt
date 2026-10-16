@@ -2,7 +2,7 @@ package kr.co.gcflarchive.student.search
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
+import kr.co.gcflarchive.student.ui.appInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -96,7 +96,7 @@ fun PostDetailScreen(board: String, idx: String) {
                         Text(d.title, style = KrdsText.pageTitle, modifier = Modifier.padding(top = 10.dp))
                         Text("${d.author} · ${displayDate(d.postedAt)}", style = KrdsText.meta, modifier = Modifier.padding(top = 6.dp, bottom = 14.dp))
                         StrongRule()
-                        HtmlContent(d.contentHtml, d.originalUrl ?: "https://www.gcfl.or.kr/", isSystemInDarkTheme(), Modifier.padding(vertical = 16.dp))
+                        HtmlContent(d.contentHtml, d.originalUrl ?: "https://www.gcfl.or.kr/", appInDarkTheme(), Modifier.padding(vertical = 16.dp))
 
                         if (d.attachments.isNotEmpty()) {
                             Column(Modifier.fillMaxWidth().background(Krds.colors.surfaceRaised, RoundedCornerShape(8.dp)).padding(vertical = 6.dp)) {

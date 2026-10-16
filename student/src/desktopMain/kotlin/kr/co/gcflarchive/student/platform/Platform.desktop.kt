@@ -57,6 +57,8 @@ actual object Notifications {
     actual fun showNow(id: String, title: String, body: String) = Unit
 }
 
+actual fun applySystemTheme(mode: String) {}
+
 actual val platformName: String get() = "Desktop ${System.getProperty("os.name")}"
 
 /** Desktop preview only. */

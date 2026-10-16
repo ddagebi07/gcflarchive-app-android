@@ -1,6 +1,12 @@
 package kr.co.gcflarchive.student.ui
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import kr.co.gcflarchive.core.prefs.AppPrefs
+import kr.co.gcflarchive.student.platform.applySystemTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
@@ -91,8 +97,31 @@ private fun pretendard(): FontFamily {
     return FontFamily(weight(400), weight(500), weight(600), weight(700))
 }
 
+/** 설정 > 화면 모드 (AppPrefs.themeMode). Changing [mode] redraws every screen at once. */
+object ThemeMode {
+    private val prefs by lazy { AppPrefs() }
+    var mode by mutableStateOf(runCatching { prefs.themeMode }.getOrDefault(AppPrefs.THEME_SYSTEM))
+        private set
+
+    fun set(value: String) {
+        prefs.themeMode = value
+        mode = prefs.themeMode
+        applySystemTheme(mode)
+    }
+}
+
+/** Dark or not, after 설정 > 화면 모드 (system = the device setting). Use instead of isSystemInDarkTheme(). */
 @Composable
-fun KrdsTheme(dark: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
+fun appInDarkTheme(): Boolean = when (ThemeMode.mode) {
+    AppPrefs.THEME_LIGHT -> false
+    AppPrefs.THEME_DARK -> true
+    else -> isSystemInDarkTheme()
+}
+
+@Composable
+fun KrdsTheme(dark: Boolean = appInDarkTheme(), content: @Composable () -> Unit) {
+    val mode = ThemeMode.mode
+    LaunchedEffect(mode) { applySystemTheme(mode) }  // iPhone·iPad: status bar, keyboard, system sheets
     val k = if (dark) DarkKrds else LightKrds
     val scheme = (if (dark) darkColorScheme() else lightColorScheme()).copy(
         primary = k.primary,

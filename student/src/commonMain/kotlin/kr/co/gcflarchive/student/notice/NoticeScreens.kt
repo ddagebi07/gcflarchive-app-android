@@ -1,7 +1,7 @@
 package kr.co.gcflarchive.student.notice
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
+import kr.co.gcflarchive.student.ui.appInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -97,7 +97,7 @@ fun NoticeDetailScreen(id: Int) {
                 Text(n.title, style = KrdsText.pageTitle)
                 Text("${n.author} · ${n.date} · 조회 ${n.views}", style = KrdsText.meta, modifier = Modifier.padding(top = 6.dp, bottom = 14.dp))
                 StrongRule()
-                HtmlContent(n.contentHtml, Config.BASE_URL + "/", isSystemInDarkTheme(), Modifier.padding(vertical = 16.dp))
+                HtmlContent(n.contentHtml, Config.BASE_URL + "/", appInDarkTheme(), Modifier.padding(vertical = 16.dp))
                 Hairline()
                 Text("목록으로", style = KrdsText.body.copy(color = Krds.colors.primaryText), modifier = Modifier.clickable { app.pop() }.padding(vertical = 16.dp))
             }

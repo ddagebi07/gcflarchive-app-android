@@ -65,6 +65,8 @@ import kr.co.gcflarchive.student.ui.Krds
 import kr.co.gcflarchive.student.ui.KrdsCard
 import kr.co.gcflarchive.student.ui.KrdsText
 import kr.co.gcflarchive.student.ui.tr
+import kr.co.gcflarchive.student.ui.ThemeMode
+import kr.co.gcflarchive.core.prefs.AppPrefs
 
 const val APP_VERSION = "1.0.5"  // gradle.properties의 gcflVersion과 같게
 
@@ -90,6 +92,7 @@ fun SettingsScreen() {
     // 화면 언어: only teachers can choose (the server says so), and only when there is more than 한국어.
     var languages by remember { mutableStateOf<List<Language>>(emptyList()) }
     var pickLanguage by remember { mutableStateOf(false) }
+    var pickTheme by remember { mutableStateOf(false) }
     LaunchedEffect(app.login) {
         if (app.login is LoginState.LoggedIn) I18n.sync(app.services.site)
         languages = if (I18n.canChoose && I18n.languages.size > 1) I18n.languages else emptyList()
@@ -119,6 +122,11 @@ fun SettingsScreen() {
                     }
                     else -> SettingRow("학번으로 로그인하기", "기출 정답지·드라이브·사진", onClick = { app.requireLogin() })
                 }
+            }
+
+            Section("화면")
+            KrdsCard(padding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
+                SettingRow("화면 모드", AppPrefs.themeLabel(ThemeMode.mode), onClick = { pickTheme = true })
             }
 
             Section("공지 알림")
@@ -236,6 +244,29 @@ fun SettingsScreen() {
             nickname = nickname?.copy(nickname = saved, canChange = false) ?: NicknameStatus(saved, false, "", 7)
             app.toast("닉네임을 '$saved'(으)로 정했어요.")
         }
+    }
+    if (pickTheme) {
+        AlertDialog(
+            onDismissRequest = { pickTheme = false },
+            title = { Text("화면 모드") },
+            text = {
+                Column {
+                    AppPrefs.THEME_MODES.forEach { m ->
+                        Row(
+                            Modifier.fillMaxWidth().heightIn(min = 48.dp).selectable(selected = m == ThemeMode.mode, role = Role.RadioButton) {
+                                ThemeMode.set(m)
+                                pickTheme = false
+                            },
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            RadioButton(selected = m == ThemeMode.mode, onClick = null, colors = RadioButtonDefaults.colors(selectedColor = Krds.colors.primary))
+                            Text(AppPrefs.themeLabel(m), style = KrdsText.body, modifier = Modifier.padding(start = 12.dp))
+                        }
+                    }
+                }
+            },
+            confirmButton = { TextButton(onClick = { pickTheme = false }) { Text("닫기") } },
+        )
     }
     if (pickLanguage) {
         var busy by remember { mutableStateOf(false) }

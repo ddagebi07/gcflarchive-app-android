@@ -43,6 +43,9 @@ import kr.co.gcflarchive.app.util.AppLock
 import kr.co.gcflarchive.app.util.Biometric
 import kr.co.gcflarchive.app.util.Links
 import kr.co.gcflarchive.core.i18n.I18n
+import kr.co.gcflarchive.app.GcflApp
+import kr.co.gcflarchive.student.ui.ThemeMode
+import kr.co.gcflarchive.core.prefs.AppPrefs as CorePrefs
 import kr.co.gcflarchive.student.school.SchoolActivity
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -105,6 +108,7 @@ class SettingsFragment : Fragment() {
         }
         binding.rowNickname.setOnClickListener { editNickname() }
         binding.rowLanguage.setOnClickListener { pickLanguage() }
+        binding.rowTheme.setOnClickListener { pickTheme() }
         binding.rowLogin.setOnClickListener { startActivity(LoginActivity.intent(requireContext())) }
         binding.rowLogout.setOnClickListener { logout() }
         binding.rowWebsite.setOnClickListener { Links.openExternal(requireContext(), android.net.Uri.parse(Config.BASE_URL)) }
@@ -149,6 +153,21 @@ class SettingsFragment : Fragment() {
         }
     }
 
+    /** 화면 모드: 시스템 설정 따르기(기본) / 라이트 / 다크. Applies at once to every screen. */
+    private fun pickTheme() {
+        val modes = CorePrefs.THEME_MODES
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.settings_theme)
+            .setSingleChoiceItems(modes.map(CorePrefs::themeLabel).toTypedArray(), modes.indexOf(ThemeMode.mode)) { dialog, which ->
+                dialog.dismiss()
+                ThemeMode.set(modes[which])          // shared screens (학교생활, 오늘 시간표)
+                GcflApp.applyThemeMode(modes[which])  // this app's screens; recreates them in the new mode
+                render()
+            }
+            .setNegativeButton(R.string.close, null)
+            .show()
+    }
+
     private fun pickLanguage() {
         val langs = I18n.languages
         val current = langs.indexOfFirst { it.code == I18n.lang }
@@ -169,6 +188,7 @@ class SettingsFragment : Fragment() {
 
     private fun render() {
         val b = _binding ?: return
+        b.themeValue.text = CorePrefs.themeLabel(ThemeMode.mode)
         b.switchMeal.isChecked = prefs.mealNotifyEnabled
         b.switchAppLock.isChecked = prefs.appLockEnabled
         val minute = prefs.mealNotifyMinuteOfDay

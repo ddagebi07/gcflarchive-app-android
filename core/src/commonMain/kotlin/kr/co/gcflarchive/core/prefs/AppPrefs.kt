@@ -51,6 +51,11 @@ class AppPrefs(private val settings: Settings = Settings()) {
         get() = settings.getBoolean(KEY_SIGNED_IN, false)
         set(value) = settings.putBoolean(KEY_SIGNED_IN, value)
 
+    /** 화면 모드: "system"(기본, 기기 설정 따르기) / "light" / "dark". Android 앱과 공용 화면이 함께 써요. */
+    var themeMode: String
+        get() = settings.getStringOrNull(KEY_THEME)?.takeIf { it in THEME_MODES } ?: THEME_SYSTEM
+        set(value) = settings.putString(KEY_THEME, if (value in THEME_MODES) value else THEME_SYSTEM)
+
     /** 시간표 칸에 과목 전체 이름(심화영어 Ⅱ)을 보여줘요. 기본은 줄임말(심F). */
     var timetableFullNames: Boolean
         get() = settings.getBoolean(KEY_TT_FULL, false)
@@ -82,21 +87,34 @@ class AppPrefs(private val settings: Settings = Settings()) {
     val mealNotifyTimeLabel: String
         get() = "${(mealNotifyMinuteOfDay / 60).toString().padStart(2, '0')}:${(mealNotifyMinuteOfDay % 60).toString().padStart(2, '0')}"
 
-    private companion object {
-        const val KEY_SIGNED_IN = "signed_in"
-        const val KEY_SERVER_PUSHES = "server_pushes"
-        const val KEY_TT_FULL = "timetable_full_names"
-        const val KEY_ENABLED = "meal_notify_enabled"
-        const val KEY_TIME = "meal_notify_minute"
-        const val KEY_KIND = "meal_notify_kind" // legacy single choice
-        const val KEY_KINDS = "meal_notify_kinds"
-        const val KEY_GUEST_CODE = "grade_guest_code"
-        const val KEY_GRADE_MODE = "grade_access_mode"
-        const val KEY_APP_LOCK = "app_lock_enabled"
-        const val KEY_NOTICE = "notice_notify_enabled"
-        const val KEY_SCHOOL_SINCE = "school_alert_since"
-        const val KEY_PUSH_TOKEN = "push_token"
-        const val KEY_INSTALL_ID = "install_id"
-        const val KEY_NOTICE_SINCE = "notice_push_since"
+    companion object {
+        const val THEME_SYSTEM = "system"
+        const val THEME_LIGHT = "light"
+        const val THEME_DARK = "dark"
+        val THEME_MODES = listOf(THEME_SYSTEM, THEME_LIGHT, THEME_DARK)
+
+        /** 설정 화면에 보이는 이름. */
+        fun themeLabel(mode: String): String = when (mode) {
+            THEME_LIGHT -> "라이트 모드"
+            THEME_DARK -> "다크 모드"
+            else -> "시스템 설정 따르기"
+        }
+
+        private const val KEY_THEME = "theme_mode"
+        private const val KEY_SIGNED_IN = "signed_in"
+        private const val KEY_SERVER_PUSHES = "server_pushes"
+        private const val KEY_TT_FULL = "timetable_full_names"
+        private const val KEY_ENABLED = "meal_notify_enabled"
+        private const val KEY_TIME = "meal_notify_minute"
+        private const val KEY_KIND = "meal_notify_kind" // legacy single choice
+        private const val KEY_KINDS = "meal_notify_kinds"
+        private const val KEY_GUEST_CODE = "grade_guest_code"
+        private const val KEY_GRADE_MODE = "grade_access_mode"
+        private const val KEY_APP_LOCK = "app_lock_enabled"
+        private const val KEY_NOTICE = "notice_notify_enabled"
+        private const val KEY_SCHOOL_SINCE = "school_alert_since"
+        private const val KEY_PUSH_TOKEN = "push_token"
+        private const val KEY_INSTALL_ID = "install_id"
+        private const val KEY_NOTICE_SINCE = "notice_push_since"
     }
 }

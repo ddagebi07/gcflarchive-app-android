@@ -5,7 +5,10 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
+import android.graphics.Color
+import kr.co.gcflarchive.student.ui.ThemeMode
 import kr.co.gcflarchive.core.Services
 import kr.co.gcflarchive.core.net.SiteClient
 import kr.co.gcflarchive.core.prefs.AppPrefs
@@ -18,7 +21,12 @@ import kr.co.gcflarchive.student.platform.AndroidPlatform
 class SchoolActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        // 설정 > 화면 모드: status bar icons match the chosen light/dark (system = follow the device).
+        when (ThemeMode.mode) {
+            AppPrefs.THEME_LIGHT -> enableEdgeToEdge(SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT), SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT))
+            AppPrefs.THEME_DARK -> enableEdgeToEdge(SystemBarStyle.dark(Color.TRANSPARENT), SystemBarStyle.dark(Color.TRANSPARENT))
+            else -> enableEdgeToEdge()
+        }
         AndroidPlatform.context = applicationContext
         val services = services(applicationContext)
         setContent {

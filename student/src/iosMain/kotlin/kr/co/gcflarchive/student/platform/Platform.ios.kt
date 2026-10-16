@@ -56,7 +56,9 @@ import platform.UIKit.UIDocumentPickerDelegateProtocol
 import platform.UIKit.UIDocumentPickerViewController
 import platform.UIKit.UIImage
 import platform.UIKit.UIImageJPEGRepresentation
+import platform.UIKit.UIUserInterfaceStyle
 import platform.UIKit.UIViewController
+import platform.UIKit.UIWindow
 import platform.UIKit.popoverPresentationController
 import platform.UniformTypeIdentifiers.UTTypeItem
 import platform.UserNotifications.UNAuthorizationOptionAlert
@@ -294,6 +296,16 @@ actual object Notifications {
             )
         }
     }
+}
+
+actual fun applySystemTheme(mode: String) {
+    val style = when (mode) {
+        "light" -> UIUserInterfaceStyle.UIUserInterfaceStyleLight
+        "dark" -> UIUserInterfaceStyle.UIUserInterfaceStyleDark
+        else -> UIUserInterfaceStyle.UIUserInterfaceStyleUnspecified
+    }
+    @Suppress("DEPRECATION")
+    UIApplication.sharedApplication.windows.forEach { (it as? UIWindow)?.overrideUserInterfaceStyle = style }
 }
 
 actual val platformName: String get() = "${UIDevice.currentDevice.systemName} ${UIDevice.currentDevice.systemVersion}"

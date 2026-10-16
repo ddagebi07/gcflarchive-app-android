@@ -9,8 +9,8 @@ options:
   createIntermediateGroups: true
 settings:
   base:
-    MARKETING_VERSION: "1.0.19"
-    CURRENT_PROJECT_VERSION: "10019"
+    MARKETING_VERSION: "1.0.20"
+    CURRENT_PROJECT_VERSION: "10020"
     # Your Apple ID team (Xcode ▸ Settings ▸ Accounts). A free Apple ID works for your own iPhone.
     DEVELOPMENT_TEAM: ""
     CODE_SIGN_STYLE: Automatic

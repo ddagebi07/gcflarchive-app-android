@@ -59,6 +59,12 @@ expect object Notifications {
     fun showNow(id: String, title: String, body: String)
 }
 
+/**
+ * 설정 > 화면 모드 for the system parts the app doesn't draw (iPhone·iPad: status bar, keyboard, share sheet):
+ * "light" / "dark" / "system". Android: the app sets AppCompat's night mode itself (GcflApp).
+ */
+expect fun applySystemTheme(mode: String)
+
 /** "iOS 18.1" / "Android 15" — shown in 설정. */
 expect val platformName: String
 
