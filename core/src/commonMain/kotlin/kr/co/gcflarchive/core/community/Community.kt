@@ -230,8 +230,9 @@ object CommunityParser {
         val zone = TimeZone.of(SEOUL)
         val t = instant.toLocalDateTime(zone)
         val two = { n: Int -> n.toString().padStart(2, '0') }
-        return if (t.year == now.toLocalDateTime(zone).year) "${t.monthNumber}월 ${t.dayOfMonth}일 ${two(t.hour)}:${two(t.minute)}"
-        else "${t.year}년 ${t.monthNumber}월 ${t.dayOfMonth}일"
+        val md = kr.co.gcflarchive.core.i18n.I18nDates.monthDay(t.monthNumber, t.dayOfMonth)  // 영어: "OCT 15"
+        return if (t.year == now.toLocalDateTime(zone).year) "$md ${two(t.hour)}:${two(t.minute)}"
+        else kr.co.gcflarchive.core.i18n.I18nDates.withYear(t.year, md)
     }
 }
 

@@ -130,6 +130,12 @@ import kr.co.gcflarchive.student.ui.tr
  */
 
 private fun messageOf(e: Throwable) = e.message ?: tr("인터넷 연결이 불안정해요. 잠시 후 다시 시도해주세요.")
+/** 날짜 틀의 {MON}·{DAY} (영어 "OCT 12"): "2026-10-12" → MON=OCT, DAY=12. */
+private fun monDay(iso: String): Array<Pair<String, Any?>> {
+    val m = iso.substring(5, 7).toIntOrNull() ?: return emptyArray()
+    return arrayOf("MON" to kr.co.gcflarchive.core.i18n.I18nDates.MONTHS[(m - 1).coerceIn(0, 11)], "DAY" to iso.substring(8, 10).toIntOrNull())
+}
+
 private fun time(iso: String) = if (iso.isBlank()) "" else CommunityParser.displayTime(iso, Clock.System.now())
 private val SEOUL = TimeZone.of("Asia/Seoul")
 
@@ -474,7 +480,7 @@ private fun SubstitutePanel(date: String, period: Int, onClose: () -> Unit, onSe
         Loaded(date to period, { app.services.school.freeTeachers(date, period) }) { free: FreeTeachers, reload ->
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(tr("{date} {p}교시 · {what} 보강 부탁", "date" to date.takeLast(5).replace('-', '/'), "p" to period, "what" to free.myClasses.joinToString(", ")), style = KrdsText.cardTitle, modifier = Modifier.weight(1f))
+                    Text(tr("{date} {p}교시 · {what} 보강 부탁", "date" to date.takeLast(5).replace('-', '/'), "p" to period, "what" to free.myClasses.joinToString(", "), *monDay(date)), style = KrdsText.cardTitle, modifier = Modifier.weight(1f))
                     IconButton(onClick = onClose) { Icon(Icons.Filled.Close, tr("닫기")) }
                 }
                 Field(tr("전할 말 (선택)"), note, { note = it }, 300, placeholder = tr("예: 출장이라 자습 지도 부탁드려요"))
@@ -518,7 +524,7 @@ private fun SubstituteLists(subs: SubRequests, onChanged: () -> Unit) {
     fun row(s: SubRequest, received: Boolean) = KrdsCard {
         Row2 {
             Badge(tr(SUB_STATUS[s.status] ?: s.status), if (s.status == "accepted") BadgeTone.SUCCESS else if (s.status == "pending") BadgeTone.INFO else BadgeTone.NEUTRAL)
-            Text(tr("{date}({wd}) {p}교시", "date" to s.date.takeLast(5).replace('-', '/'), "wd" to s.weekday, "p" to s.period), style = KrdsText.cardTitle)
+            Text(tr("{date}({wd}) {p}교시", "date" to s.date.takeLast(5).replace('-', '/'), "wd" to s.weekday, "p" to s.period, *monDay(s.date)), style = KrdsText.cardTitle)
         }
         Text(if (received) tr("{name} 선생님이 부탁했어요", "name" to s.requesterName) else tr("{name} 선생님께 부탁했어요", "name" to s.candidateName), style = KrdsText.meta)
         if (s.note.isNotBlank()) Text(s.note, style = KrdsText.body)

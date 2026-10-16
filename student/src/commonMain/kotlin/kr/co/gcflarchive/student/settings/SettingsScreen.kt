@@ -426,5 +426,5 @@ private fun NicknameEditor(status: NicknameStatus?, onDismiss: () -> Unit, onSav
 /** "10월 21일 17:05" in Korean time, or the raw value. */
 private fun nextChangeLabel(iso: String): String = runCatching {
     val t = kotlinx.datetime.Instant.parse(iso).toLocalDateTime(kotlinx.datetime.TimeZone.of("Asia/Seoul"))
-    "${t.monthNumber}월 ${t.dayOfMonth}일 ${t.hour.toString().padStart(2, '0')}:${t.minute.toString().padStart(2, '0')}"
+    "${kr.co.gcflarchive.core.i18n.I18nDates.monthDay(t.monthNumber, t.dayOfMonth)} ${t.hour.toString().padStart(2, '0')}:${t.minute.toString().padStart(2, '0')}"
 }.getOrDefault(iso)

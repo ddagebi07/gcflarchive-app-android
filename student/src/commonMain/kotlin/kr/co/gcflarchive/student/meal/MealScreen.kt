@@ -245,7 +245,7 @@ private fun MealCard(meal: Meal) {
     val k = Krds.colors
     KrdsCard(Modifier.padding(bottom = 12.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(meal.kind, style = KrdsText.sectionTitle.copy(color = k.primaryText), modifier = Modifier.weight(1f))
+            Text(tr(meal.kind), style = KrdsText.sectionTitle.copy(color = k.primaryText), modifier = Modifier.weight(1f))
             Text(meal.calories ?: "-", style = KrdsText.label.copy(fontSize = 14.sp, fontWeight = FontWeight.Medium, color = k.primaryText),
                 modifier = Modifier.clip(RoundedCornerShape(50)).background(k.primaryTint).padding(horizontal = 10.dp, vertical = 2.dp))
         }

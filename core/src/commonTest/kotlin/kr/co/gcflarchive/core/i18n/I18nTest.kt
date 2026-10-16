@@ -36,3 +36,33 @@ class I18nTest {
         I18n.onChange = null
     }
 }
+
+class I18nDatesTest {
+    @AfterTest
+    fun back() = I18n.useForTest(I18n.DEFAULT, emptyMap())
+
+    private val en = mapOf(
+        "{m}월 {d}일" to "{MON} {d}", "{d}일" to "{d}", "{y}년 {when}" to "{when}, {y}",
+        "{date}({wd})" to "{wd}, {date}", "오늘 · {day}" to "Today · {day}", "수" to "Wed",
+    )
+
+    @Test
+    fun koreanUnchanged() {
+        I18n.useForTest(I18n.DEFAULT, emptyMap())
+        val today = kotlinx.datetime.LocalDate(2026, 10, 14)
+        assertEquals("10월 12일 – 16일", kr.co.gcflarchive.core.meal.MealWeek.label(kotlinx.datetime.LocalDate(2026, 10, 12), today))
+        assertEquals("9월 28일 – 10월 2일", kr.co.gcflarchive.core.meal.MealWeek.label(kotlinx.datetime.LocalDate(2026, 9, 28), today))
+        assertEquals("2027년 1월 4일 – 8일", kr.co.gcflarchive.core.meal.MealWeek.label(kotlinx.datetime.LocalDate(2027, 1, 4), today))
+        assertEquals("오늘 · 10월 14일(수)", kr.co.gcflarchive.core.meal.MealWeek.dayTitle(today, today))
+    }
+
+    @Test
+    fun englishUsesThreeLetterMonths() {
+        I18n.useForTest("en", en)
+        val today = kotlinx.datetime.LocalDate(2026, 10, 14)
+        assertEquals("OCT 12 – 16", kr.co.gcflarchive.core.meal.MealWeek.label(kotlinx.datetime.LocalDate(2026, 10, 12), today))
+        assertEquals("SEP 28 – OCT 2", kr.co.gcflarchive.core.meal.MealWeek.label(kotlinx.datetime.LocalDate(2026, 9, 28), today))
+        assertEquals("JAN 4 – 8, 2027", kr.co.gcflarchive.core.meal.MealWeek.label(kotlinx.datetime.LocalDate(2027, 1, 4), today))
+        assertEquals("Today · Wed, OCT 14", kr.co.gcflarchive.core.meal.MealWeek.dayTitle(today, today))
+    }
+}

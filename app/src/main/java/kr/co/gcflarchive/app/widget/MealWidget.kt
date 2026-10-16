@@ -15,6 +15,8 @@ import kr.co.gcflarchive.app.MainActivity
 import kr.co.gcflarchive.app.R
 import kr.co.gcflarchive.app.meal.Meal
 import kr.co.gcflarchive.app.meal.MealRepository
+import kr.co.gcflarchive.core.i18n.I18n
+import kr.co.gcflarchive.core.i18n.I18nDates
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalTime
@@ -140,7 +142,7 @@ class MealWidget : AppWidgetProvider() {
             val shown = resolve(context)
             val day = shown?.day ?: defaultSlot().first
             val meal = shown?.meals?.getOrNull(shown.index)
-            val title = listOfNotNull(dayLabel(day), meal?.kind).joinToString(" ")
+            val title = listOfNotNull(dayLabel(day), meal?.kind?.let { I18n.tr(it) }).joinToString(" ")
             val body = when {
                 shown == null -> context.getString(R.string.widget_meal_offline)
                 meal == null -> context.getString(R.string.widget_meal_none)
@@ -171,6 +173,12 @@ class MealWidget : AppWidgetProvider() {
         /** '오늘' / '내일' / '10/20(월)' */
         private fun dayLabel(d: LocalDate): String {
             val today = MealRepository.today()
+            // 선생님이 영어 등 다른 화면 언어를 쓰면: 'Today' / 'Tomorrow' / 'Tue, OCT 20' (번역 파일의 날짜 틀).
+            if (I18n.lang != I18n.DEFAULT) return when (d) {
+                today -> I18n.tr("오늘")
+                today.plusDays(1) -> I18n.tr("내일")
+                else -> I18nDates.withWeekday(I18nDates.monthDay(d.monthValue, d.dayOfMonth), "월화수목금토일"[d.dayOfWeek.value - 1].toString())
+            }
             return when (d) {
                 today -> "오늘"
                 today.plusDays(1) -> "내일"
