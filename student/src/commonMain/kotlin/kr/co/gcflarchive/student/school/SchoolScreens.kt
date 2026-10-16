@@ -349,14 +349,18 @@ internal fun WeekGridContent(week: TtWeek, picked: Pair<Int, Int>?, fullNames: B
                             verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
                             if (!c.empty) {
-                                val name = c.shortOrFull(fullNames)
-                                Text(name, maxLines = if (name == c.subject) 1 else 3, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center,
-                                    style = KrdsText.label.copy(fontSize = if (name == c.subject) 14.sp else 11.sp, lineHeight = 13.sp,
+                                // 교사 시간표(내 것·교사별): 학급(2-8)을 크게, 과목은 작게. 학생·반별: 과목을 크게.
+                                val teacherWeek = week.kind == "teacher" && c.place.isNotBlank()
+                                val subject = c.shortOrFull(fullNames)
+                                val name = if (teacherWeek) c.place else subject
+                                val big = teacherWeek || name == c.subject
+                                Text(name, maxLines = if (big) 1 else 3, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center,
+                                    style = KrdsText.label.copy(fontSize = if (big) 14.sp else 11.sp, lineHeight = 13.sp,
                                         fontWeight = FontWeight.Bold, color = fg,
                                         textDecoration = if (c.handedOver) TextDecoration.LineThrough else null))
-                                val small = c.place.ifBlank { c.teachers.firstOrNull()?.let(::teacherLabel).orEmpty() }
-                                if (small.isNotBlank()) Text(small, maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center,
-                                    style = KrdsText.label.copy(fontSize = 11.sp, color = sub))
+                                val small = if (teacherWeek) subject else c.place.ifBlank { c.teachers.firstOrNull()?.let(::teacherLabel).orEmpty() }
+                                if (small.isNotBlank()) Text(small, maxLines = if (teacherWeek && small != c.subject) 2 else 1, overflow = TextOverflow.Ellipsis,
+                                    textAlign = TextAlign.Center, style = KrdsText.label.copy(fontSize = 11.sp, lineHeight = 13.sp, color = sub))
                             }
                         }
                         // 이동수업: a small blue dot in the corner.
