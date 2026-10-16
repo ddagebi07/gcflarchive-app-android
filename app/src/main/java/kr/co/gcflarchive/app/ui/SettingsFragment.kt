@@ -42,6 +42,8 @@ import kr.co.gcflarchive.app.meal.MealRepository
 import kr.co.gcflarchive.app.util.AppLock
 import kr.co.gcflarchive.app.util.Biometric
 import kr.co.gcflarchive.app.util.Links
+import kr.co.gcflarchive.core.i18n.I18n
+import kr.co.gcflarchive.student.school.SchoolActivity
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.Locale
@@ -102,6 +104,7 @@ class SettingsFragment : Fragment() {
             changeAppLock(checked)
         }
         binding.rowNickname.setOnClickListener { editNickname() }
+        binding.rowLanguage.setOnClickListener { pickLanguage() }
         binding.rowLogin.setOnClickListener { startActivity(LoginActivity.intent(requireContext())) }
         binding.rowLogout.setOnClickListener { logout() }
         binding.rowWebsite.setOnClickListener { Links.openExternal(requireContext(), android.net.Uri.parse(Config.BASE_URL)) }
@@ -127,7 +130,41 @@ class SettingsFragment : Fragment() {
                 nickname = runCatching { MapRepository.nickname() }.getOrNull()
                 _binding?.nicknameValue?.text = nickname?.nickname?.ifBlank { null } ?: getString(R.string.settings_nickname_none)
             }
+            renderLanguage(state)
         }
+    }
+
+    /** 화면 언어 (학교생활 선생님 화면과 알림): only for teachers, and only when the server has more than 한국어. */
+    private fun renderLanguage(state: LoginState? = null) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            when (state) {
+                is LoginState.LoggedIn -> I18n.sync(SchoolActivity.services(requireContext()).site)
+                LoginState.LoggedOut -> I18n.reset()
+                else -> {}  // offline, or just redraw
+            }
+            val b = _binding ?: return@launch
+            b.rowLanguage.isVisible = I18n.canChoose && I18n.languages.size > 1
+            b.languageLabel.text = I18n.tr("화면 언어")
+            b.languageValue.text = I18n.languages.firstOrNull { it.code == I18n.lang }?.name ?: I18n.lang
+        }
+    }
+
+    private fun pickLanguage() {
+        val langs = I18n.languages
+        val current = langs.indexOfFirst { it.code == I18n.lang }
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(I18n.tr("화면 언어"))
+            .setSingleChoiceItems(langs.map { it.name }.toTypedArray(), current) { dialog, which ->
+                dialog.dismiss()
+                viewLifecycleOwner.lifecycleScope.launch {
+                    val site = SchoolActivity.services(requireContext()).site
+                    runCatching { I18n.choose(site, langs[which].code) }
+                        .onFailure { e -> context?.let { Toast.makeText(it, e.message, Toast.LENGTH_SHORT).show() } }
+                    renderLanguage()
+                }
+            }
+            .setNegativeButton(I18n.tr("닫기"), null)
+            .show()
     }
 
     private fun render() {

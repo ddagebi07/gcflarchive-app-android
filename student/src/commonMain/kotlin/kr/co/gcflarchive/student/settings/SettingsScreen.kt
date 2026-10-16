@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -20,6 +21,8 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import kotlinx.datetime.toLocalDateTime
 import kr.co.gcflarchive.core.map.NicknameStatus
@@ -44,6 +47,8 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import kr.co.gcflarchive.core.Config
 import kr.co.gcflarchive.core.auth.LoginState
+import kr.co.gcflarchive.core.i18n.I18n
+import kr.co.gcflarchive.core.i18n.Language
 import kr.co.gcflarchive.core.meal.MealKind
 import kr.co.gcflarchive.student.LocalApp
 import kr.co.gcflarchive.student.school.TimetableNames
@@ -59,6 +64,7 @@ import kr.co.gcflarchive.student.ui.InfoBox
 import kr.co.gcflarchive.student.ui.Krds
 import kr.co.gcflarchive.student.ui.KrdsCard
 import kr.co.gcflarchive.student.ui.KrdsText
+import kr.co.gcflarchive.student.ui.tr
 
 const val APP_VERSION = "1.0.5"  // gradle.properties의 gcflVersion과 같게
 
@@ -80,6 +86,13 @@ fun SettingsScreen() {
     var editNickname by remember { mutableStateOf(false) }
     LaunchedEffect(app.login) {
         nickname = if (app.login is LoginState.LoggedIn) runCatching { app.services.map.nickname() }.getOrNull() else null
+    }
+    // 화면 언어: only teachers can choose (the server says so), and only when there is more than 한국어.
+    var languages by remember { mutableStateOf<List<Language>>(emptyList()) }
+    var pickLanguage by remember { mutableStateOf(false) }
+    LaunchedEffect(app.login) {
+        if (app.login is LoginState.LoggedIn) I18n.sync(app.services.site)
+        languages = if (I18n.canChoose && I18n.languages.size > 1) I18n.languages else emptyList()
     }
 
     fun changed() {
@@ -157,12 +170,16 @@ fun SettingsScreen() {
                 InfoBox("알림이 꺼져 있어요. 기기의 설정 앱에서 GCFL 아카이브 알림을 켜주세요.", icon = Icons.Filled.NotificationsOff)
             }
 
-            Section("학교생활")
+            Section(tr("학교생활"))
             KrdsCard(padding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
+                if (languages.isNotEmpty()) {
+                    SettingRow(tr("화면 언어"), languages.firstOrNull { it.code == I18n.lang }?.name ?: I18n.lang, onClick = { pickLanguage = true })
+                    Hairline()
+                }
                 Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
-                        Text("시간표에 과목 전체 이름 보기", style = KrdsText.body)
-                        Text("끄면 줄임말(예: 심F), 켜면 전체 이름(예: 심화영어 Ⅱ)으로 보여요.", style = KrdsText.meta)
+                        Text(tr("시간표에 과목 전체 이름 보기"), style = KrdsText.body)
+                        Text(tr("끄면 줄임말(예: 심F), 켜면 전체 이름(예: 심화영어 Ⅱ)으로 보여요."), style = KrdsText.meta)
                     }
                     Switch(
                         checked = TimetableNames.full(prefs),
@@ -219,6 +236,36 @@ fun SettingsScreen() {
             nickname = nickname?.copy(nickname = saved, canChange = false) ?: NicknameStatus(saved, false, "", 7)
             app.toast("닉네임을 '$saved'(으)로 정했어요.")
         }
+    }
+    if (pickLanguage) {
+        var busy by remember { mutableStateOf(false) }
+        AlertDialog(
+            onDismissRequest = { pickLanguage = false },
+            title = { Text(tr("화면 언어")) },
+            text = {
+                Column {
+                    Text(tr("학교생활의 선생님 화면과 알림에 쓰여요."), style = KrdsText.meta, modifier = Modifier.padding(bottom = 8.dp))
+                    languages.forEach { l ->
+                        Row(
+                            Modifier.fillMaxWidth().heightIn(min = 48.dp).selectable(selected = l.code == I18n.lang, enabled = !busy, role = Role.RadioButton) {
+                                busy = true
+                                scope.launch {
+                                    runCatching { I18n.choose(app.services.site, l.code) }
+                                        .onSuccess { pickLanguage = false; app.contentChanged() }
+                                        .onFailure { app.toast(it.message ?: tr("처리하지 못했어요. 잠시 후 다시 시도해주세요.")) }
+                                    busy = false
+                                }
+                            },
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            RadioButton(selected = l.code == I18n.lang, onClick = null, colors = RadioButtonDefaults.colors(selectedColor = Krds.colors.primary))
+                            Text(l.name, style = KrdsText.body, modifier = Modifier.padding(start = 12.dp))
+                        }
+                    }
+                }
+            },
+            confirmButton = { TextButton(onClick = { pickLanguage = false }) { Text(tr("닫기")) } },
+        )
     }
     if (pickTime) {
         val state = rememberTimePickerState(prefs.mealNotifyMinuteOfDay / 60, prefs.mealNotifyMinuteOfDay % 60, is24Hour = true)

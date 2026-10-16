@@ -1,5 +1,6 @@
 package kr.co.gcflarchive.student
 
+import kr.co.gcflarchive.core.i18n.I18n
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
@@ -113,6 +114,12 @@ class AppState(val services: Services, private val scope: CoroutineScope) {
                 LoginState.Unknown -> {}
             }
             login = state
+            // 화면 언어 (교사만 고를 수 있어요): the server's choice for this account, strings cached on the device.
+            when (state) {
+                is LoginState.LoggedIn -> I18n.sync(services.site)
+                LoginState.LoggedOut -> I18n.reset()
+                LoginState.Unknown -> {}
+            }
         }
     }
 
@@ -139,6 +146,7 @@ class AppState(val services: Services, private val scope: CoroutineScope) {
         scope.launch {
             services.auth.logout()
             services.prefs.signedIn = false
+            I18n.reset()
             login = LoginState.LoggedOut
             sessionVersion++
             // No toast: the full-screen login appears right away, and a toast over it hid the 로그인 button.

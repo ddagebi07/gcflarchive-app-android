@@ -1,5 +1,6 @@
 package kr.co.gcflarchive.core.school
 
+import kr.co.gcflarchive.core.i18n.I18n
 import kotlinx.datetime.daysUntil
 import io.ktor.http.encodeURLParameter
 import kr.co.gcflarchive.core.net.JObject
@@ -30,9 +31,10 @@ data class SchoolMe(
 
 // ── 시간표 ─────────────────────────────────────────────────────────────────
 
-/** 학교생활 화면의 교사 이름 표기: "이혜경" → "이혜경T", 시간표 이름 "이외고(영)" → "이외고T(영)". */
+/** 학교생활 화면의 교사 이름 표기: "이혜경" → "이혜경T", 시간표 이름 "이외고(영)" → "이외고T(영)". 한국어 화면에서만 'T'를 붙여요. */
 fun teacherLabel(name: String): String {
     val n = name.trim()
+    if (I18n.lang != I18n.DEFAULT) return n
     val m = Regex("""^(.*?)\s*(\([^()]*\))?$""").find(n) ?: return n
     val base = m.groupValues[1]
     if (base.isEmpty() || base.endsWith("T")) return n
@@ -98,15 +100,16 @@ data class SubRequest(
     val requesterName: String,
     val candidateName: String,
 ) {
-    val statusLabel: String get() = SUB_STATUS[status] ?: status
+    val statusLabel: String get() = (SUB_STATUS[status] ?: status).substringBefore('|')
 }
 
-val SUB_STATUS = mapOf("pending" to "답을 기다려요", "accepted" to "수락", "declined" to "거절", "cancelled" to "취소")
+/** Korean labels, also the i18n keys ("수락|상태": a status, not the 수락 button). */
+val SUB_STATUS = mapOf("pending" to "답을 기다려요", "accepted" to "수락|상태", "declined" to "거절|상태", "cancelled" to "취소|상태")
 
 data class SubRequests(val sent: List<SubRequest>, val received: List<SubRequest>)
 
 data class ClassRef(val grade: Int, val klass: Int) {
-    val label: String get() = "${grade}학년 ${klass}반"
+    val label: String get() = I18n.tr("{g}학년 {k}반", "g" to grade, "k" to klass)
     val key: String get() = "$grade-$klass"
 }
 
@@ -206,11 +209,11 @@ data class Visit(
     val threadId: Int?,
     val history: List<VisitHistory>,
 ) {
-    val statusLabel: String get() = VISIT_STATUS[status] ?: status
+    val statusLabel: String get() = (VISIT_STATUS[status] ?: status).substringBefore('|')
     val forwards: List<VisitHistory> get() = history.filter { it.type == "forwarded" }
 }
 
-val VISIT_STATUS = mapOf("pending" to "답을 기다려요", "answered" to "답변했어요", "accepted" to "방문 수락", "cancelled" to "취소")
+val VISIT_STATUS = mapOf("pending" to "답을 기다려요", "answered" to "답변했어요", "accepted" to "방문 수락", "cancelled" to "취소|상태")
 
 // ── 소속 ───────────────────────────────────────────────────────────────────
 

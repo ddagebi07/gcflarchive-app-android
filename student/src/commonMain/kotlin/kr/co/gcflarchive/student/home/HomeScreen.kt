@@ -1,5 +1,7 @@
 package kr.co.gcflarchive.student.home
 
+import kr.co.gcflarchive.core.i18n.I18n
+import kr.co.gcflarchive.student.ui.tr
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -108,8 +110,15 @@ fun HomeScreen() {
                     Text(
                         // 학생: '30512님, 반가워요!' / 교사: '이혜경 선생님, 안녕하세요!'
                         buildAnnotatedString {
-                            if (s.userType == "teacher") {
-                                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append("${s.displayName.ifBlank { s.userId }} 선생님") }
+                            val name = s.displayName.ifBlank { s.userId }
+                            val greeting = tr("{name} 선생님, 안녕하세요!", "name" to name)  // 교사 화면 언어 (English: 'Hello, 이혜경!')
+                            if (s.userType == "teacher" && greeting.indexOf(name) >= 0 && I18n.lang != I18n.DEFAULT) {
+                                val at = greeting.indexOf(name)
+                                append(greeting.substring(0, at))
+                                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(name) }
+                                append(greeting.substring(at + name.length))
+                            } else if (s.userType == "teacher") {
+                                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append("$name 선생님") }
                                 append(", 안녕하세요!")
                             } else {
                                 withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append("${s.userId}님") }

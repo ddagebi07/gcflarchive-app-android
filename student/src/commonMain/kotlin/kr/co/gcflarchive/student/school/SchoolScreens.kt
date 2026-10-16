@@ -94,6 +94,8 @@ import kr.co.gcflarchive.core.school.ThreadDetail
 import kr.co.gcflarchive.core.school.ThreadSummary
 import kr.co.gcflarchive.core.school.TtCell
 import kr.co.gcflarchive.core.school.TtWeek
+import kr.co.gcflarchive.core.school.SUB_STATUS
+import kr.co.gcflarchive.core.school.VISIT_STATUS
 import kr.co.gcflarchive.core.school.Visit
 import kr.co.gcflarchive.core.school.VisitOptions
 import kr.co.gcflarchive.core.school.parseTarget
@@ -119,13 +121,14 @@ import kr.co.gcflarchive.student.ui.PrimaryButton
 import kr.co.gcflarchive.student.ui.ScreenScaffold
 import kr.co.gcflarchive.student.ui.SecondaryButton
 import kr.co.gcflarchive.student.ui.StateMessage
+import kr.co.gcflarchive.student.ui.tr
 
 /**
  * 학교생활 (iPhone·iPad and the Android app's host activity): 시간표·보강, 연락, 질문(방문 신청), 1:1 대화,
  * 소속, 알림. Server: routes/school_*.py. Wording follows the app's 해요체; short buttons keep 수정·삭제·제출.
  */
 
-private fun messageOf(e: Throwable) = e.message ?: "인터넷 연결이 불안정해요. 잠시 후 다시 시도해주세요."
+private fun messageOf(e: Throwable) = e.message ?: tr("인터넷 연결이 불안정해요. 잠시 후 다시 시도해주세요.")
 private fun time(iso: String) = if (iso.isBlank()) "" else CommunityParser.displayTime(iso, Clock.System.now())
 private val SEOUL = TimeZone.of("Asia/Seoul")
 
@@ -164,8 +167,8 @@ private fun <T> Loaded(
         null -> Loading()
         else -> r.fold(
             onFailure = { e ->
-                if (e is LoginRequiredException) StateMessage("로그인하면 볼 수 있어요.", null, "로그인하기", { app.requireLogin() }, locked = true)
-                else StateMessage("불러오지 못했어요.", messageOf(e), "다시 불러오기", { tick++ })
+                if (e is LoginRequiredException) StateMessage(tr("로그인하면 볼 수 있어요."), null, tr("로그인하기"), { app.requireLogin() }, locked = true)
+                else StateMessage(tr("불러오지 못했어요."), messageOf(e), tr("다시 불러오기"), { tick++ })
             },
             onSuccess = { content(it) { tick++ } },
         )
@@ -194,14 +197,14 @@ private fun Row2(content: @Composable () -> Unit) =
 @Composable
 fun SchoolScreen(startTab: String? = null) {
     val app = LocalApp.current
-    ScreenScaffold("학교생활") {
+    ScreenScaffold(tr("학교생활")) {
         Loaded(Unit, { app.services.school.me() }) { me, _ ->
             if (!me.loggedIn) {
-                StateMessage("로그인하면 시간표와 연락을 볼 수 있어요.", null, "로그인하기", { app.requireLogin() }, locked = true)
+                StateMessage(tr("로그인하면 시간표와 연락을 볼 수 있어요."), null, tr("로그인하기"), { app.requireLogin() }, locked = true)
                 return@Loaded
             }
             if (me.role == SchoolRole.OTHER) {
-                StateMessage("학생·선생님 계정으로 로그인하면 쓸 수 있어요.")
+                StateMessage(tr("학생·선생님 계정으로 로그인하면 쓸 수 있어요."))
                 return@Loaded
             }
             val tabs = SchoolTab.forRole(me.role)
@@ -215,7 +218,7 @@ fun SchoolScreen(startTab: String? = null) {
                             SchoolTab.ALERTS -> me.unreadNotifications
                             else -> 0
                         }
-                        KrdsChip(if (count > 0) "${t.label} $count" else t.label, tab == t) { tab = t }
+                        KrdsChip(if (count > 0) "${tr(t.label)} $count" else tr(t.label), tab == t) { tab = t }
                     }
                 }
                 Hairline()
@@ -250,7 +253,7 @@ private fun TimetableTab(me: SchoolMe) {
         val classes = runCatching { app.services.school.classes() }.getOrDefault(emptyList())
         val teachers = runCatching { app.services.school.teachers("") }.getOrDefault(emptyList()).sortedBy { it.name }
         choices = classes.map { "c:${it.grade}-${it.klass}" to it.label } +
-            teachers.map { "t:${it.teacherId}" to "${teacherLabel(it.name)} 시간표" }
+            teachers.map { "t:${it.teacherId}" to tr("{name} 시간표", "name" to teacherLabel(it.name)) }
     }
     // Always this week (on weekends the server already gives the coming week), as one 5×7 table.
     Loaded(view to me.role, {
@@ -266,12 +269,12 @@ private fun TimetableTab(me: SchoolMe) {
         Scroll {
             Text(week.title, style = KrdsText.sectionTitle)
             if (choices.isNotEmpty()) {
-                KrdsDropdown("시간표 보기", listOf("" to "내 시간표") + choices, view, { view = it; subPanel = null })
+                KrdsDropdown(tr("시간표 보기"), listOf("" to tr("내 시간표")) + choices, view, { view = it; subPanel = null })
             }
-            if (!week.hasTimetable) InfoBox("아직 시간표가 없어요. 관리자가 시간표를 올리면 여기에 보여요.")
+            if (!week.hasTimetable) InfoBox(tr("아직 시간표가 없어요. 관리자가 시간표를 올리면 여기에 보여요."))
             WeekGrid(week, picked) { picked = if (picked == it) null else it }
             val sel = picked
-            if (sel == null) Text("칸을 누르면 과목 이름과 장소를 자세히 볼 수 있어요.", style = KrdsText.meta)
+            if (sel == null) Text(tr("칸을 누르면 과목 이름과 장소를 자세히 볼 수 있어요."), style = KrdsText.meta)
             else {
                 val (d, pi) = sel
                 val p = week.classPeriods[pi]
@@ -338,8 +341,8 @@ internal fun WeekGridContent(week: TtWeek, picked: Pair<Int, Int>?, fullNames: B
                         Modifier.weight(1f).fillMaxHeight().heightIn(min = 56.dp).clip(shape)
                             .background(bg)
                             .then(if (c.changed && !isPicked) Modifier.border(1.5.dp, k.danger, shape) else Modifier)
-                            .clickable(onClickLabel = "자세히 보기") { onPick(di to pi) }
-                            .semantics { contentDescription = "${d.weekday}요일 ${p.label} " + (if (c.empty) "수업 없음" else c.title) + (if (c.moving) ", 이동수업" else "") },
+                            .clickable(onClickLabel = tr("자세히 보기")) { onPick(di to pi) }
+                            .semantics { contentDescription = "${d.weekday} ${p.label} " + (if (c.empty) tr("수업 없음") else c.title) + (if (c.moving) ", " + tr("이동수업") else "") },
                     ) {
                         Column(
                             Modifier.fillMaxSize().padding(horizontal = 2.dp, vertical = 6.dp),
@@ -368,10 +371,10 @@ internal fun WeekGridContent(week: TtWeek, picked: Pair<Int, Int>?, fullNames: B
     }
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
         Box(Modifier.size(8.dp).background(k.primary, RoundedCornerShape(50)))
-        Text("이동수업", style = KrdsText.label)
+        Text(tr("이동수업"), style = KrdsText.label)
         Spacer(Modifier.width(4.dp))
         Box(Modifier.size(14.dp).border(1.5.dp, k.danger, RoundedCornerShape(4.dp)))
-        Text("바뀐 수업", style = KrdsText.label)
+        Text(tr("바뀐 수업"), style = KrdsText.label)
     }
 }
 
@@ -390,13 +393,13 @@ private fun PeriodRow(label: String, time: String, c: TtCell, onSub: (() -> Unit
                     if (c.trackLabel.isNotBlank()) Text(c.trackLabel, style = KrdsText.meta)
                     if (c.detail.isNotBlank()) Text(c.detail, style = KrdsText.meta)
                     Row2 {
-                        if (c.moving) Badge("이동", BadgeTone.WARNING)
-                        if (c.changed) Badge("변경", BadgeTone.DANGER)
+                        if (c.moving) Badge(tr("이동"), BadgeTone.WARNING)
+                        if (c.changed) Badge(tr("변경"), BadgeTone.DANGER)
                     }
                     if (c.note.isNotBlank()) Text(c.note, style = KrdsText.meta)
                 }
             }
-            if (onSub != null) TextButton(onClick = onSub) { Text("보강 부탁", color = Krds.colors.primaryText) }
+            if (onSub != null) TextButton(onClick = onSub) { Text(tr("보강 부탁"), color = Krds.colors.primaryText) }
         }
     }
 }
@@ -411,23 +414,23 @@ private fun SubstitutePanel(date: String, period: Int, onClose: () -> Unit, onSe
         Loaded(date to period, { app.services.school.freeTeachers(date, period) }) { free: FreeTeachers, reload ->
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("${date.takeLast(5).replace('-', '/')} ${period}교시 · ${free.myClasses.joinToString(", ")} 보강 부탁", style = KrdsText.cardTitle, modifier = Modifier.weight(1f))
-                    IconButton(onClick = onClose) { Icon(Icons.Filled.Close, "닫기") }
+                    Text(tr("{date} {p}교시 · {what} 보강 부탁", "date" to date.takeLast(5).replace('-', '/'), "p" to period, "what" to free.myClasses.joinToString(", ")), style = KrdsText.cardTitle, modifier = Modifier.weight(1f))
+                    IconButton(onClick = onClose) { Icon(Icons.Filled.Close, tr("닫기")) }
                 }
-                Field("전할 말 (선택)", note, { note = it }, 300, placeholder = "예: 출장이라 자습 지도 부탁드려요")
-                if (free.teachers.isEmpty()) Text("그 시간에 수업이 없는 선생님이 없어요.", style = KrdsText.meta)
+                Field(tr("전할 말 (선택)"), note, { note = it }, 300, placeholder = tr("예: 출장이라 자습 지도 부탁드려요"))
+                if (free.teachers.isEmpty()) Text(tr("그 시간에 수업이 없는 선생님이 없어요."), style = KrdsText.meta)
                 free.teachers.forEach { t ->
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
                             Text(teacherLabel(t.name), style = KrdsText.body.copy(fontWeight = FontWeight.Bold))
                             if (t.department.isNotBlank()) Text(t.department, style = KrdsText.meta)
                         }
-                        if (t.asked) Badge("답을 기다려요", BadgeTone.NEUTRAL)
-                        else PrimaryButton("부탁", {
+                        if (t.asked) Badge(tr("답을 기다려요"), BadgeTone.NEUTRAL)
+                        else PrimaryButton(tr("부탁"), {
                             busy = true
                             scope.launch {
                                 runCatching { app.services.school.askSubstitute(date, period, t.teacherId, note.trim()) }
-                                    .onSuccess { app.toast("보강을 부탁했어요. 수락하면 알려드려요."); reload(); onSent() }
+                                    .onSuccess { app.toast(tr("보강을 부탁했어요. 수락하면 알려드려요.")); reload(); onSent() }
                                     .onFailure { app.toast(messageOf(it)) }
                                 busy = false
                             }
@@ -449,30 +452,30 @@ private fun SubstituteLists(subs: SubRequests, onChanged: () -> Unit) {
             .onSuccess { app.toast(done); app.contentChanged(); onChanged() }
             .onFailure { app.toast(messageOf(it)) }
     }
-    Text("보강 부탁", style = KrdsText.sectionTitle, modifier = Modifier.padding(top = 8.dp))
-    Text("내 수업 칸의 '보강 부탁'으로 그 시간에 수업이 없는 선생님께 부탁할 수 있어요.", style = KrdsText.meta)
+    Text(tr("보강 부탁"), style = KrdsText.sectionTitle, modifier = Modifier.padding(top = 8.dp))
+    Text(tr("내 수업 칸의 '보강 부탁'으로 그 시간에 수업이 없는 선생님께 부탁할 수 있어요."), style = KrdsText.meta)
     @Composable
     fun row(s: SubRequest, received: Boolean) = KrdsCard {
         Row2 {
-            Badge(s.statusLabel, if (s.status == "accepted") BadgeTone.SUCCESS else if (s.status == "pending") BadgeTone.INFO else BadgeTone.NEUTRAL)
-            Text("${s.date.takeLast(5).replace('-', '/')}(${s.weekday}) ${s.period}교시", style = KrdsText.cardTitle)
+            Badge(tr(SUB_STATUS[s.status] ?: s.status), if (s.status == "accepted") BadgeTone.SUCCESS else if (s.status == "pending") BadgeTone.INFO else BadgeTone.NEUTRAL)
+            Text(tr("{date}({wd}) {p}교시", "date" to s.date.takeLast(5).replace('-', '/'), "wd" to s.weekday, "p" to s.period), style = KrdsText.cardTitle)
         }
-        Text(if (received) "${s.requesterName} 선생님이 부탁했어요" else "${s.candidateName} 선생님께 부탁했어요", style = KrdsText.meta)
+        Text(if (received) tr("{name} 선생님이 부탁했어요", "name" to s.requesterName) else tr("{name} 선생님께 부탁했어요", "name" to s.candidateName), style = KrdsText.meta)
         if (s.note.isNotBlank()) Text(s.note, style = KrdsText.body)
         Row2 {
             if (received && s.status == "pending") {
-                PrimaryButton("수락", { act(s.id, "accept", "수락했어요. 시간표에 보강이 들어갔어요.") })
-                SecondaryButton("거절", { act(s.id, "decline", "거절했어요.") })
+                PrimaryButton(tr("수락"), { act(s.id, "accept", tr("수락했어요. 시간표에 보강이 들어갔어요.")) })
+                SecondaryButton(tr("거절"), { act(s.id, "decline", tr("거절했어요.")) })
             } else if (s.status == "pending" || s.status == "accepted") {
-                SecondaryButton("취소", { act(s.id, "cancel", "취소했어요.") })
+                SecondaryButton(tr("취소"), { act(s.id, "cancel", tr("취소했어요.")) })
             }
         }
     }
-    Text("받은 부탁", style = KrdsText.cardTitle)
-    if (subs.received.isEmpty()) Text("받은 부탁이 없어요.", style = KrdsText.meta)
+    Text(tr("받은 부탁"), style = KrdsText.cardTitle)
+    if (subs.received.isEmpty()) Text(tr("받은 부탁이 없어요."), style = KrdsText.meta)
     subs.received.forEach { row(it, true) }
-    Text("보낸 부탁", style = KrdsText.cardTitle)
-    if (subs.sent.isEmpty()) Text("보낸 부탁이 없어요.", style = KrdsText.meta)
+    Text(tr("보낸 부탁"), style = KrdsText.cardTitle)
+    if (subs.sent.isEmpty()) Text(tr("보낸 부탁이 없어요."), style = KrdsText.meta)
     subs.sent.forEach { row(it, false) }
 }
 
@@ -482,11 +485,11 @@ private fun SubstituteLists(subs: SubRequests, onChanged: () -> Unit) {
 private fun MessageRow(m: SchoolMessage, teacher: Boolean, onClick: () -> Unit) {
     KrdsCard(onClick = onClick) {
         Row2 {
-            if (!teacher && !m.read) Badge("새 연락", BadgeTone.DANGER)
+            if (!teacher && !m.read) Badge(tr("새 연락"), BadgeTone.DANGER)
             Text(m.title, style = KrdsText.cardTitle, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
-        val meta = if (teacher) "${m.audience} · 읽음 ${m.readCount}${if (m.byClass) "" else "/${m.recipientCount}"} · ${time(m.createdAt)}"
-        else "${teacherLabel(m.senderName)} · ${time(m.createdAt)}${if (m.fileCount > 0) " · 파일 ${m.fileCount}개" else ""}"
+        val meta = if (teacher) "${m.audience} · ${tr("읽음")} ${m.readCount}${if (m.byClass) "" else "/${m.recipientCount}"} · ${time(m.createdAt)}"
+        else "${teacherLabel(m.senderName)} · ${time(m.createdAt)}${if (m.fileCount > 0) " · " + tr("파일 {n}개", "n" to m.fileCount) else ""}"
         Text(meta, style = KrdsText.meta)
     }
 }
@@ -496,7 +499,7 @@ private fun InboxTab() {
     val app = LocalApp.current
     Loaded(Unit, { app.services.school.messages() }) { list, _ ->
         Scroll {
-            if (list.isEmpty()) Text("아직 받은 연락이 없어요.", style = KrdsText.meta)
+            if (list.isEmpty()) Text(tr("아직 받은 연락이 없어요."), style = KrdsText.meta)
             list.forEach { m -> MessageRow(m, false) { app.push(Route.SchoolMessage(m.id)) } }
         }
     }
@@ -507,9 +510,9 @@ private fun SendTab() {
     val app = LocalApp.current
     Loaded(Unit, { app.services.school.messages() }) { list, _ ->
         Scroll {
-            PrimaryButton("새 연락 보내기", { app.push(Route.SchoolCompose) }, Modifier.fillMaxWidth(), icon = Icons.Filled.Add)
-            Text("보낸 연락", style = KrdsText.sectionTitle)
-            if (list.isEmpty()) Text("아직 보낸 연락이 없어요.", style = KrdsText.meta)
+            PrimaryButton(tr("새 연락 보내기"), { app.push(Route.SchoolCompose) }, Modifier.fillMaxWidth(), icon = Icons.Filled.Add)
+            Text(tr("보낸 연락"), style = KrdsText.sectionTitle)
+            if (list.isEmpty()) Text(tr("아직 보낸 연락이 없어요."), style = KrdsText.meta)
             list.forEach { m -> MessageRow(m, true) { app.push(Route.SchoolMessage(m.id)) } }
         }
     }
@@ -521,10 +524,10 @@ private fun FileChips(files: List<SchoolFile>) {
     val scope = rememberCoroutineScope()
     files.forEach { f ->
         Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).border(1.dp, Krds.colors.borderStrong, RoundedCornerShape(8.dp))
-            .clickable(onClickLabel = "${f.name} 내려받기") {
+            .clickable(onClickLabel = tr("{name} 내려받기", "name" to f.name)) {
                 scope.launch {
                     runCatching { saveFile(f.name, app.services.site.bytes(f.url), null) }
-                        .onSuccess { app.toast("${f.name}을(를) 저장했어요.") }
+                        .onSuccess { app.toast(tr("{name}을(를) 저장했어요.", "name" to f.name)) }
                         .onFailure { app.toast(messageOf(it)) }
                 }
             }.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -550,7 +553,7 @@ private fun FilePickerRow(state: FileAttach) {
         scope.launch {
             busy = true
             for (f in picked) {
-                if (state.files.size >= 5) { app.toast("파일은 5개까지 붙일 수 있어요."); break }
+                if (state.files.size >= 5) { app.toast(tr("파일은 5개까지 붙일 수 있어요.")); break }
                 runCatching { app.services.school.uploadFile(f) }.onSuccess { state.files += it }.onFailure { app.toast(messageOf(it)) }
             }
             busy = false
@@ -558,13 +561,13 @@ private fun FilePickerRow(state: FileAttach) {
     }
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Row2 {
-            SecondaryButton(if (busy) "올리고 있어요" else "파일 추가", pick, enabled = !busy, icon = Icons.Filled.AttachFile)
-            Text("5개, 하나에 20MB까지", style = KrdsText.meta)
+            SecondaryButton(if (busy) tr("올리고 있어요") else tr("파일 추가"), pick, enabled = !busy, icon = Icons.Filled.AttachFile)
+            Text(tr("5개, 하나에 20MB까지"), style = KrdsText.meta)
         }
         state.files.toList().forEach { f ->
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("📎 ${f.name}", style = KrdsText.body, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                IconButton(onClick = { state.files.remove(f) }) { Icon(Icons.Filled.Close, "${f.name} 빼기") }
+                IconButton(onClick = { state.files.remove(f) }) { Icon(Icons.Filled.Close, tr("{name} 빼기", "name" to f.name)) }
             }
         }
     }
@@ -574,7 +577,7 @@ private fun FilePickerRow(state: FileAttach) {
 fun SchoolMessageScreen(id: Int) {
     val app = LocalApp.current
     val scope = rememberCoroutineScope()
-    ScreenScaffold("연락") {
+    ScreenScaffold(tr("연락")) {
         Loaded(id, { app.services.school.message(id) }) { m: MessageDetail, _ ->
             var reply by remember { mutableStateOf("") }
             val files = remember { FileAttach() }
@@ -582,29 +585,29 @@ fun SchoolMessageScreen(id: Int) {
             Scroll {
                 Text(m.summary.title, style = KrdsText.pageTitle)
                 Text("${teacherLabel(m.summary.senderName)} · ${time(m.summary.createdAt)}", style = KrdsText.meta)
-                Text("받는 사람: ${m.summary.audience}", style = KrdsText.meta)
+                Text(tr("받는 사람: {who}", "who" to m.summary.audience), style = KrdsText.meta)
                 Hairline()
                 if (m.body.isNotBlank()) Text(m.body, style = KrdsText.body)
                 FileChips(m.files)
                 val readers = m.readers
                 if (readers != null) {
                     KrdsCard {
-                        Text("읽음 ${readers.size}명", style = KrdsText.cardTitle)
-                        Text(if (readers.isEmpty()) "아직 읽은 사람이 없어요." else readers.joinToString(", "), style = KrdsText.body)
-                        if (m.unread.isNotEmpty()) Text("안 읽음: ${m.unread.joinToString(", ")}", style = KrdsText.meta)
-                        if (m.summary.byClass) Text("학급·학년으로 보낸 연락은 학생이 열어본 뒤에 읽음 명단에 들어가요.", style = KrdsText.meta)
+                        Text(tr("읽음 {n}명", "n" to readers.size), style = KrdsText.cardTitle)
+                        Text(if (readers.isEmpty()) tr("아직 읽은 사람이 없어요.") else readers.joinToString(", "), style = KrdsText.body)
+                        if (m.unread.isNotEmpty()) Text(tr("안 읽음: {list}", "list" to m.unread.joinToString(", ")), style = KrdsText.meta)
+                        if (m.summary.byClass) Text(tr("학급·학년으로 보낸 연락은 학생이 열어본 뒤에 읽음 명단에 들어가요."), style = KrdsText.meta)
                     }
                 } else if (m.summary.allowReply) {
-                    if (m.threadId != null) SecondaryButton("답장한 대화 보기", { app.push(Route.SchoolThread(m.threadId!!)) }, Modifier.fillMaxWidth())
+                    if (m.threadId != null) SecondaryButton(tr("답장한 대화 보기"), { app.push(Route.SchoolThread(m.threadId!!)) }, Modifier.fillMaxWidth())
                     else {
-                        Text("답장 (${m.summary.senderName} 선생님에게만 보여요)", style = KrdsText.cardTitle)
-                        Field("답장", reply, { reply = it }, 5000, lines = 3)
+                        Text(tr("답장 ({name} 선생님에게만 보여요)", "name" to m.summary.senderName), style = KrdsText.cardTitle)
+                        Field(tr("답장"), reply, { reply = it }, 5000, lines = 3)
                         FilePickerRow(files)
-                        PrimaryButton("보내기", {
+                        PrimaryButton(tr("보내기"), {
                             busy = true
                             scope.launch {
                                 runCatching { app.services.school.reply(id, reply.trim(), files.ids) }
-                                    .onSuccess { app.toast("답장을 보냈어요."); app.pop(); app.push(Route.SchoolThread(it)) }
+                                    .onSuccess { app.toast(tr("답장을 보냈어요.")); app.pop(); app.push(Route.SchoolThread(it)) }
                                     .onFailure { app.toast(messageOf(it)) }
                                 busy = false
                             }
@@ -621,7 +624,7 @@ fun SchoolMessageScreen(id: Int) {
 fun SchoolComposeScreen() {
     val app = LocalApp.current
     val scope = rememberCoroutineScope()
-    ScreenScaffold("새 연락") {
+    ScreenScaffold(tr("새 연락")) {
         Loaded(Unit, { app.services.school.classes() to app.services.school.groups() }) { (classes, groups), _ ->
             val grades = remember { mutableStateListOf<Int>() }
             val pickedClasses = remember { mutableStateListOf<String>() }
@@ -633,37 +636,37 @@ fun SchoolComposeScreen() {
             var busy by remember { mutableStateOf(false) }
             val files = remember { FileAttach() }
             Scroll {
-                Text("받는 사람", style = KrdsText.sectionTitle)
+                Text(tr("받는 사람"), style = KrdsText.sectionTitle)
                 val gradeList = classes.map { it.grade }.distinct()
                 if (gradeList.isNotEmpty()) FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    gradeList.forEach { g -> KrdsChip("${g}학년 전체", g in grades) { if (g in grades) grades.remove(g) else grades.add(g) } }
+                    gradeList.forEach { g -> KrdsChip(tr("{g}학년 전체", "g" to g), g in grades) { if (g in grades) grades.remove(g) else grades.add(g) } }
                 }
                 if (classes.isNotEmpty()) FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     classes.forEach { c -> KrdsChip(c.key, c.key in pickedClasses) { if (c.key in pickedClasses) pickedClasses.remove(c.key) else pickedClasses.add(c.key) } }
-                } else Text("시간표가 올라오면 학급을 고를 수 있어요. 지금은 학번을 직접 적어주세요.", style = KrdsText.meta)
+                } else Text(tr("시간표가 올라오면 학급을 고를 수 있어요. 지금은 학번을 직접 적어주세요."), style = KrdsText.meta)
                 if (groups.groups.isNotEmpty()) FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     groups.groups.forEach { g ->
-                        KrdsChip("${g.name} (${g.memberCount}명)", g.id in pickedGroups) { if (g.id in pickedGroups) pickedGroups.remove(g.id) else pickedGroups.add(g.id) }
+                        KrdsChip("${g.name} (${tr("{n}명", "n" to g.memberCount)})", g.id in pickedGroups) { if (g.id in pickedGroups) pickedGroups.remove(g.id) else pickedGroups.add(g.id) }
                     }
                 }
-                Field("학번 직접 입력 (띄어쓰기로 구분)", hakbuns, { hakbuns = it }, 2000, placeholder = "예: 20315 20301")
+                Field(tr("학번 직접 입력 (띄어쓰기로 구분)"), hakbuns, { hakbuns = it }, 2000, placeholder = tr("예: 20315 20301"))
                 Hairline()
-                Field("제목", title, { title = it }, 120)
-                Field("내용", body, { body = it }, 5000, lines = 6)
+                Field(tr("제목"), title, { title = it }, 120)
+                Field(tr("내용"), body, { body = it }, 5000, lines = 6)
                 FilePickerRow(files)
                 Row(Modifier.fillMaxWidth().toggleable(allowReply, role = Role.Switch) { allowReply = it }, verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
-                        Text("학생 답장 받기", style = KrdsText.body)
-                        Text("답장은 선생님에게만 보여요.", style = KrdsText.meta)
+                        Text(tr("학생 답장 받기"), style = KrdsText.body)
+                        Text(tr("답장은 선생님에게만 보여요."), style = KrdsText.meta)
                     }
                     Switch(allowReply, null, colors = SwitchDefaults.colors(checkedTrackColor = Krds.colors.primary))
                 }
                 val audience = Audience(grades.toList(), pickedClasses.toList(), pickedGroups.toList(), hakbuns)
-                PrimaryButton("보내기", {
+                PrimaryButton(tr("보내기"), {
                     busy = true
                     scope.launch {
                         runCatching { app.services.school.sendMessage(title.trim(), body.trim(), audience, files.ids, allowReply) }
-                            .onSuccess { app.toast("연락을 보냈어요."); app.contentChanged(); app.pop() }
+                            .onSuccess { app.toast(tr("연락을 보냈어요.")); app.contentChanged(); app.pop() }
                             .onFailure { app.toast(messageOf(it)) }
                         busy = false
                     }
@@ -680,15 +683,15 @@ private fun ThreadsTab(me: SchoolMe) {
     val app = LocalApp.current
     Loaded(Unit, { app.services.school.threads() }) { list: List<ThreadSummary>, _ ->
         Scroll {
-            Text(if (me.role == SchoolRole.TEACHER) "학생 답장과 질문 답변이 1:1 대화로 모여요." else "선생님과 나눈 1:1 대화예요.", style = KrdsText.meta)
-            if (list.isEmpty()) Text("아직 대화가 없어요.", style = KrdsText.meta)
+            Text(if (me.role == SchoolRole.TEACHER) tr("학생 답장과 질문 답변이 1:1 대화로 모여요.") else tr("선생님과 나눈 1:1 대화예요."), style = KrdsText.meta)
+            if (list.isEmpty()) Text(tr("아직 대화가 없어요."), style = KrdsText.meta)
             list.forEach { t ->
                 KrdsCard(onClick = { app.push(Route.SchoolThread(t.id)) }) {
                     Row2 {
-                        if (t.unread) Badge("새 글", BadgeTone.DANGER)
+                        if (t.unread) Badge(tr("새 글"), BadgeTone.DANGER)
                         Text(t.subject, style = KrdsText.cardTitle, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
-                    val who = if (me.role == SchoolRole.TEACHER) "${t.studentKey} 학생" else teacherLabel(t.teacherName)
+                    val who = if (me.role == SchoolRole.TEACHER) tr("{who} 학생", "who" to t.studentKey) else teacherLabel(t.teacherName)
                     Text("$who · ${t.lastPost}", style = KrdsText.meta, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
@@ -700,7 +703,7 @@ private fun ThreadsTab(me: SchoolMe) {
 fun SchoolThreadScreen(id: Int) {
     val app = LocalApp.current
     val scope = rememberCoroutineScope()
-    ScreenScaffold("대화") {
+    ScreenScaffold(tr("대화")) {
         Loaded(id, { app.services.school.thread(id) }) { t: ThreadDetail, reload ->
             var text by remember { mutableStateOf("") }
             var busy by remember { mutableStateOf(false) }
@@ -716,16 +719,16 @@ fun SchoolThreadScreen(id: Int) {
                             verticalArrangement = Arrangement.spacedBy(4.dp),
                         ) {
                             val author = if (p.authorName == t.summary.teacherName) teacherLabel(p.authorName) else p.authorName
-                            Text("${if (p.mine) "나" else author} · ${time(p.createdAt)}", style = KrdsText.label)
+                            Text("${if (p.mine) tr("나") else author} · ${time(p.createdAt)}", style = KrdsText.label)
                             if (p.body.isNotBlank()) Text(p.body, style = KrdsText.body)
                             FileChips(p.files)
                         }
                     }
                 }
                 Hairline()
-                Field("보내기", text, { text = it }, 5000, lines = 3)
+                Field(tr("보내기"), text, { text = it }, 5000, lines = 3)
                 FilePickerRow(files)
-                PrimaryButton("보내기", {
+                PrimaryButton(tr("보내기"), {
                     busy = true
                     scope.launch {
                         runCatching { app.services.school.post(id, text.trim(), files.ids) }
@@ -745,10 +748,10 @@ fun SchoolThreadScreen(id: Int) {
 private fun VisitRow(v: Visit, teacher: Boolean, onClick: () -> Unit) {
     KrdsCard(onClick = onClick) {
         Row2 {
-            Badge(v.statusLabel, when (v.status) { "pending" -> BadgeTone.INFO; "accepted" -> BadgeTone.SUCCESS; "answered" -> BadgeTone.WARNING; else -> BadgeTone.NEUTRAL })
+            Badge(tr(VISIT_STATUS[v.status] ?: v.status), when (v.status) { "pending" -> BadgeTone.INFO; "accepted" -> BadgeTone.SUCCESS; "answered" -> BadgeTone.WARNING; else -> BadgeTone.NEUTRAL })
             Text(v.purpose, style = KrdsText.cardTitle, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
-        val who = if (teacher) "${v.studentKey}${if (v.studentName.isNotBlank()) " ${v.studentName}" else ""} 학생" else teacherLabel(v.teacherName)
+        val who = if (teacher) tr("{who} 학생", "who" to v.studentKey + if (v.studentName.isNotBlank()) " ${v.studentName}" else "") else teacherLabel(v.teacherName)
         Text("$who · ${time(v.createdAt)}", style = KrdsText.meta)
     }
 }
@@ -766,20 +769,20 @@ private fun TeacherSearch(placeholder: String, exclude: String = "", action: Str
     Row(Modifier.height(IntrinsicSize.Min), verticalAlignment = Alignment.CenterVertically) {
         OutlinedTextField(
             value = q, onValueChange = { if (it.length <= 50) q = it }, singleLine = true,
-            placeholder = { Text(placeholder.ifBlank { "담당 업무·부서·이름" }) },
-            modifier = Modifier.weight(1f).semantics { contentDescription = "선생님 검색: 담당 업무·부서·이름" },
+            placeholder = { Text(placeholder.ifBlank { tr("담당 업무·부서·이름") }) },
+            modifier = Modifier.weight(1f).semantics { contentDescription = tr("선생님 검색: 담당 업무·부서·이름") },
         )
-        PrimaryButton("검색", { search() }, Modifier.padding(start = 8.dp).fillMaxHeight())
+        PrimaryButton(tr("검색"), { search() }, Modifier.padding(start = 8.dp).fillMaxHeight())
     }
     results?.let { list ->
-        if (list.isEmpty()) Text(if (q.isBlank()) "선생님 명단이 아직 없어요." else "찾는 선생님이 없어요. 다른 말로 검색해보세요.", style = KrdsText.meta)
+        if (list.isEmpty()) Text(if (q.isBlank()) tr("선생님 명단이 아직 없어요.") else tr("찾는 선생님이 없어요. 다른 말로 검색해보세요."), style = KrdsText.meta)
         list.take(30).forEach { t ->
             KrdsCard {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(teacherLabel(t.name), style = KrdsText.cardTitle)
                         Text(listOf(t.department, t.location).filter { it.isNotBlank() }.joinToString(" · "), style = KrdsText.meta)
-                        if (t.duties.isNotEmpty()) Text("담당: ${t.duties.joinToString(", ")}", style = KrdsText.meta)
+                        if (t.duties.isNotEmpty()) Text(tr("담당: {list}", "list" to t.duties.joinToString(", ")), style = KrdsText.meta)
                     }
                     PrimaryButton(action, { onPick(t) })
                 }
@@ -793,10 +796,10 @@ private fun AskTab() {
     val app = LocalApp.current
     Loaded(Unit, { app.services.school.visits() }) { mine, _ ->
         Scroll {
-            Text("담당 업무로 선생님을 찾아 질문하고, 찾아갈 시간을 1~3지망까지 골라요.", style = KrdsText.meta)
-            TeacherSearch("담당 업무·부서·이름 (예: 방과후)", action = "질문하기") { app.push(Route.SchoolAsk(it.teacherId)) }
-            Text("내 질문", style = KrdsText.sectionTitle, modifier = Modifier.padding(top = 8.dp))
-            if (mine.isEmpty()) Text("아직 질문이 없어요.", style = KrdsText.meta)
+            Text(tr("담당 업무로 선생님을 찾아 질문하고, 찾아갈 시간을 1~3지망까지 골라요."), style = KrdsText.meta)
+            TeacherSearch(tr("담당 업무·부서·이름 (예: 방과후)"), action = tr("질문하기")) { app.push(Route.SchoolAsk(it.teacherId)) }
+            Text(tr("내 질문"), style = KrdsText.sectionTitle, modifier = Modifier.padding(top = 8.dp))
+            if (mine.isEmpty()) Text(tr("아직 질문이 없어요."), style = KrdsText.meta)
             mine.forEach { v -> VisitRow(v, false) { app.push(Route.SchoolVisit(v.id)) } }
         }
     }
@@ -806,7 +809,7 @@ private fun AskTab() {
 fun SchoolAskScreen(teacherId: String) {
     val app = LocalApp.current
     val scope = rememberCoroutineScope()
-    ScreenScaffold("선생님께 질문") {
+    ScreenScaffold(tr("선생님께 질문")) {
         Loaded(teacherId, { app.services.school.visitOptions(teacherId) }) { first: VisitOptions, _ ->
             var purpose by remember { mutableStateOf("") }
             var name by remember { mutableStateOf("") }
@@ -820,16 +823,16 @@ fun SchoolAskScreen(teacherId: String) {
                     Text(teacherLabel(first.teacher.name), style = KrdsText.cardTitle)
                     Text(listOf(first.teacher.department, first.teacher.location).filter { it.isNotBlank() }.joinToString(" · "), style = KrdsText.meta)
                 }
-                Field("용건", purpose, { purpose = it }, 500, lines = 3, placeholder = "용건(필수)")
-                Field("이름 (선택)", name, { name = it }, 30, placeholder = "내가 누구인지(비워두면 학번만 보여요)")
-                Text("찾아갈 날짜와 시간", style = KrdsText.sectionTitle)
-                Text("1·2지망은 꼭 골라주세요. 선생님 수업이 없는 시간만 보여요.", style = KrdsText.meta)
+                Field(tr("용건"), purpose, { purpose = it }, 500, lines = 3, placeholder = tr("용건(필수)"))
+                Field(tr("이름 (선택)"), name, { name = it }, 30, placeholder = tr("내가 누구인지(비워두면 학번만 보여요)"))
+                Text(tr("찾아갈 날짜와 시간"), style = KrdsText.sectionTitle)
+                Text(tr("1·2지망은 꼭 골라주세요. 선생님 수업이 없는 시간만 보여요."), style = KrdsText.meta)
                 (0..2).forEach { i -> SlotPicker(i, teacherId, first.dates, dates[i], periods[i], { dates[i] = it; periods[i] = "" }, { periods[i] = it }) }
-                PrimaryButton("제출", {
+                PrimaryButton(tr("제출"), {
                     busy = true
                     scope.launch {
                         runCatching { app.services.school.askVisit(teacherId, purpose.trim(), name.trim(), (0..2).map { dates[it] to periods[it] }) }
-                            .onSuccess { app.toast("질문을 보냈어요. 선생님이 답하면 알려드려요."); app.contentChanged(); app.pop(); app.push(Route.SchoolVisit(it.id)) }
+                            .onSuccess { app.toast(tr("질문을 보냈어요. 선생님이 답하면 알려드려요.")); app.contentChanged(); app.pop(); app.push(Route.SchoolVisit(it.id)) }
                             .onFailure { app.toast(messageOf(it)) }
                         busy = false
                     }
@@ -854,21 +857,21 @@ private fun SlotPicker(
         else runCatching { app.services.school.visitOptions(teacherId, date).options.map { it.period to it.label } }.getOrDefault(emptyList())
     }
     KrdsCard {
-        Text("${index + 1}지망${if (index == 2) " (선택)" else ""}", style = KrdsText.cardTitle)
+        Text(tr("{n}지망", "n" to index + 1) + if (index == 2) " " + tr("(선택)") else "", style = KrdsText.cardTitle)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            KrdsPickerBox("날짜", if (date.isBlank()) "고르기" else visitDayText(date, today), Modifier.weight(1f)) { calendar = true }
+            KrdsPickerBox(tr("날짜"), if (date.isBlank()) tr("고르기") else visitDayText(date, today), Modifier.weight(1f)) { calendar = true }
             val o = options
             Box(Modifier.weight(1f)) {
                 when {
-                    date.isBlank() -> KrdsPickerBox("시간", "날짜 먼저") { calendar = true }
-                    o == null -> KrdsPickerBox("시간", "불러오는 중") {}
-                    o.isEmpty() -> KrdsPickerBox("시간", "고를 시간 없음") { calendar = true }
-                    else -> KrdsDropdown("시간", listOf("" to "고르기") + o, period, onPeriod)
+                    date.isBlank() -> KrdsPickerBox(tr("시간"), tr("날짜 먼저")) { calendar = true }
+                    o == null -> KrdsPickerBox(tr("시간"), tr("불러오는 중")) {}
+                    o.isEmpty() -> KrdsPickerBox(tr("시간"), tr("고를 시간 없음")) { calendar = true }
+                    else -> KrdsDropdown(tr("시간"), listOf("" to tr("고르기")) + o, period, onPeriod)
                 }
             }
         }
         if (index == 2 && date.isNotBlank()) {
-            TextButton(onClick = { onDate("") }) { Text("3지망 지우기", color = Krds.colors.primaryText) }
+            TextButton(onClick = { onDate("") }) { Text(tr("3지망 지우기"), color = Krds.colors.primaryText) }
         }
     }
     if (calendar) VisitCalendar(allowed.toSet(), date, today, onDismiss = { calendar = false }) { onDate(it); calendar = false }
@@ -880,12 +883,12 @@ private fun VisitCalendar(allowed: Set<String>, selected: String, today: LocalDa
     val monday = today.minus(DatePeriod(days = today.dayOfWeek.ordinal))
     androidx.compose.material3.AlertDialog(
         onDismissRequest = onDismiss,
-        confirmButton = { TextButton(onClick = onDismiss) { Text("닫기", color = Krds.colors.primaryText) } },
-        title = { Text("날짜 고르기", style = KrdsText.sectionTitle) },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(tr("닫기"), color = Krds.colors.primaryText) } },
+        title = { Text(tr("날짜 고르기"), style = KrdsText.sectionTitle) },
         containerColor = Krds.colors.surface,
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Row { listOf("월", "화", "수", "목", "금").forEach { Text(it, style = KrdsText.label, textAlign = TextAlign.Center, modifier = Modifier.weight(1f)) } }
+                Row { listOf(tr("월"), tr("화"), tr("수"), tr("목"), tr("금")).forEach { Text(it, style = KrdsText.label, textAlign = TextAlign.Center, modifier = Modifier.weight(1f)) } }
                 (0..3).forEach { w ->
                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         (0..4).forEach { i ->
@@ -898,8 +901,8 @@ private fun VisitCalendar(allowed: Set<String>, selected: String, today: LocalDa
                                 Modifier.weight(1f).height(44.dp).clip(RoundedCornerShape(10.dp))
                                     .background(if (picked) Krds.colors.primary else Color.Transparent)
                                     .then(if (isToday && !picked) Modifier.border(1.5.dp, Krds.colors.primary, RoundedCornerShape(10.dp)) else Modifier)
-                                    .then(if (ok) Modifier.clickable(onClickLabel = "고르기") { onPick(iso) } else Modifier)
-                                    .semantics { contentDescription = "${d.monthNumber}월 ${d.dayOfMonth}일" + if (ok) "" else ", 고를 수 없어요" },
+                                    .then(if (ok) Modifier.clickable(onClickLabel = tr("고르기")) { onPick(iso) } else Modifier)
+                                    .semantics { contentDescription = "${d.monthNumber}/${d.dayOfMonth}" + if (ok) "" else ", " + tr("고를 수 없어요") },
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Text(
@@ -930,11 +933,11 @@ private fun VisitsTab() {
     var status by remember { mutableStateOf("pending") }
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.horizontalScroll(rememberScrollState()).padding(start = 16.dp, end = 16.dp, top = 12.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            listOf("pending" to "답을 기다리는 질문", "accepted" to "방문 수락", "answered" to "답변함", "" to "전체").forEach { (k, l) -> KrdsChip(l, k == status) { status = k } }
+            listOf("pending" to tr("답을 기다리는 질문"), "accepted" to tr("방문 수락"), "answered" to tr("답변함"), "" to tr("전체")).forEach { (k, l) -> KrdsChip(l, k == status) { status = k } }
         }
         Loaded(status, { app.services.school.visits(status.ifBlank { null }) }) { list, _ ->
             Scroll {
-                if (list.isEmpty()) Text("질문이 없어요.", style = KrdsText.meta)
+                if (list.isEmpty()) Text(tr("질문이 없어요."), style = KrdsText.meta)
                 list.forEach { v -> VisitRow(v, true) { app.push(Route.SchoolVisit(v.id)) } }
             }
         }
@@ -945,7 +948,7 @@ private fun VisitsTab() {
 fun SchoolVisitScreen(id: Int) {
     val app = LocalApp.current
     val scope = rememberCoroutineScope()
-    ScreenScaffold("질문") {
+    ScreenScaffold(tr("질문")) {
         Loaded(id, { app.services.school.visit(id) to app.services.school.me() }) { (v, me), reload ->
             val teacher = me.role == SchoolRole.TEACHER
             var answer by remember { mutableStateOf("") }
@@ -962,58 +965,58 @@ fun SchoolVisitScreen(id: Int) {
             }
             Scroll {
                 KrdsCard {
-                    Row2 { Badge(v.statusLabel, if (v.status == "accepted") BadgeTone.SUCCESS else BadgeTone.INFO) }
-                    Text(if (teacher) "${v.studentKey}${if (v.studentName.isNotBlank()) " ${v.studentName}" else ""} 학생 · ${time(v.createdAt)}"
+                    Row2 { Badge(tr(VISIT_STATUS[v.status] ?: v.status), if (v.status == "accepted") BadgeTone.SUCCESS else BadgeTone.INFO) }
+                    Text(if (teacher) tr("{who} 학생", "who" to v.studentKey + if (v.studentName.isNotBlank()) " ${v.studentName}" else "") + " · ${time(v.createdAt)}"
                     else "${teacherLabel(v.teacherName)}${if (v.location.isNotBlank()) " · ${v.location}" else ""}", style = KrdsText.meta)
                     Text(v.purpose, style = KrdsText.body)
                     v.slots.forEachIndexed { i, s ->
-                        Text("${i + 1}지망 · ${s.label}${if (v.acceptedIndex == i) " ✓ 수락" else ""}",
+                        Text("${tr("{n}지망", "n" to i + 1)} · ${s.label}${if (v.acceptedIndex == i) " ✓ " + tr("수락") else ""}",
                             style = KrdsText.body.copy(fontWeight = if (v.acceptedIndex == i) FontWeight.Bold else FontWeight.Normal))
                     }
                     if (v.teacherNote.isNotBlank()) InfoBox(v.teacherNote)
                     v.forwards.forEach { h ->
-                        Text("↪ ${h.fromName} 선생님이 ${h.toName} 선생님께 전달했어요${if (teacher && h.note.isNotBlank()) " · ${h.note}" else ""}${if (teacher && !h.notified) " (학생에게 알리지 않음)" else ""}", style = KrdsText.meta)
+                        Text("↪ " + tr("{from} 선생님이 {to} 선생님께 전달했어요", "from" to h.fromName, "to" to h.toName) + (if (teacher && h.note.isNotBlank()) " · ${h.note}" else "") + (if (teacher && !h.notified) " " + tr("(학생에게 알리지 않음)") else ""), style = KrdsText.meta)
                     }
-                    v.threadId?.let { tid -> SecondaryButton("답변 대화 보기", { app.push(Route.SchoolThread(tid)) }) }
+                    v.threadId?.let { tid -> SecondaryButton(tr("답변 대화 보기"), { app.push(Route.SchoolThread(tid)) }) }
                 }
                 if (!teacher && v.status != "cancelled") {
-                    if (!confirmCancel) SecondaryButton("질문 취소", { confirmCancel = true }, danger = true)
+                    if (!confirmCancel) SecondaryButton(tr("질문 취소"), { confirmCancel = true }, danger = true)
                     else KrdsCard {
-                        Text("질문을 취소할까요?", style = KrdsText.cardTitle)
+                        Text(tr("질문을 취소할까요?"), style = KrdsText.cardTitle)
                         Row2 {
-                            SecondaryButton("취소하기", { run("질문을 취소했어요.", { app.services.school.cancelVisit(id) }) }, danger = true, enabled = !busy)
-                            SecondaryButton("그대로 두기", { confirmCancel = false })
+                            SecondaryButton(tr("취소하기"), { run(tr("질문을 취소했어요."), { app.services.school.cancelVisit(id) }) }, danger = true, enabled = !busy)
+                            SecondaryButton(tr("그대로 두기"), { confirmCancel = false })
                         }
                     }
                 }
                 if (teacher && v.status != "cancelled") {
                     KrdsCard {
-                        Text("바로 답변", style = KrdsText.cardTitle)
-                        Text("간단한 질문이면 찾아오지 않아도 되게 바로 답해요.", style = KrdsText.meta)
-                        Field("답변", answer, { answer = it }, 5000, lines = 3)
-                        PrimaryButton("보내기", { run("답변을 보냈어요.", { app.services.school.answerVisit(id, answer.trim()) }) }, enabled = !busy && answer.isNotBlank())
+                        Text(tr("바로 답변"), style = KrdsText.cardTitle)
+                        Text(tr("간단한 질문이면 찾아오지 않아도 되게 바로 답해요."), style = KrdsText.meta)
+                        Field(tr("답변"), answer, { answer = it }, 5000, lines = 3)
+                        PrimaryButton(tr("보내기"), { run(tr("답변을 보냈어요."), { app.services.school.answerVisit(id, answer.trim()) }) }, enabled = !busy && answer.isNotBlank())
                     }
                     KrdsCard {
-                        Text("방문 수락", style = KrdsText.cardTitle)
+                        Text(tr("방문 수락"), style = KrdsText.cardTitle)
                         v.slots.forEachIndexed { i, s ->
                             Row(Modifier.fillMaxWidth().selectable(accIndex == i, role = Role.RadioButton) { accIndex = i }.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                                 RadioButton(accIndex == i, null, colors = RadioButtonDefaults.colors(selectedColor = Krds.colors.primary))
-                                Text("${i + 1}지망 · ${s.label}", style = KrdsText.body, modifier = Modifier.padding(start = 8.dp))
+                                Text("${tr("{n}지망", "n" to i + 1)} · ${s.label}", style = KrdsText.body, modifier = Modifier.padding(start = 8.dp))
                             }
                         }
-                        Field("전할 말 (선택)", accNote, { accNote = it }, 500, placeholder = "예: 교무실 앞에서 기다려주세요")
-                        PrimaryButton("수락", { accIndex?.let { idx -> run("수락했어요. 학생에게 알렸어요.", { app.services.school.acceptVisit(id, idx, accNote.trim()) }) } },
+                        Field(tr("전할 말 (선택)"), accNote, { accNote = it }, 500, placeholder = tr("예: 교무실 앞에서 기다려주세요"))
+                        PrimaryButton(tr("수락"), { accIndex?.let { idx -> run(tr("수락했어요. 학생에게 알렸어요."), { app.services.school.acceptVisit(id, idx, accNote.trim()) }) } },
                             enabled = !busy && accIndex != null)
                     }
                     KrdsCard {
-                        Text("담당자에게 전달", style = KrdsText.cardTitle)
-                        Field("전할 말 (선택)", fwNote, { fwNote = it }, 300)
+                        Text(tr("담당자에게 전달"), style = KrdsText.cardTitle)
+                        Field(tr("전할 말 (선택)"), fwNote, { fwNote = it }, 300)
                         Row(Modifier.fillMaxWidth().toggleable(fwNotify, role = Role.Checkbox) { fwNotify = it }, verticalAlignment = Alignment.CenterVertically) {
                             Checkbox(fwNotify, null, colors = CheckboxDefaults.colors(checkedColor = Krds.colors.primary))
-                            Text("학생에게도 전달 사실 알리기", style = KrdsText.body, modifier = Modifier.padding(start = 8.dp))
+                            Text(tr("학생에게도 전달 사실 알리기"), style = KrdsText.body, modifier = Modifier.padding(start = 8.dp))
                         }
-                        TeacherSearch("담당 업무·이름", exclude = me.userId, action = "전달") { t ->
-                            run("${t.name} 선생님께 전달했어요.", { app.services.school.forwardVisit(id, t.teacherId, fwNote.trim(), fwNotify) }, after = { app.pop() })
+                        TeacherSearch(tr("담당 업무·이름"), exclude = me.userId, action = tr("전달")) { t ->
+                            run(tr("{name} 선생님께 전달했어요.", "name" to t.name), { app.services.school.forwardVisit(id, t.teacherId, fwNote.trim(), fwNotify) }, after = { app.pop() })
                         }
                     }
                 }
@@ -1029,11 +1032,11 @@ private fun GroupsTab() {
     val app = LocalApp.current
     Loaded(Unit, { app.services.school.groups() }) { list: GroupList, _ ->
         Scroll {
-            PrimaryButton("새 명단", { app.push(Route.SchoolGroup(0)) }, Modifier.fillMaxWidth(), icon = Icons.Filled.Add)
-            Text("공용 소속", style = KrdsText.sectionTitle)
-            if (!list.canManageShared) Text("공용 소속은 관리자와 권한 받은 선생님이 고쳐요.", style = KrdsText.meta)
+            PrimaryButton(tr("새 명단"), { app.push(Route.SchoolGroup(0)) }, Modifier.fillMaxWidth(), icon = Icons.Filled.Add)
+            Text(tr("공용 소속"), style = KrdsText.sectionTitle)
+            if (!list.canManageShared) Text(tr("공용 소속은 관리자와 권한 받은 선생님이 고쳐요."), style = KrdsText.meta)
             GroupRows(list.groups.filter { !it.isPrivate })
-            Text("내 명단 (나에게만 보여요)", style = KrdsText.sectionTitle)
+            Text(tr("내 명단 (나에게만 보여요)"), style = KrdsText.sectionTitle)
             GroupRows(list.groups.filter { it.isPrivate })
         }
     }
@@ -1042,14 +1045,14 @@ private fun GroupsTab() {
 @Composable
 private fun GroupRows(groups: List<SchoolGroup>) {
     val app = LocalApp.current
-    if (groups.isEmpty()) Text("없어요.", style = KrdsText.meta)
+    if (groups.isEmpty()) Text(tr("없어요."), style = KrdsText.meta)
     groups.forEach { g ->
         KrdsCard(onClick = if (g.canEdit) ({ app.push(Route.SchoolGroup(g.id)) }) else null) {
             Row2 {
-                Badge(if (g.isPrivate) "내 명단" else g.category, BadgeTone.NEUTRAL)
+                Badge(if (g.isPrivate) tr("내 명단") else tr(g.category), BadgeTone.NEUTRAL)
                 Text(g.name, style = KrdsText.cardTitle)
             }
-            Text("${g.memberCount}명${if (g.canEdit) " · 눌러서 수정" else ""}", style = KrdsText.meta)
+            Text(tr("{n}명", "n" to g.memberCount) + if (g.canEdit) " · " + tr("눌러서 수정") else "", style = KrdsText.meta)
         }
     }
 }
@@ -1058,7 +1061,7 @@ private fun GroupRows(groups: List<SchoolGroup>) {
 fun SchoolGroupScreen(id: Int) {
     val app = LocalApp.current
     val scope = rememberCoroutineScope()
-    ScreenScaffold(if (id == 0) "새 명단" else "명단 수정") {
+    ScreenScaffold(if (id == 0) tr("새 명단") else tr("명단 수정")) {
         Loaded(id, { app.services.school.groups() to (if (id == 0) null else app.services.school.group(id)) }) { (list, g), _ ->
             var kind by remember { mutableStateOf(g?.kind ?: "private") }
             var category by remember { mutableStateOf(g?.category ?: "기타") }
@@ -1068,37 +1071,37 @@ fun SchoolGroupScreen(id: Int) {
             var busy by remember { mutableStateOf(false) }
             Scroll {
                 if (id == 0 && list.canManageShared) {
-                    Text("종류", style = KrdsText.cardTitle)
+                    Text(tr("종류"), style = KrdsText.cardTitle)
                     Row2 {
-                        KrdsChip("나만 보는 명단", kind == "private") { kind = "private" }
-                        KrdsChip("공용 소속", kind == "shared") { kind = "shared" }
+                        KrdsChip(tr("나만 보는 명단"), kind == "private") { kind = "private" }
+                        KrdsChip(tr("공용 소속"), kind == "shared") { kind = "shared" }
                     }
                 }
-                if (kind == "shared") KrdsDropdown("분류", list.categories.map { it to it }, category, { category = it })
-                Field("이름", name, { name = it }, 60, placeholder = "예: 방송부, 2학기 보충반")
-                Field("학번 (한 줄에 한 명, 뒤에 역할을 적을 수 있어요: 20315 부장)", members, { members = it }, 20000, lines = 8)
-                PrimaryButton("저장", {
+                if (kind == "shared") KrdsDropdown(tr("분류"), list.categories.map { it to tr(it) }, category, { category = it })
+                Field(tr("이름"), name, { name = it }, 60, placeholder = tr("예: 방송부, 2학기 보충반"))
+                Field(tr("학번 (한 줄에 한 명, 뒤에 역할을 적을 수 있어요: 20315 부장)"), members, { members = it }, 20000, lines = 8)
+                PrimaryButton(tr("저장"), {
                     busy = true
                     scope.launch {
                         runCatching { app.services.school.saveGroup(id, kind, category, name.trim(), members) }
-                            .onSuccess { app.toast("저장했어요."); app.contentChanged(); app.pop() }
+                            .onSuccess { app.toast(tr("저장했어요.")); app.contentChanged(); app.pop() }
                             .onFailure { app.toast(messageOf(it)) }
                         busy = false
                     }
                 }, Modifier.fillMaxWidth(), enabled = !busy && name.isNotBlank())
                 if (id != 0) {
-                    if (!confirmDelete) SecondaryButton("삭제", { confirmDelete = true }, Modifier.fillMaxWidth(), danger = true)
+                    if (!confirmDelete) SecondaryButton(tr("삭제"), { confirmDelete = true }, Modifier.fillMaxWidth(), danger = true)
                     else KrdsCard {
-                        Text("이 명단을 삭제할까요? 이미 보낸 연락은 그대로 남아요.", style = KrdsText.cardTitle)
+                        Text(tr("이 명단을 삭제할까요? 이미 보낸 연락은 그대로 남아요."), style = KrdsText.cardTitle)
                         Row2 {
-                            SecondaryButton("삭제", {
+                            SecondaryButton(tr("삭제"), {
                                 scope.launch {
                                     runCatching { app.services.school.deleteGroup(id) }
-                                        .onSuccess { app.toast("삭제했어요."); app.contentChanged(); app.pop() }
+                                        .onSuccess { app.toast(tr("삭제했어요.")); app.contentChanged(); app.pop() }
                                         .onFailure { app.toast(messageOf(it)) }
                                 }
                             }, danger = true)
-                            SecondaryButton("취소", { confirmDelete = false })
+                            SecondaryButton(tr("취소"), { confirmDelete = false })
                         }
                     }
                 }
@@ -1115,16 +1118,16 @@ private fun AlertsTab(me: SchoolMe) {
     val scope = rememberCoroutineScope()
     Loaded(Unit, { app.services.school.notifications() }) { list: List<SchoolNotification>, reload ->
         Scroll {
-            SecondaryButton("모두 읽음", { scope.launch { runCatching { app.services.school.markAllRead() }; reload() } })
-            if (list.isEmpty()) Text("아직 알림이 없어요.", style = KrdsText.meta)
+            SecondaryButton(tr("모두 읽음"), { scope.launch { runCatching { app.services.school.markAllRead() }; reload() } })
+            if (list.isEmpty()) Text(tr("아직 알림이 없어요."), style = KrdsText.meta)
             list.forEach { n ->
                 KrdsCard(onClick = {
                     // Opening an alert reads it (no need to press 모두 읽음).
                     if (!n.read) scope.launch { runCatching { app.services.school.markRead(n.id) }; reload() }
                     app.openSchoolTarget(n.target, me.role)
-                }, modifier = Modifier.semantics { contentDescription = "${if (n.read) "" else "새 알림, "}${n.title}, ${n.body}" }) {
+                }, modifier = Modifier.semantics { contentDescription = (if (n.read) "" else tr("새 알림") + ", ") + "${n.title}, ${n.body}" }) {
                     Row2 {
-                        if (!n.read) Badge("새 알림", BadgeTone.DANGER)
+                        if (!n.read) Badge(tr("새 알림"), BadgeTone.DANGER)
                         Text(n.title, style = KrdsText.cardTitle, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     }
                     if (n.body.isNotBlank()) Text(n.body, style = KrdsText.body, maxLines = 3, overflow = TextOverflow.Ellipsis)

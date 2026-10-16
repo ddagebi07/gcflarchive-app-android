@@ -1,5 +1,6 @@
 package kr.co.gcflarchive.student.school
 
+import kr.co.gcflarchive.student.ui.tr
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -71,10 +72,10 @@ fun TodayTimetableCard(
 internal fun TodayTimetableContent(w: TtWeek, hm: String, fullNames: Boolean, modifier: Modifier = Modifier, containerColor: Color? = null, onOpen: () -> Unit = {}) {
     val day = w.days.indexOfFirst { it.isToday }.takeIf { it >= 0 } ?: 0
     val isToday = w.days[day].isToday
-    val title = if (isToday) "오늘 시간표" else "${w.days[day].weekday}요일 시간표"
+    val title = if (isToday) tr("오늘 시간표") else tr("{day}요일 시간표", "day" to w.days[day].weekday)
     Column(
         modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(containerColor ?: Krds.colors.surface)
-            .clickable(onClickLabel = "학교생활 시간표 열기", onClick = onOpen).padding(16.dp),
+            .clickable(onClickLabel = tr("학교생활 시간표 열기"), onClick = onOpen).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -102,7 +103,7 @@ internal fun TodayTimetableContent(w: TtWeek, hm: String, fullNames: Boolean, mo
                         .background(if (current) Krds.colors.primaryTint else Krds.colors.surfaceRaised)
                         .then(if (current) Modifier.border(2.dp, Krds.colors.primary, RoundedCornerShape(12.dp)) else Modifier)
                         .then(if (c.changed && !current) Modifier.border(1.dp, Krds.colors.danger, RoundedCornerShape(12.dp)) else Modifier)
-                        .semantics { contentDescription = "${p.label} " + (if (c.empty) "수업 없음" else c.title) + (if (current) ", 지금" else "") }
+                        .semantics { contentDescription = "${p.label} " + (if (c.empty) tr("수업 없음") else c.title) + (if (current) ", " + tr("지금") else "") }
                         .padding(horizontal = 2.dp, vertical = 6.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(2.dp),

@@ -1,5 +1,7 @@
 package kr.co.gcflarchive.app.ui
 
+import kr.co.gcflarchive.core.i18n.I18n
+import kr.co.gcflarchive.student.school.SchoolActivity
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -139,8 +141,17 @@ class HomeFragment : Fragment() {
                 // 학생: '30512님, 반가워요!' / 교사: '이혜경 선생님, 안녕하세요!'
                 val teacher = (state as LoginState.LoggedIn).userType == "teacher"
                 val name = state.displayName.ifBlank { userId }
-                b.welcome.text = buildSpannedString {
-                    if (teacher) {
+                // 선생님 화면 언어 (설정 > 화면 언어): English → 'Hello, 이혜경!'
+                if (teacher) I18n.sync(SchoolActivity.services(requireContext()).site)
+                val english = teacher && I18n.lang != I18n.DEFAULT
+                val b2 = _binding ?: return@launch
+                b2.welcome.text = buildSpannedString {
+                    if (english) {
+                        val text = I18n.tr("{name} 선생님, 안녕하세요!", "name" to name)
+                        val at = text.indexOf(name)
+                        if (at < 0) append(text)
+                        else { append(text.substring(0, at)); bold { append(name) }; append(text.substring(at + name.length)) }
+                    } else if (teacher) {
                         bold { append(getString(R.string.home_welcome_teacher_name, name)) }
                         append(getString(R.string.home_welcome_teacher_suffix))
                     } else {

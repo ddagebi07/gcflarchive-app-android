@@ -142,6 +142,28 @@
             android:text="@string/settings_school_section"
             android:textAppearance="@style/TextAppearance.Gcfl.Section" />
 
+        <!-- 화면 언어: 선생님 계정에만 보여요 (글자는 코드에서 I18n으로 넣어요). -->
+        <LinearLayout
+            android:id="@+id/rowLanguage"
+            style="@style/Widget.Gcfl.SettingsRow"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/languageLabel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+            <TextView
+                android:id="@+id/languageValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:textColor="@color/brand_primary" />
+        </LinearLayout>
+
         <com.google.android.material.materialswitch.MaterialSwitch
             android:id="@+id/switchTimetableFull"
             android:layout_width="match_parent"
