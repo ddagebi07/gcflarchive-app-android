@@ -46,7 +46,7 @@ actual fun rememberImagePicker(max: Int, onPicked: (List<UploadFile>) -> Unit): 
 actual fun PlatformBackHandler(enabled: Boolean, onBack: () -> Unit) = Unit
 
 @Composable
-actual fun PlaceMap(pins: List<MapPin>, selected: Place?, onSelect: (Place) -> Unit, modifier: Modifier) {
+actual fun PlaceMap(pins: List<MapPin>, selected: Place?, onSelect: (Place) -> Unit, modifier: Modifier, onInteract: () -> Unit) {
     Column(modifier) { Text("지도는 휴대폰 앱에서 표시됩니다. (${pins.size}곳)") }
 }
 

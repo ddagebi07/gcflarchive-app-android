@@ -127,7 +127,7 @@ private fun uploadablePhoto(ctx: Context, uri: Uri, n: Int): UploadFile? {
 actual fun PlatformBackHandler(enabled: Boolean, onBack: () -> Unit) = BackHandler(enabled, onBack)
 
 @Composable
-actual fun PlaceMap(pins: List<MapPin>, selected: Place?, onSelect: (Place) -> Unit, modifier: Modifier) {
+actual fun PlaceMap(pins: List<MapPin>, selected: Place?, onSelect: (Place) -> Unit, modifier: Modifier, onInteract: () -> Unit) {
     // Not used by the Android app yet (it has its own colored pins in MapActivity): plain markers.
     val places = pins.map { it.place }
     AndroidView(
@@ -144,6 +144,8 @@ actual fun PlaceMap(pins: List<MapPin>, selected: Place?, onSelect: (Place) -> U
                 controller.setZoom(16.5)
                 controller.setCenter(GeoPoint(37.4313541, 126.9892723))
                 overlays.add(CopyrightOverlay(ctx))
+                // A touch on the map folds the list away; a marker tap (on finger up) opens it again.
+                setOnTouchListener { _, e -> if (e.actionMasked == android.view.MotionEvent.ACTION_DOWN) onInteract(); false }
             }
         },
         update = { map ->

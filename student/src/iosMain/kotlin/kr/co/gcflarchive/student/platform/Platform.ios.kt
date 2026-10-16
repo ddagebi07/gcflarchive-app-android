@@ -59,6 +59,14 @@ import platform.UIKit.UIDocumentPickerViewController
 import platform.UIKit.UIImage
 import platform.UIKit.UIImageJPEGRepresentation
 import platform.UIKit.UIUserInterfaceStyle
+import platform.UIKit.UIView
+import platform.UIKit.UIGestureRecognizer
+import platform.UIKit.UIGestureRecognizerDelegateProtocol
+import platform.UIKit.UIGestureRecognizerStateBegan
+import platform.UIKit.UIGestureRecognizerStateChanged
+import platform.UIKit.UITapGestureRecognizer
+import platform.Foundation.NSSelectorFromString
+import kotlinx.cinterop.ObjCAction
 import platform.UIKit.UIViewController
 import platform.UIKit.UIWindow
 import platform.UIKit.popoverPresentationController
@@ -184,7 +192,37 @@ actual fun PlatformBackHandler(enabled: Boolean, onBack: () -> Unit) = Unit
 
 private const val PIN_ID = "pin"
 
-private class MapDelegate(var pins: Map<MKPointAnnotation, MapPin>, var onSelect: (Place) -> Unit) : NSObject(), MKMapViewDelegateProtocol {
+private class MapDelegate(var pins: Map<MKPointAnnotation, MapPin>, var onSelect: (Place) -> Unit) : NSObject(), MKMapViewDelegateProtocol,
+    UIGestureRecognizerDelegateProtocol {
+    var onInteract: () -> Unit = {}
+    /** What the map last showed (pins + selected), so a redraw for another reason doesn't re-zoom. */
+    var shownKey: String? = null
+
+    /** Drag / pinch by the user (not our own setRegion): fold the list away. */
+    @ObjCSignatureOverride
+    override fun mapView(mapView: MKMapView, regionWillChangeAnimated: Boolean) {
+        val gestures = (mapView.subviews.firstOrNull() as? UIView)?.gestureRecognizers.orEmpty()
+        if (gestures.any { (it as? UIGestureRecognizer)?.state.let { s -> s == UIGestureRecognizerStateBegan || s == UIGestureRecognizerStateChanged } }) onInteract()
+    }
+
+    /** A tap on an empty spot (not on a pin) also folds the list. */
+    @ObjCAction
+    fun mapTapped(recognizer: UITapGestureRecognizer) {
+        val map = recognizer.view ?: return
+        var hit: UIView? = map.hitTest(recognizer.locationInView(map), withEvent = null)
+        while (hit != null) {
+            if (hit is MKAnnotationView) return
+            hit = hit.superview
+        }
+        onInteract()
+    }
+
+    @ObjCSignatureOverride
+    override fun gestureRecognizer(
+        gestureRecognizer: UIGestureRecognizer,
+        shouldRecognizeSimultaneouslyWithGestureRecognizer: UIGestureRecognizer,
+    ): Boolean = true
+
     @ObjCSignatureOverride
     override fun mapView(mapView: MKMapView, didSelectAnnotationView: MKAnnotationView) {
         val annotation = didSelectAnnotationView.annotation as? MKPointAnnotation ?: return
@@ -213,18 +251,27 @@ private fun uiColor(argb: Long): UIColor = UIColor.colorWithRed(
 )
 
 @Composable
-actual fun PlaceMap(pins: List<MapPin>, selected: Place?, onSelect: (Place) -> Unit, modifier: Modifier) {
+actual fun PlaceMap(pins: List<MapPin>, selected: Place?, onSelect: (Place) -> Unit, modifier: Modifier, onInteract: () -> Unit) {
     val delegate = remember { MapDelegate(emptyMap(), onSelect) }
     delegate.onSelect = onSelect
+    delegate.onInteract = onInteract
     UIKitView(
         factory = {
             MKMapView().apply {
                 this.delegate = delegate
                 setRegion(MKCoordinateRegionMakeWithDistance(CLLocationCoordinate2DMake(37.4313541, 126.9892723), 1500.0, 1500.0), animated = false)
+                addGestureRecognizer(UITapGestureRecognizer(target = delegate, action = NSSelectorFromString("mapTapped:")).apply {
+                    cancelsTouchesInView = false
+                    this.delegate = delegate
+                })
             }
         },
         modifier = modifier,
         update = { map ->
+            // Only when the pins or the selected place changed (e.g. not when the side list folds).
+            val key = pins.joinToString { "${it.place.id}:${it.label}:${it.colorArgb}" } + "|" + selected?.id
+            if (key == delegate.shownKey) return@UIKitView
+            delegate.shownKey = key
             map.removeAnnotations(map.annotations)
             val byAnnotation = pins.associateBy { pin ->
                 MKPointAnnotation().apply {

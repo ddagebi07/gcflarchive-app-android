@@ -251,8 +251,13 @@ class MapActivity : AppCompatActivity() {
         map.controller.setZoom(16.5)
         map.controller.setCenter(SCHOOL)
         map.overlays += CopyrightOverlay(this)
-        map.setOnTouchListener { _, _ ->
+        map.setOnTouchListener { _, e ->
             hideKeyboard()
+            // 지도를 만지면(끌기·확대·누르기) 아래 목록을 접어 지도를 넓게 보여요. 검색창과 후기 핀은 그대로,
+            // 핀을 누르면 (손을 뗄 때) select()가 목록을 다시 펼쳐요.
+            if (e.actionMasked == android.view.MotionEvent.ACTION_DOWN &&
+                (sheet.state == BottomSheetBehavior.STATE_EXPANDED || sheet.state == BottomSheetBehavior.STATE_HALF_EXPANDED)
+            ) sheet.state = BottomSheetBehavior.STATE_COLLAPSED
             false
         }
     }

@@ -1,5 +1,12 @@
 package kr.co.gcflarchive.student.map
 
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import kr.co.gcflarchive.student.platform.MapPin
 import kr.co.gcflarchive.core.util.fixed
 import kr.co.gcflarchive.core.map.RecommendedIndex
@@ -11,6 +18,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import kr.co.gcflarchive.student.ui.tr
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Box
@@ -124,6 +133,8 @@ fun MapScreen(placeId: String?, placeName: String?) {
     var recommended by remember { mutableStateOf(RecommendedIndex.EMPTY) }
     var hiddenTypes by remember { mutableStateOf<Set<String>>(emptySet()) }
     var recommendedVersion by remember { mutableIntStateOf(0) }
+    // 옆(폰: 아래) 목록 펼치기/접기: 지도를 만지면 접히고, 핀을 누르거나 검색하면 다시 펼쳐져요. 검색창은 늘 떠 있어요.
+    var expanded by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) { stats = runCatching { app.services.map.stats() }.getOrDefault(emptyMap()) }
     LaunchedEffect(recommendedVersion) {
@@ -159,6 +170,7 @@ fun MapScreen(placeId: String?, placeName: String?) {
                     val places = found.places
                     results = places
                     selected = null
+                    expanded = true
                     resultsTitle = when {
                         found.limited && places.isEmpty() -> "지금은 후기가 있는 장소만 찾을 수 있는데, 맞는 장소가 없어요."
                         found.limited -> "후기가 있는 장소에서 ${places.size}곳 찾았어요"
@@ -178,6 +190,7 @@ fun MapScreen(placeId: String?, placeName: String?) {
             favoriteIds = favs.map { it.id }.toSet()
             results = favs
             selected = null
+            expanded = true
             resultsTitle = if (favs.isEmpty()) "즐겨찾기한 장소가 없어요." else "즐겨찾기 장소 ${favs.size}곳"
             busy = false
         }
@@ -194,20 +207,9 @@ fun MapScreen(placeId: String?, placeName: String?) {
         },
     ) {
         val panel: @Composable ColumnScope.() -> Unit = {
-            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                OutlinedTextField(
-                    value = query,
-                    onValueChange = { query = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    placeholder = { Text("상호명 또는 키워드 (과천시 내)") },
-                    trailingIcon = { IconButton(onClick = ::search) { Icon(Icons.Filled.Search, "검색") } },
-                    shape = RoundedCornerShape(8.dp),
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                    keyboardActions = KeyboardActions(onSearch = { search() }),
-                )
+            Column(Modifier.padding(horizontal = 14.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("식당·카페·학원 등 · #해시태그 검색 가능", style = KrdsText.meta, modifier = Modifier.weight(1f))
+                    Text("식당·카페·학원 등 · #해시태그", style = KrdsText.label, modifier = Modifier.weight(1f))
                     if (user.verified) KrdsChip("★ 즐겨찾기", false, ::showFavorites)
                 }
                 if (busy) LinearProgressIndicator(Modifier.fillMaxWidth(), color = Krds.colors.primary)
@@ -228,7 +230,7 @@ fun MapScreen(placeId: String?, placeName: String?) {
                     },
                 )
             } else {
-                Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                Column(Modifier.padding(horizontal = 14.dp, vertical = 6.dp)) {
                     resultsTitle?.let { Text(it, style = KrdsText.label, modifier = Modifier.padding(vertical = 6.dp)) }
                     if (resultsTitle == null) {
                         RecommendedList(recommended, hiddenTypes, onToggleType = { t -> hiddenTypes = if (t in hiddenTypes) hiddenTypes - t else hiddenTypes + t }) { selected = it }
@@ -236,7 +238,7 @@ fun MapScreen(placeId: String?, placeName: String?) {
                     results.forEachIndexed { i, p ->
                         if (i > 0) Hairline()
                         val reviews = stats[p.id]?.reviewCount ?: 0
-                        Row(Modifier.fillMaxWidth().clickable { selected = p }.padding(vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Row(Modifier.fillMaxWidth().clickable { selected = p }.padding(vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                             Column(Modifier.weight(1f)) {
                                 Text(p.name, style = KrdsText.cardTitle)
                                 Text(p.displayAddress, style = KrdsText.meta)
@@ -261,15 +263,32 @@ fun MapScreen(placeId: String?, placeName: String?) {
             val recIds = recPins.map { it.place.id }.toSet()
             val extra = results.ifEmpty { listOfNotNull(selected) }.filter { it.id !in recIds }.map { MapPin(it) }
             val shownPlaces = recPins + extra
-            if (maxWidth >= 700.dp) {
-                Row(Modifier.fillMaxSize()) {
-                    Column(Modifier.width(380.dp).fillMaxHeight().verticalScroll(rememberScrollState()), content = panel)
-                    PlaceMap(shownPlaces, selected, { selected = it }, Modifier.weight(1f).fillMaxHeight())
-                }
-            } else {
-                Column(Modifier.fillMaxSize()) {
-                    PlaceMap(shownPlaces, selected, { selected = it }, Modifier.fillMaxWidth().weight(0.42f))
-                    Column(Modifier.fillMaxWidth().weight(0.58f).verticalScroll(rememberScrollState()), content = panel)
+            val wide = maxWidth >= 700.dp
+            val panelMaxHeight = if (wide) maxHeight else maxHeight * 0.55f
+            // The map fills the screen; the 후기 pins always stay on it.
+            PlaceMap(
+                shownPlaces, selected,
+                onSelect = { selected = it; expanded = true },      // 핀을 누르면 목록(장소 정보)이 다시 나와요
+                modifier = Modifier.fillMaxSize(),
+                onInteract = { if (expanded) { expanded = false; focus.clearFocus() } },  // 지도를 만지면 접혀요
+            )
+            // Top-left (폰: 위쪽 전체 폭): the slim search bar, always; the list card under it while expanded.
+            Column(
+                Modifier.padding(10.dp).then(if (wide) Modifier.width(340.dp) else Modifier.fillMaxWidth()),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                MapSearchBar(
+                    query, { query = it }, onSearch = ::search,
+                    expanded = expanded, onToggle = { expanded = !expanded },
+                )
+                if (expanded) {
+                    val shape = RoundedCornerShape(16.dp)
+                    Column(
+                        Modifier.fillMaxWidth().heightIn(max = panelMaxHeight - 76.dp)
+                            .shadow(6.dp, shape).clip(shape).background(Krds.colors.surface)
+                            .verticalScroll(rememberScrollState()),
+                        content = panel,
+                    )
                 }
             }
         }
@@ -278,6 +297,35 @@ fun MapScreen(placeId: String?, placeName: String?) {
     if (askNickname) NicknameDialog(app, onDismiss = { askNickname = false }) { name -> user = user.copy(nickname = name); askNickname = false }
     if (registerDialog) RegisterPlaceDialog(app, query, onDismiss = { registerDialog = false })
     scheduleFor?.let { p -> ScheduleDialog(app, p, stats[p.id]?.schedule.orEmpty(), onDismiss = { scheduleFor = null }) }
+}
+
+/**
+ * The floating search bar (slim, 46dp): 검색어 · 검색 · 목록 펼치기/접기. Stays at the top-left of the map
+ * even when the list is folded away.
+ */
+@Composable
+private fun MapSearchBar(query: String, onQuery: (String) -> Unit, onSearch: () -> Unit, expanded: Boolean, onToggle: () -> Unit) {
+    val k = Krds.colors
+    val shape = RoundedCornerShape(12.dp)
+    Row(
+        Modifier.fillMaxWidth().height(46.dp).shadow(6.dp, shape).clip(shape).background(k.surface).padding(start = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
+            if (query.isEmpty()) Text(tr("상호명 또는 키워드 (과천시 내)"), style = KrdsText.body.copy(color = k.textSecondary), maxLines = 1)
+            BasicTextField(
+                value = query, onValueChange = onQuery, singleLine = true,
+                textStyle = KrdsText.body, cursorBrush = SolidColor(k.primary),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                keyboardActions = KeyboardActions(onSearch = { onSearch() }),
+                modifier = Modifier.fillMaxWidth().semantics { contentDescription = tr("장소 검색") },
+            )
+        }
+        IconButton(onClick = onSearch) { Icon(Icons.Filled.Search, tr("검색"), tint = k.textSecondary) }
+        IconButton(onClick = onToggle) {
+            Icon(if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore, if (expanded) tr("목록 접기") else tr("목록 펼치기"), tint = k.textSecondary)
+        }
+    }
 }
 
 /** 극플인의 추천: places with 후기, most reviewed first; 업종 chips show / hide their pins. */

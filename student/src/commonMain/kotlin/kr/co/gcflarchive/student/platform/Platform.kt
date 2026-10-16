@@ -43,7 +43,14 @@ data class MapPin(val place: Place, val colorArgb: Long? = null, val label: Stri
 
 /** Map with one marker per pin: Apple 지도 on iOS, OpenStreetMap on Android. */
 @Composable
-expect fun PlaceMap(pins: List<MapPin>, selected: Place?, onSelect: (Place) -> Unit, modifier: Modifier)
+expect fun PlaceMap(
+    pins: List<MapPin>,
+    selected: Place?,
+    onSelect: (Place) -> Unit,
+    modifier: Modifier,
+    /** The user touched the map itself (drag, pinch, tap on an empty spot; not a pin): 지도 화면이 옆 목록을 접어요. */
+    onInteract: () -> Unit = {},
+)
 
 /** A local notification to deliver at [at] (device time zone). */
 data class ScheduledNotice(val id: String, val at: LocalDateTime, val title: String, val body: String)
