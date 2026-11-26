@@ -10,8 +10,10 @@ A small stand-alone Android app, separate from the GCFL archive apps:
    for next time), then choose position (3×3 grid), size (% of photo width), opacity and distance
    from the edge. The preview updates live on the first picked photo.
 
-Pick many photos at once, or share them from a gallery app to **JPG Tool**. Results are saved to
-`Pictures/JPG Tool` as `<name>_small.jpg` and can be shared straight from the app. Photos are
+Pick many photos at once, pick a **whole folder** (optionally with its subfolders, up to 5000 photos),
+or share photos from a gallery app to **JPG Tool**. Results are saved as `<name>_small.jpg` to
+`Pictures/JPG Tool`, or to **any folder you choose** (remembered; the system folder picker grants
+lasting access to it). Originals are never changed. Results can be shared straight from the app. Photos are
 rotated upright from their EXIF orientation; other metadata (including GPS location) is not copied.
 All settings are remembered. UI in English and Korean.
 
@@ -28,6 +30,7 @@ GitHub Actions uploads the debug APK as the `jpg-tool-debug-apk` artifact. minSd
 
 ```
 Logic.kt           Settings, Anchor, watermark placement, quality binary search (pure Kotlin, unit tested)
+Folders.kt         folder picker (SAF): list photos in a folder tree, save into a chosen folder
 ImageProcessor.kt  decode (EXIF rotation, memory-safe sampling) → watermark → compress → save (MediaStore)
 MainViewModel.kt   state, saved settings, live preview, batch processing
 MainActivity.kt    Compose UI, photo/logo pickers, share in/out

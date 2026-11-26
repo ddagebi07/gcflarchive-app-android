@@ -6,7 +6,7 @@
     <string name="section_photos">1. 사진</string>
     <string name="pick_photos">사진 고르기</string>
     <string name="clear">비우기</string>
-    <string name="no_photos">아직 고른 사진이 없어요. 갤러리에서 JPG 도구로 공유해도 돼요.</string>
+    <string name="no_photos">아직 고른 사진이 없어요. 사진이나 폴더를 고르거나, 갤러리에서 JPG 도구로 공유해도 돼요.</string>
     <string name="photos_count">사진 %1$d장 · 모두 %2$s</string>
     <string name="and_more">…외 %1$d장</string>
 
@@ -56,4 +56,19 @@
     <string name="pos_BOTTOM_LEFT">왼쪽 아래</string>
     <string name="pos_BOTTOM_CENTER">아래</string>
     <string name="pos_BOTTOM_RIGHT">오른쪽 아래</string>
+
+    <string name="pick_folder">폴더 고르기</string>
+    <string name="include_subfolders">폴더를 고를 때 하위 폴더도 포함</string>
+    <string name="scanning">폴더에서 사진을 찾는 중…</string>
+    <string name="from_folder">폴더: %1$s</string>
+    <string name="folder_empty">“%1$s” 폴더에 사진이 없어요.</string>
+    <string name="folder_capped">처음 %1$d장만 추가했어요.</string>
+    <string name="err_folder">폴더를 읽지 못했어요: %1$s</string>
+    <string name="section_save">4. 저장 위치</string>
+    <string name="save_default">사진/JPG Tool (기본)</string>
+    <string name="save_custom">폴더: %1$s</string>
+    <string name="save_hint">IMG_0001_small.jpg 같은 이름으로 저장해요. 원본은 바꾸지 않아요.</string>
+    <string name="change_save_folder">저장 폴더 고르기</string>
+    <string name="use_default_folder">기본 폴더로</string>
+    <string name="saved_to_custom">“%1$s” 폴더에 저장했어요</string>
 </resources>

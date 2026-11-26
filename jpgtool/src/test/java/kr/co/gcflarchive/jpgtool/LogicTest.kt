@@ -70,4 +70,15 @@ class LogicTest {
         assertEquals("IMG_001_small.jpg", ImageProcessor.outputName("IMG_001.JPG"))
         assertEquals("photo_small.jpg", ImageProcessor.outputName(".jpg"))
     }
+
+    @Test fun photoFilter() {
+        assertTrue(isPhoto("IMG_1.jpg", "image/jpeg"))
+        assertTrue(isPhoto("a.png", "image/png"))
+        assertTrue(isPhoto("B.JPEG", null))
+        assertTrue(isPhoto("c.heic", "application/octet-stream"))
+        assertTrue(!isPhoto("notes.txt", "text/plain"))
+        assertTrue(!isPhoto("logo.svg", "image/svg+xml"))
+        assertTrue(!isPhoto(".trashed-123-IMG.jpg", "image/jpeg"))
+        assertTrue(!isPhoto("video.mp4", null))
+    }
 }

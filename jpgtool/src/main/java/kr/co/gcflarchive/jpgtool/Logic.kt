@@ -20,6 +20,8 @@ data class Settings(
     val unit: SizeUnit = SizeUnit.KB,
     /** If a JPG is already small enough (and nothing else changes it), save it untouched. */
     val keepIfSmaller: Boolean = true,
+    /** When picking a folder, also take photos from its subfolders. */
+    val includeSubfolders: Boolean = false,
     /** Longest side in pixels as typed; blank = keep the original resolution. */
     val maxSideText: String = "",
     val watermark: Boolean = false,

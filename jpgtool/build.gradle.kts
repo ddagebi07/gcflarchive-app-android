@@ -14,8 +14,8 @@ android {
         applicationId = "kr.co.gcflarchive.jpgtool"
         minSdk = 26
         targetSdk = 35
-        versionName = "1.0.0"
-        versionCode = 10000
+        versionName = "1.1.0"
+        versionCode = 10100
     }
 
     buildTypes {

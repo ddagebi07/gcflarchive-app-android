@@ -39,6 +39,12 @@ data class UiState(
     val done: Int = 0,
     val results: List<ResultItem> = emptyList(),
     val message: String? = null,
+    /** Name of the folder the photos came from, when picked as a folder. */
+    val sourceFolder: String? = null,
+    val scanning: Boolean = false,
+    /** Chosen save folder (SAF tree), or null for the default Pictures/JPG Tool. */
+    val saveFolder: Uri? = null,
+    val saveFolderName: String? = null,
 )
 
 class MainViewModel(app: Application) : AndroidViewModel(app) {
@@ -46,7 +52,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     private val logoFile = File(app.filesDir, "logo.png")
     private val outDir = File(app.cacheDir, "out")
 
-    private val _state = MutableStateFlow(UiState(settings = loadSettings()))
+    private val _state = MutableStateFlow(UiState(settings = loadSettings()).withSaveFolder(app))
     val state: StateFlow<UiState> = _state
 
     /** First picked photo decoded small, the base for the live preview. */
@@ -69,7 +75,34 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             val images = withContext(Dispatchers.IO) {
                 uris.distinct().mapNotNull { runCatching { ImageProcessor.describe(ctx, it) }.getOrNull() }
             }
-            _state.update { it.copy(images = images, results = emptyList()) }
+            showImages(images, folder = null)
+        }
+    }
+
+    /** All photos in a folder picked with the system folder picker. */
+    fun setFolder(tree: Uri) {
+        val recursive = _state.value.settings.includeSubfolders
+        _state.update { it.copy(scanning = true) }
+        viewModelScope.launch {
+            val found = withContext(Dispatchers.IO) {
+                runCatching { Folders.displayName(ctx, tree) to Folders.listImages(ctx, tree, recursive) }
+            }
+            _state.update { it.copy(scanning = false) }
+            found.onFailure { e -> showMessage(ctx.getString(R.string.err_folder, e.message ?: e.javaClass.simpleName)) }
+            found.onSuccess { (name, images) ->
+                if (images.isEmpty()) showMessage(ctx.getString(R.string.folder_empty, name))
+                else {
+                    if (images.size >= Folders.MAX_FILES) showMessage(ctx.getString(R.string.folder_capped, Folders.MAX_FILES))
+                    showImages(images, folder = name)
+                }
+            }
+        }
+    }
+
+    private fun showImages(images: List<InputImage>, folder: String?) {
+        if (images.isEmpty()) return
+        viewModelScope.launch {
+            _state.update { it.copy(images = images, results = emptyList(), sourceFolder = folder) }
             previewBase = withContext(Dispatchers.Default) {
                 images.firstOrNull()?.let { runCatching { ImageProcessor.decode(ctx, it.uri, 1080) }.getOrNull() }
             }
@@ -79,7 +112,34 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun clearImages() {
         previewBase = null
-        _state.update { it.copy(images = emptyList(), results = emptyList(), preview = null) }
+        _state.update { it.copy(images = emptyList(), results = emptyList(), preview = null, sourceFolder = null) }
+    }
+
+    /** Save results into [tree] from now on (remembered across restarts). */
+    fun setSaveFolder(tree: Uri) {
+        _state.value.saveFolder?.takeIf { it != tree }?.let { Folders.releaseAccess(ctx, it) }
+        Folders.keepAccess(ctx, tree, write = true)
+        prefs.edit().putString("saveFolder", tree.toString()).apply()
+        viewModelScope.launch {
+            val name = withContext(Dispatchers.IO) { Folders.displayName(ctx, tree) }
+            _state.update { it.copy(saveFolder = tree, saveFolderName = name) }
+        }
+    }
+
+    /** Back to Pictures/JPG Tool. */
+    fun resetSaveFolder() {
+        _state.value.saveFolder?.let { Folders.releaseAccess(ctx, it) }
+        prefs.edit().remove("saveFolder").apply()
+        _state.update { it.copy(saveFolder = null, saveFolderName = null) }
+    }
+
+    private fun UiState.withSaveFolder(app: Application): UiState {
+        val tree = prefs.getString("saveFolder", null)?.let(Uri::parse) ?: return this
+        if (!Folders.canWrite(app, tree)) { // access was revoked or the folder is gone
+            prefs.edit().remove("saveFolder").apply()
+            return this
+        }
+        return copy(saveFolder = tree, saveFolderName = runCatching { Folders.displayName(app, tree) }.getOrNull())
     }
 
     fun setLogo(uri: Uri) {
@@ -131,6 +191,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         if (st.working || st.images.isEmpty() || st.settings.targetBytes == null || st.settings.maxSide == null) return
         val settings = st.settings
         val logo = st.logo
+        val saveFolder = st.saveFolder
         _state.update { it.copy(working = true, done = 0, results = emptyList()) }
         viewModelScope.launch {
             withContext(Dispatchers.IO) { outDir.deleteRecursively(); outDir.mkdirs() }
@@ -139,12 +200,16 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                     try {
                         val out = ImageProcessor.process(ctx, img, settings, logo)
                         val name = ImageProcessor.outputName(img.name)
-                        ImageProcessor.save(ctx, name, out.bytes)
-                        val cached = File(outDir, name).apply { writeBytes(out.bytes) }
+                        val saved = if (saveFolder != null) Folders.save(ctx, saveFolder, name, out.bytes)
+                        else ImageProcessor.save(ctx, name, out.bytes)
+                        // Android 8–9 default folder gives a file:// Uri, which other apps may not open: share a cache copy.
+                        val shareUri = if (saved.scheme == "file") {
+                            FileProvider.getUriForFile(ctx, ctx.packageName + ".files", File(outDir, name).apply { writeBytes(out.bytes) })
+                        } else saved
                         ResultItem(
                             name = name, originalSize = img.size, newSize = out.bytes.size.toLong(),
                             width = out.width, height = out.height, quality = out.quality, fits = out.fits,
-                            shareUri = FileProvider.getUriForFile(ctx, ctx.packageName + ".files", cached),
+                            shareUri = shareUri,
                         )
                     } catch (e: OutOfMemoryError) {
                         ResultItem(img.name, img.size, error = ctx.getString(R.string.err_memory))
@@ -164,6 +229,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             targetText = prefs.getString("target", d.targetText)!!,
             unit = runCatching { SizeUnit.valueOf(prefs.getString("unit", d.unit.name)!!) }.getOrDefault(d.unit),
             keepIfSmaller = prefs.getBoolean("keep", d.keepIfSmaller),
+            includeSubfolders = prefs.getBoolean("subfolders", d.includeSubfolders),
             maxSideText = prefs.getString("maxSide", d.maxSideText)!!,
             watermark = prefs.getBoolean("wm", d.watermark),
             anchor = runCatching { Anchor.valueOf(prefs.getString("anchor", d.anchor.name)!!) }.getOrDefault(d.anchor),
@@ -178,6 +244,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             .putString("target", s.targetText)
             .putString("unit", s.unit.name)
             .putBoolean("keep", s.keepIfSmaller)
+            .putBoolean("subfolders", s.includeSubfolders)
             .putString("maxSide", s.maxSideText)
             .putBoolean("wm", s.watermark)
             .putString("anchor", s.anchor.name)

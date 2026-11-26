@@ -6,7 +6,7 @@
     <string name="section_photos">1. Photos</string>
     <string name="pick_photos">Choose photos</string>
     <string name="clear">Clear</string>
-    <string name="no_photos">No photos yet. You can also share photos to JPG Tool from your gallery.</string>
+    <string name="no_photos">No photos yet. Pick photos or a whole folder, or share photos to JPG Tool from your gallery.</string>
     <string name="photos_count">%1$d photos · %2$s in total</string>
     <string name="and_more">…and %1$d more</string>
 
@@ -56,4 +56,19 @@
     <string name="pos_BOTTOM_LEFT">Bottom left</string>
     <string name="pos_BOTTOM_CENTER">Bottom</string>
     <string name="pos_BOTTOM_RIGHT">Bottom right</string>
+
+    <string name="pick_folder">Choose folder</string>
+    <string name="include_subfolders">Include subfolders when choosing a folder</string>
+    <string name="scanning">Looking for photos in the folder…</string>
+    <string name="from_folder">From folder: %1$s</string>
+    <string name="folder_empty">No photos found in “%1$s”.</string>
+    <string name="folder_capped">Only the first %1$d photos were added.</string>
+    <string name="err_folder">Could not read that folder: %1$s</string>
+    <string name="section_save">4. Save to</string>
+    <string name="save_default">Pictures/JPG Tool (default)</string>
+    <string name="save_custom">Folder: %1$s</string>
+    <string name="save_hint">Files are named like IMG_0001_small.jpg. Originals are never changed.</string>
+    <string name="change_save_folder">Choose save folder</string>
+    <string name="use_default_folder">Use default</string>
+    <string name="saved_to_custom">Saved to folder “%1$s”</string>
 </resources>

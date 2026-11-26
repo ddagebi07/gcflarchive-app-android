@@ -138,6 +138,8 @@ private fun MainScreen(state: UiState, vm: MainViewModel) {
     val s = state.settings
 
     val pickPhotos = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia()) { vm.setImages(it) }
+    val pickFolder = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { it?.let(vm::setFolder) }
+    val pickSaveFolder = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { it?.let(vm::setSaveFolder) }
     val pickLogo = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { it?.let(vm::setLogo) }
     val permissionText = stringResource(R.string.err_storage_permission)
     val askStorage = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -149,7 +151,8 @@ private fun MainScreen(state: UiState, vm: MainViewModel) {
     }
 
     fun start() {
-        val needsPermission = Build.VERSION.SDK_INT < Build.VERSION_CODES.Q &&
+        // Only the default Pictures/JPG Tool folder on Android 8–9 needs the storage permission.
+        val needsPermission = state.saveFolder == null && Build.VERSION.SDK_INT < Build.VERSION_CODES.Q &&
             ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
         if (needsPermission) askStorage.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE) else vm.start()
     }
@@ -167,20 +170,43 @@ private fun MainScreen(state: UiState, vm: MainViewModel) {
 
             item {
                 Section(stringResource(R.string.section_photos)) {
+                    val busy = state.working || state.scanning
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(
                             onClick = { pickPhotos.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
-                            enabled = !state.working,
+                            enabled = !busy,
+                            modifier = Modifier.weight(1f),
                         ) { Text(stringResource(R.string.pick_photos)) }
-                        if (state.images.isNotEmpty()) {
-                            OutlinedButton(onClick = vm::clearImages, enabled = !state.working) { Text(stringResource(R.string.clear)) }
-                        }
+                        Button(
+                            onClick = { pickFolder.launch(null) },
+                            enabled = !busy,
+                            modifier = Modifier.weight(1f),
+                        ) { Text(stringResource(R.string.pick_folder)) }
                     }
-                    if (state.images.isEmpty()) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth().clickable(enabled = !busy) { vm.update { it.copy(includeSubfolders = !it.includeSubfolders) } },
+                    ) {
+                        Checkbox(checked = s.includeSubfolders, onCheckedChange = null, enabled = !busy)
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.include_subfolders), style = MaterialTheme.typography.bodyMedium)
+                    }
+                    if (state.scanning) {
+                        Text(stringResource(R.string.scanning), style = MaterialTheme.typography.bodySmall)
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    } else if (state.images.isEmpty()) {
                         Text(stringResource(R.string.no_photos), style = MaterialTheme.typography.bodySmall)
                     } else {
                         val total = state.images.sumOf { it.size.coerceAtLeast(0) }
-                        Text(stringResource(R.string.photos_count, state.images.size, formatBytes(total)), fontWeight = FontWeight.Medium)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f)) {
+                                state.sourceFolder?.let {
+                                    Text(stringResource(R.string.from_folder, it), style = MaterialTheme.typography.bodySmall)
+                                }
+                                Text(stringResource(R.string.photos_count, state.images.size, formatBytes(total)), fontWeight = FontWeight.Medium)
+                            }
+                            TextButton(onClick = vm::clearImages, enabled = !busy) { Text(stringResource(R.string.clear)) }
+                        }
                         state.images.take(5).forEach {
                             Text("• ${it.name}  (${if (it.size >= 0) formatBytes(it.size) else "?"})", style = MaterialTheme.typography.bodySmall)
                         }
@@ -276,6 +302,24 @@ private fun MainScreen(state: UiState, vm: MainViewModel) {
                 }
             }
 
+            item {
+                Section(stringResource(R.string.section_save)) {
+                    Text(
+                        state.saveFolderName?.let { stringResource(R.string.save_custom, it) } ?: stringResource(R.string.save_default),
+                        fontWeight = FontWeight.Medium,
+                    )
+                    Text(stringResource(R.string.save_hint), style = MaterialTheme.typography.bodySmall)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(onClick = { pickSaveFolder.launch(state.saveFolder) }, enabled = !state.working) {
+                            Text(stringResource(R.string.change_save_folder))
+                        }
+                        if (state.saveFolder != null) {
+                            TextButton(onClick = vm::resetSaveFolder, enabled = !state.working) { Text(stringResource(R.string.use_default_folder)) }
+                        }
+                    }
+                }
+            }
+
             state.preview?.let { preview ->
                 item {
                     Section(stringResource(R.string.section_preview)) {
@@ -291,7 +335,7 @@ private fun MainScreen(state: UiState, vm: MainViewModel) {
             }
 
             item {
-                val ready = state.images.isNotEmpty() && s.targetBytes != null && s.maxSide != null && !state.working
+                val ready = state.images.isNotEmpty() && !state.scanning && s.targetBytes != null && s.maxSide != null && !state.working
                 Button(onClick = ::start, enabled = ready, modifier = Modifier.fillMaxWidth().height(52.dp)) {
                     Text(
                         if (state.working) stringResource(R.string.working, state.done, state.images.size)
@@ -311,7 +355,9 @@ private fun MainScreen(state: UiState, vm: MainViewModel) {
                 item {
                     Section(stringResource(R.string.section_results)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(stringResource(R.string.saved_to), style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
+                            Text(
+                                state.saveFolderName?.let { stringResource(R.string.saved_to_custom, it) } ?: stringResource(R.string.saved_to),
+                                style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
                             val shareable = state.results.mapNotNull { it.shareUri }
                             if (shareable.isNotEmpty() && !state.working) {
                                 TextButton(onClick = { share(context, shareable) }) { Text(stringResource(R.string.share_all)) }
