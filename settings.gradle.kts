@@ -19,3 +19,5 @@ include(":admin")
 // Shared with iPhone / iPad (Kotlin Multiplatform): see README "iPhone · iPad".
 include(":core")
 include(":student")
+// Stand-alone JPG compressor + watermark app (jpgtool/README.md).
+include(":jpgtool")

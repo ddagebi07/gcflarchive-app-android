@@ -20,7 +20,7 @@ jobs:
 
       # Also compiles the shared modules (:core, :student) for Android and runs core tests.
       - name: Test, build debug APK, lint
-        run: ./gradlew --no-daemon testDebugUnitTest assembleDebug :app:lintDebug :admin:lintDebug
+        run: ./gradlew --no-daemon testDebugUnitTest assembleDebug :app:lintDebug :admin:lintDebug :jpgtool:lintDebug
 
       - uses: actions/upload-artifact@v4
         with:
@@ -33,10 +33,16 @@ jobs:
           path: admin/build/outputs/apk/debug/*.apk
 
       - uses: actions/upload-artifact@v4
+        with:
+          name: jpg-tool-debug-apk
+          path: jpgtool/build/outputs/apk/debug/*.apk
+
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: lint-report
           path: |
             app/build/reports/lint-results-debug.html
             admin/build/reports/lint-results-debug.html
+            jpgtool/build/reports/lint-results-debug.html
           if-no-files-found: ignore

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">JPG Tool</string>
+    <string name="subtitle">Shrink photos to a file size and add your logo</string>
+
+    <string name="section_photos">1. Photos</string>
+    <string name="pick_photos">Choose photos</string>
+    <string name="clear">Clear</string>
+    <string name="no_photos">No photos yet. You can also share photos to JPG Tool from your gallery.</string>
+    <string name="photos_count">%1$d photos · %2$s in total</string>
+    <string name="and_more">…and %1$d more</string>
+
+    <string name="section_size">2. Target size</string>
+    <string name="target_label">Max file size</string>
+    <string name="target_invalid">Enter a size of at least 5 KB</string>
+    <string name="keep_if_smaller">Keep photos that are already small enough unchanged</string>
+    <string name="max_side_label">Longest side in pixels (optional)</string>
+    <string name="max_side_hint">Blank = keep resolution. It is reduced only if needed to reach the size.</string>
+    <string name="max_side_invalid">Enter at least 64, or leave blank</string>
+
+    <string name="section_watermark">3. Watermark</string>
+    <string name="watermark_on">Add a logo watermark</string>
+    <string name="pick_logo">Choose logo</string>
+    <string name="change_logo">Change logo</string>
+    <string name="logo_hint">A PNG with a transparent background looks best.</string>
+    <string name="no_logo">No logo chosen yet</string>
+    <string name="position">Position</string>
+    <string name="logo_size">Logo size: %1$d%% of photo width</string>
+    <string name="opacity">Opacity: %1$d%%</string>
+    <string name="margin">Distance from edge: %1$d%%</string>
+
+    <string name="section_preview">Preview</string>
+    <string name="preview_hint">Showing the first photo.</string>
+
+    <string name="start">Compress and save %1$d photos</string>
+    <string name="working">Working… %1$d / %2$d</string>
+    <string name="section_results">Results</string>
+    <string name="saved_to">Saved to Pictures/JPG Tool</string>
+    <string name="share_all">Share</string>
+    <string name="result_line">%1$s → %2$s · %3$d×%4$d</string>
+    <string name="result_quality">quality %1$d</string>
+    <string name="result_kept">already small, kept as is</string>
+    <string name="result_not_fit">could not reach the target; this is the smallest possible</string>
+    <string name="result_error">Failed: %1$s</string>
+
+    <string name="err_logo">Could not read that logo image.</string>
+    <string name="err_memory">Photo too large for this device\'s memory</string>
+    <string name="err_storage_permission">Storage permission is needed to save photos.</string>
+
+    <string name="pos_TOP_LEFT">Top left</string>
+    <string name="pos_TOP_CENTER">Top</string>
+    <string name="pos_TOP_RIGHT">Top right</string>
+    <string name="pos_CENTER_LEFT">Left</string>
+    <string name="pos_CENTER">Center</string>
+    <string name="pos_CENTER_RIGHT">Right</string>
+    <string name="pos_BOTTOM_LEFT">Bottom left</string>
+    <string name="pos_BOTTOM_CENTER">Bottom</string>
+    <string name="pos_BOTTOM_RIGHT">Bottom right</string>
+</resources>

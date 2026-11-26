@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">JPG 도구</string>
+    <string name="subtitle">사진을 원하는 용량으로 줄이고 로고를 넣어요</string>
+
+    <string name="section_photos">1. 사진</string>
+    <string name="pick_photos">사진 고르기</string>
+    <string name="clear">비우기</string>
+    <string name="no_photos">아직 고른 사진이 없어요. 갤러리에서 JPG 도구로 공유해도 돼요.</string>
+    <string name="photos_count">사진 %1$d장 · 모두 %2$s</string>
+    <string name="and_more">…외 %1$d장</string>
+
+    <string name="section_size">2. 목표 용량</string>
+    <string name="target_label">최대 파일 크기</string>
+    <string name="target_invalid">5 KB 이상으로 입력해 주세요</string>
+    <string name="keep_if_smaller">이미 충분히 작은 사진은 그대로 두기</string>
+    <string name="max_side_label">긴 쪽 픽셀 수 (선택)</string>
+    <string name="max_side_hint">비우면 해상도를 유지해요. 용량을 맞추기 어려울 때만 줄여요.</string>
+    <string name="max_side_invalid">64 이상으로 입력하거나 비워 두세요</string>
+
+    <string name="section_watermark">3. 워터마크</string>
+    <string name="watermark_on">로고 워터마크 넣기</string>
+    <string name="pick_logo">로고 고르기</string>
+    <string name="change_logo">로고 바꾸기</string>
+    <string name="logo_hint">배경이 투명한 PNG가 가장 깔끔해요.</string>
+    <string name="no_logo">아직 고른 로고가 없어요</string>
+    <string name="position">위치</string>
+    <string name="logo_size">로고 크기: 사진 너비의 %1$d%%</string>
+    <string name="opacity">불투명도: %1$d%%</string>
+    <string name="margin">가장자리와의 거리: %1$d%%</string>
+
+    <string name="section_preview">미리보기</string>
+    <string name="preview_hint">첫 번째 사진으로 보여 드려요.</string>
+
+    <string name="start">사진 %1$d장 압축해서 저장하기</string>
+    <string name="working">처리 중… %1$d / %2$d</string>
+    <string name="section_results">결과</string>
+    <string name="saved_to">사진/JPG Tool 폴더에 저장했어요</string>
+    <string name="share_all">공유</string>
+    <string name="result_line">%1$s → %2$s · %3$d×%4$d</string>
+    <string name="result_quality">품질 %1$d</string>
+    <string name="result_kept">이미 작아서 그대로 저장</string>
+    <string name="result_not_fit">목표 용량까지 줄이지 못했어요 (가능한 가장 작은 크기)</string>
+    <string name="result_error">실패: %1$s</string>
+
+    <string name="err_logo">로고 이미지를 읽지 못했어요.</string>
+    <string name="err_memory">이 기기 메모리로 처리하기에 사진이 너무 커요</string>
+    <string name="err_storage_permission">사진을 저장하려면 저장소 권한이 필요해요.</string>
+
+    <string name="pos_TOP_LEFT">왼쪽 위</string>
+    <string name="pos_TOP_CENTER">위</string>
+    <string name="pos_TOP_RIGHT">오른쪽 위</string>
+    <string name="pos_CENTER_LEFT">왼쪽</string>
+    <string name="pos_CENTER">가운데</string>
+    <string name="pos_CENTER_RIGHT">오른쪽</string>
+    <string name="pos_BOTTOM_LEFT">왼쪽 아래</string>
+    <string name="pos_BOTTOM_CENTER">아래</string>
+    <string name="pos_BOTTOM_RIGHT">오른쪽 아래</string>
+</resources>
